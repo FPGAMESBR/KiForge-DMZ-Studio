@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiForge: DMZ Form Studio</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <link rel="stylesheet" href="/assets/dmz_form_editor.css" />
+</head>
+<body data-csrf-token="{{CSRF_TOKEN}}">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="/assets/kiforge_logo.png" class="brand-logo-img" alt="KiForge Logo" />
+      <div class="brand-title">
+        <h1 data-i18n="app_title">KiForge: DMZ Form Studio</h1>
+        <div class="brand-meta">
+          <span id="statusSourcePill" class="status-pill modpack">Carregando...</span>
+          <span id="statusCounts">0 raças · 0 transformações</span>
+          <span id="statusPathInfo" class="preset-id-hint" title=""></span>
+          <span id="statusDirtyPill" class="status-pill dirty" style="display:none;" data-i18n="unsaved_changes">Alterações não salvas</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <!-- Language Toggle Switcher -->
+      <button id="btnLangToggle" class="btn btn-lang" title="Alternar Idioma / Toggle Language">🌐 EN</button>
+      <button id="btnOpenAddForm" class="btn btn-emerald" title="Adicionar nova transformação">+ Nova Forma</button>
+      <button id="btnOpenAddons" class="btn btn-amber" title="Gerenciador de Addons e Mods DMZ">🧩 Addons &amp; Mods</button>
+      <button id="btnOpenSettings" class="btn" title="Configurar pastas">⚙️ Pasta Config</button>
+      <button id="btnUndo" class="btn" title="Desfazer (Ctrl+Z)" disabled>↶ Desfazer</button>
+      <button id="btnRedo" class="btn" title="Refazer (Ctrl+Y)" disabled>↷ Refazer</button>
+      <button id="btnOpenBatch" class="btn btn-violet" title="Multiplicar em lote">⚡ Escala em Lote</button>
+      <button id="btnReloadModpack" class="btn" title="Recarregar Modpack">↻ Ler Modpack</button>
+      <button id="btnSaveJson" class="btn btn-cyan" title="Salvar JSON (Ctrl+S)">💾 Salvar JSON</button>
+      <button id="btnApplyModpack" class="btn btn-primary" title="Salvar e Aplicar">🚀 Salvar + Aplicar no Modpack</button>
+    </div>
+  </header>
+
+  <!-- 3-Pane Workspace -->
+  <main class="workspace">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <input id="raceSearchInput" type="text" class="input-field" placeholder="Filtrar raça na lateral..." data-i18n-placeholder="filter_sidebar" />
+      </div>
+      <div id="navList" class="nav-list"></div>
+    </aside>
+
+    <!-- Center Catalog Table -->
+    <section class="center-pane">
+      <div class="filter-bar">
+        <div class="filter-row">
+          <input id="mainSearchInput" type="text" class="input-field search-box" placeholder="Buscar por nome, ID, árvore, tipo, saga ou addon..." data-i18n-placeholder="search_placeholder" />
+          <select id="addonFilterSelect" class="select-field">
+            <option value="all" data-i18n="addon_all">Todos os Addons</option>
+          </select>
+          <select id="quickFilterSelect" class="select-field">
+            <option value="all" data-i18n="filter_all">Filtro: Todas as Formas</option>
+            <option value="tp_paid" data-i18n="filter_tp_paid">Com Custo TP (&gt; 0)</option>
+            <option value="priceless" data-i18n="filter_priceless">Priceless / Desejo (-1)</option>
+            <option value="free" data-i18n="filter_free">Gratuitas / Inatas (0)</option>
+            <option value="has_saga" data-i18n="filter_saga">Com Saga Obrigatória</option>
+            <option value="master_only" data-i18n="filter_master">Compra em Mestre</option>
+          </select>
+          <select id="sortSelect" class="select-field">
+            <option value="default" data-i18n="sort_default">Ordem: Padrão da Árvore</option>
+            <option value="tp_desc" data-i18n="sort_tp_desc">Maior Custo TP</option>
+            <option value="tp_asc" data-i18n="sort_tp_asc">Menor Custo TP</option>
+            <option value="bp_desc" data-i18n="sort_bp_desc">Maior Multiplicador BP</option>
+            <option value="bp_asc" data-i18n="sort_bp_asc">Menor Multiplicador BP</option>
+            <option value="name_asc" data-i18n="sort_name_asc">Nome (A → Z)</option>
+          </select>
+        </div>
+        <div id="treeChipBar" class="chip-bar"></div>
+      </div>
+
+      <div class="results-summary">
+        <span id="resultsLabel">Exibindo 0 transformações</span>
+        <span id="shortcutsHint">Dica: use ↑ / ↓ para navegar · Ctrl+Z desfaz · Ctrl+S salva</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="forms-table">
+          <thead>
+            <tr>
+              <th data-i18n="th_transformation">Transformação</th>
+              <th data-i18n="th_race_tree">Raça / Árvore</th>
+              <th data-i18n="th_tp_cost">Custo TP</th>
+              <th data-i18n="th_multipliers">Mult. Status (BP)</th>
+              <th data-i18n="th_drains">Drenos (/s)</th>
+              <th data-i18n="th_reqs">Requisitos &amp; Flags</th>
+            </tr>
+          </thead>
+          <tbody id="formsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Right Inspector Panel -->
+    <aside class="inspector">
+      <div id="inspectorEmpty" class="inspector-empty">
+        <h3 data-i18n="inspector_empty_title">Selecione uma Transformação</h3>
+        <p data-i18n="inspector_empty_desc">Clique em qualquer linha da tabela ao centro para inspecionar e editar Custo de TP, Multiplicadores de BP, Drenos, Maestria e Requisitos.</p>
+      </div>
+
+      <div id="inspectorContent" style="display:none; height:100%; flex-direction:column;">
+        <div class="inspector-header">
+          <div class="inspector-title-row">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h2 id="inspTitle">Nome da Forma</h2>
+                <span id="inspAddonBadge" class="badge badge-addon">Core</span>
+              </div>
+              <div id="inspSub" class="inspector-sub">raca · arvore · id</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button id="btnDeleteForm" class="btn btn-danger" title="Excluir transformação permanentemente (com Undo)">🗑️ Excluir</button>
+              <button id="btnApplyForm" class="btn btn-cyan" data-i18n="confirm_form">✓ Confirmar Forma</button>
+            </div>
+          </div>
+          <div id="siblingNotice" class="hint-note" style="display:none;"></div>
+        </div>
+
+        <div class="inspector-body">
+          <!-- Card 1: Economia & TP -->
+          <div class="card">
+            <div class="card-title">
+              <span data-i18n="card_tp_title">1. Custo de TP &amp; Desbloqueio</span>
+              <span id="inspTpPreview" class="badge badge-tp">0 TP</span>
+            </div>
+
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="inpTp" data-i18n="lbl_tp_cost">Custo de TP (-1 = Priceless, 0 = Inato)</label>
+                <input id="inpTp" type="number" step="1" min="-1" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="inpSkillLvl" data-i18n="lbl_skill_slot">Nível na Habilidade (Slot)</label>
+                <input id="inpSkillLvl" type="number" step="1" min="0" class="input-field" />
+              </div>
+            </div>
+
+            <div class="quick-btns">
+              <button type="button" class="btn btn-sm" data-tp-preset="0" data-i18n="btn_free">Gratuito (0)</button>
+              <button type="button" class="btn btn-sm btn-violet" data-tp-preset="-1" data-i18n="btn_priceless">Priceless (-1)</button>
+              <button type="button" class="btn btn-sm" data-tp-mult="0.5">÷2</button>
+              <button type="button" class="btn btn-sm" data-tp-mult="1.5">×1.5</button>
+              <button type="button" class="btn btn-sm" data-tp-mult="2">×2</button>
+              <button type="button" class="btn btn-sm" data-tp-mult="3">×3</button>
+              <button type="button" class="btn btn-sm" data-tp-mult="5">×5</button>
+              <button type="button" class="btn btn-sm" data-tp-mult="10">×10</button>
+            </div>
+
+            <label class="toggle-row">
+              <span data-i18n="chk_buy_master">Exigir Compra em Mestre (buyFromMaster)</span>
+              <input id="chkBuyMaster" type="checkbox" />
+            </label>
+
+            <div id="masterInfoBox" class="field-group" style="margin-top: 10px; padding: 10px 12px; background: rgba(15,23,42,0.55); border-radius: 6px; border: 1px solid rgba(56,189,248,0.2);">
+              <label style="color: var(--accent-cyan); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                <span data-i18n="master_box_title">🥋 Mestre que Ensina / Vende</span>
+              </label>
+              <div id="inpMasterDisplay" style="font-size: 13px; font-weight: 700; color: #FFFFFF; margin-top: 3px;">
+                —
+              </div>
+              <div id="masterHintText" style="font-size: 11px; color: var(--text-secondary); margin-top: 3px; line-height: 1.3;" data-i18n="master_hint">
+                Disponível para aprender interagindo com o mestre no jogo.
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Multiplicadores de Status (BP) -->
+          <div class="card">
+            <div class="card-title">
+              <span data-i18n="card_bp_title">2. Multiplicadores de Status (BP)</span>
+              <span id="inspBpPreview" class="badge badge-bp">1.0x</span>
+            </div>
+
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="mult_str">
+                  <span class="stat-name" data-i18n="lbl_str">Força Física (STR)</span>
+                  <span class="stat-desc" data-i18n="desc_str">Dano de socos e combos corpo a corpo</span>
+                </label>
+                <input id="mult_str" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mult_pwr">
+                  <span class="stat-name" data-i18n="lbl_pwr">Poder de Ki (PWR)</span>
+                  <span class="stat-desc" data-i18n="desc_pwr">Dano de rajadas, beams e skills de ki</span>
+                </label>
+                <input id="mult_pwr" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mult_def">
+                  <span class="stat-name" data-i18n="lbl_def">Resistência / Defesa (DEF)</span>
+                  <span class="stat-desc" data-i18n="desc_def">Mitigação direta de danos sofridos</span>
+                </label>
+                <input id="mult_def" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mult_skp">
+                  <span class="stat-name" data-i18n="lbl_skp">Poder de Golpe Especial (SKP)</span>
+                  <span class="stat-desc" data-i18n="desc_skp">Dano de técnicas de finalização</span>
+                </label>
+                <input id="mult_skp" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mult_spd">
+                  <span class="stat-name" data-i18n="lbl_spd">Velocidade de Movimento (SPD)</span>
+                  <span class="stat-desc" data-i18n="desc_spd">Rapidez ao andar, correr e voar</span>
+                </label>
+                <input id="mult_spd" type="number" step="0.01" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mult_atk_spd">
+                  <span class="stat-name" data-i18n="lbl_atk_spd">Velocidade de Ataque</span>
+                  <span class="stat-desc" data-i18n="desc_atk_spd">Frequência e recuperação de golpes</span>
+                </label>
+                <input id="mult_atk_spd" type="number" step="0.01" min="0" class="input-field" />
+              </div>
+              <div class="field-group field-yellow">
+                <label for="mult_stm">
+                  <span class="stat-name" data-i18n="lbl_stm">Multiplicador de Estamina (STM)</span>
+                  <span class="stat-desc" data-i18n="desc_stm">Teto de estamina acumulada</span>
+                </label>
+                <input id="mult_stm" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group field-yellow">
+                <label for="mult_vit">
+                  <span class="stat-name" data-i18n="lbl_vit">Multiplicador de Vitalidade (VIT)</span>
+                  <span class="stat-desc" data-i18n="desc_vit">Vida total máxima do guerreiro</span>
+                </label>
+                <input id="mult_vit" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group field-yellow">
+                <label for="mult_ene">
+                  <span class="stat-name" data-i18n="lbl_ene">Multiplicador de Energia (ENE)</span>
+                  <span class="stat-desc" data-i18n="desc_ene">Teto de ki máximo acumulado</span>
+                </label>
+                <input id="mult_ene" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+            </div>
+
+            <div class="quick-btns" style="margin-top: 8px;">
+              <button type="button" class="btn btn-sm" data-bp-mult="0.8">0.8x</button>
+              <button type="button" class="btn btn-sm" data-bp-mult="1.2">1.2x</button>
+              <button type="button" class="btn btn-sm" data-bp-mult="1.5">1.5x</button>
+              <button type="button" class="btn btn-sm" data-bp-mult="2.0">2.0x</button>
+            </div>
+          </div>
+
+          <!-- Card 3: Drenos (/s) & Stacking -->
+          <div class="card">
+            <div class="card-title" data-i18n="card_drains_title">3. Drenos (/s) &amp; Empilhamento (Stack)</div>
+            <div class="grid-3">
+              <div class="field-group">
+                <label for="dr_ki" data-i18n="lbl_drain_ki">Dreno de Ki (/s)</label>
+                <input id="dr_ki" type="number" step="0.01" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="dr_stm" data-i18n="lbl_drain_stm">Dreno de Estamina (/s)</label>
+                <input id="dr_stm" type="number" step="0.01" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="dr_hp" data-i18n="lbl_drain_hp">Dreno de Vida (/s)</label>
+                <input id="dr_hp" type="number" step="0.01" min="0" class="input-field" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="dr_stm_hit" data-i18n="lbl_drain_hit">Mult. Dreno Estamina por Golpe</label>
+                <input id="dr_stm_hit" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="dr_stack_mult" data-i18n="lbl_stack_mult">Multiplicador de Dreno ao Empilhar</label>
+                <input id="dr_stack_mult" type="number" step="0.1" min="1" class="input-field" />
+              </div>
+            </div>
+            <label class="toggle-row">
+              <span data-i18n="chk_stackable">Permitir Empilhar com Kaioken/Buffs (formStackable)</span>
+              <input id="chkStackable" type="checkbox" />
+            </label>
+          </div>
+
+          <!-- Card 4: Maestria -->
+          <div class="card">
+            <div class="card-title" data-i18n="card_mastery_title">4. Maestria da Forma</div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="mst_max" data-i18n="lbl_max_mastery">Maestria Máxima</label>
+                <input id="mst_max" type="number" step="1" min="1" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mst_instant" data-i18n="lbl_instant_transf">Nível de Maestria para Transf. Instantânea</label>
+                <input id="mst_instant" type="number" step="1" min="0" class="input-field" />
+              </div>
+            </div>
+            <div class="grid-3">
+              <div class="field-group">
+                <label for="mst_hit_dealt" data-i18n="lbl_mastery_hit_dealt">Ganho por Golpe Dado</label>
+                <input id="mst_hit_dealt" type="number" step="0.005" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mst_hit_rcv" data-i18n="lbl_mastery_hit_rcv">Ganho por Dano Recebido</label>
+                <input id="mst_hit_rcv" type="number" step="0.005" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mst_passive" data-i18n="lbl_mastery_passive">Ganho Passivo a cada 5s</label>
+                <input id="mst_passive" type="number" step="0.005" min="0" class="input-field" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="mst_cost_mult" data-i18n="lbl_max_cost_mult">Mult. Custo Ki com Maestria Máx</label>
+                <input id="mst_cost_mult" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="mst_stat_mult" data-i18n="lbl_max_stats_mult">Mult. Status com Maestria Máx</label>
+                <input id="mst_stat_mult" type="number" step="0.05" min="0" class="input-field" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Requisitos -->
+          <div class="card">
+            <div class="card-title" data-i18n="card_reqs_title">5. Requisitos &amp; Vínculo Narrativo</div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="req_dmz_lvl" data-i18n="lbl_min_dmz">Nível Mínimo do Personagem (requiredDMZLevel)</label>
+                <input id="req_dmz_lvl" type="number" step="1" min="0" class="input-field" />
+              </div>
+              <div class="field-group">
+                <label for="req_lvl_req" data-i18n="lbl_min_skill_req">Nível Requisito na Árvore (levelRequisite)</label>
+                <input id="req_lvl_req" type="number" step="1" min="0" class="input-field" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="req_saga" data-i18n="lbl_saga_req">Saga Obrigatória para Desbloqueio</label>
+                <select id="req_saga_select" class="select-field" style="margin-bottom: 4px;">
+                  <option value="">— Nenhuma saga exigida —</option>
+                </select>
+                <input id="req_saga" type="text" class="input-field" placeholder="ex: namek_saga:freeza_final" />
+              </div>
+              <div class="field-group">
+                <label for="req_prev_form" data-i18n="lbl_prev_form">ID da Forma Prévia Obrigatória</label>
+                <input id="req_prev_form" type="text" class="input-field" placeholder="ex: supersaiyan1" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="req_incompatible" data-i18n="lbl_incompatible">Formas Incompatíveis (separadas por vírgula)</label>
+              <input id="req_incompatible" type="text" class="input-field" placeholder="ex: ultimate.ultimate, evil.form" />
+            </div>
+          </div>
+
+          <!-- Card 6: Visual -->
+          <div class="card">
+            <div class="card-title" data-i18n="card_visual_title">6. Efeitos Visuais &amp; Shader</div>
+            <div class="grid-2">
+              <div class="field-group">
+                <label for="vis_aura" data-i18n="lbl_aura_hex">Cor da Aura (Hex)</label>
+                <div class="filter-row">
+                  <input id="vis_aura" type="text" class="input-field" placeholder="#FFD700" style="flex:1;" />
+                  <input id="vis_aura_picker" type="color" value="#FFD700" style="width:36px; height:32px; padding:0; border:none; background:transparent; cursor:pointer;" title="Escolher cor da aura" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="vis_hair" data-i18n="lbl_hair_hex">Cor do Cabelo (Hex)</label>
+                <div class="filter-row">
+                  <input id="vis_hair" type="text" class="input-field" placeholder="#000000" style="flex:1;" />
+                  <input id="vis_hair_picker" type="color" value="#000000" style="width:36px; height:32px; padding:0; border:none; background:transparent; cursor:pointer;" title="Escolher cor do cabelo" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Add Transformation Modal -->
+  <div id="addFormModal" class="modal-backdrop">
+    <div class="modal-card modal-wide">
+      <h3 data-i18n="modal_add_title">➕ Adicionar Nova Transformação</h3>
+      <p style="color:var(--text-secondary); font-size:12px;" data-i18n="modal_add_desc">
+        Preencha os atributos para criar uma transformação balanceada diretamente no catálogo e nos arquivos do jogo.
+      </p>
+
+      <div class="grid-3">
+        <div class="field-group">
+          <label for="add_escopo">Escopo</label>
+          <select id="add_escopo" class="select-field">
+            <option value="raca">Específica de Raça</option>
+            <option value="universal">Universal / Stack</option>
+          </select>
+        </div>
+        <div class="field-group" id="add_race_group">
+          <label for="add_raca">Raça</label>
+          <select id="add_raca" class="select-field"></select>
+        </div>
+        <div class="field-group" id="add_tree_group">
+          <label for="add_arvore">Árvore / Grupo</label>
+          <select id="add_arvore" class="select-field"></select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field-group">
+          <label for="add_id">ID da Forma (minúsculo, sem espaços)</label>
+          <input id="add_id" type="text" class="input-field" placeholder="ex: ssj_primal" />
+        </div>
+        <div class="field-group">
+          <label for="add_nome">Nome de Exibição</label>
+          <input id="add_nome" type="text" class="input-field" placeholder="ex: Super Saiyan Primal" />
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="field-group">
+          <label for="add_tp">Custo TP (-1 = Priceless, 0 = Inato)</label>
+          <input id="add_tp" type="number" step="1000" value="500000" class="input-field" />
+        </div>
+        <div class="field-group">
+          <label for="add_lvl">Nível Slot Habilidade</label>
+          <input id="add_lvl" type="number" step="1" min="1" value="1" class="input-field" />
+        </div>
+        <div class="field-group">
+          <label for="add_addon">Addon de Origem</label>
+          <input id="add_addon" type="text" class="input-field" placeholder="Dragon Mine Z (Core)" />
+        </div>
+      </div>
+
+      <div class="grid-4">
+        <div class="field-group">
+          <label for="add_mult_str">Força (STR)</label>
+          <input id="add_mult_str" type="number" step="0.1" value="2.5" class="input-field" />
+        </div>
+        <div class="field-group">
+          <label for="add_mult_pwr">Poder Ki (PWR)</label>
+          <input id="add_mult_pwr" type="number" step="0.1" value="2.5" class="input-field" />
+        </div>
+        <div class="field-group">
+          <label for="add_mult_def">Defesa (DEF)</label>
+          <input id="add_mult_def" type="number" step="0.1" value="2.5" class="input-field" />
+        </div>
+        <div class="field-group">
+          <label for="add_mult_skp">Golpe (SKP)</label>
+          <input id="add_mult_skp" type="number" step="0.1" value="2.5" class="input-field" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field-group">
+          <label for="add_cor_aura">Cor da Aura (Hex)</label>
+          <input id="add_cor_aura" type="text" class="input-field" placeholder="#FFD700" value="#FFD700" />
+        </div>
+        <div class="field-group">
+          <label for="add_cor_cabelo">Cor do Cabelo (Hex)</label>
+          <input id="add_cor_cabelo" type="text" class="input-field" placeholder="#FFE89E" value="#FFE89E" />
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button id="btnCancelAddForm" type="button" class="btn" data-i18n="btn_cancel">Cancelar</button>
+        <button id="btnConfirmAddForm" type="button" class="btn btn-emerald" data-i18n="btn_confirm_add">Criar Transformação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Form Confirmation Modal -->
+  <div id="deleteFormModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h3 style="color:var(--accent-rose);" data-i18n="modal_del_title">🗑️ Confirmar Remoção de Transformação</h3>
+      <p id="deleteModalDesc" style="color:var(--text-secondary); font-size:13px; margin: 12px 0;">
+        Tem certeza de que deseja remover esta transformação?
+      </p>
+      <div style="padding: 10px 12px; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); border-radius: 6px; font-size: 11px; color: #FECDD3;" data-i18n="modal_del_note">
+        Você pode desfazer essa remoção a qualquer momento pressionando Ctrl+Z.
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button id="btnCancelDelete" type="button" class="btn" data-i18n="btn_cancel">Cancelar</button>
+        <button id="btnConfirmDelete" type="button" class="btn btn-danger" data-i18n="btn_confirm_del">Confirmar Remoção</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Addons & Mods Manager Modal -->
+  <div id="addonsModal" class="modal-backdrop">
+    <div class="modal-card modal-wide">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 data-i18n="modal_addons_title">🧩 Gerenciador de Addons &amp; Mods do DMZ</h3>
+        <span id="addonsCountBadge" class="badge badge-addon">0 Addons</span>
+      </div>
+      <p style="color:var(--text-secondary); font-size:12px; margin-top:4px;" data-i18n="modal_addons_desc">
+        Ative ou desative mods e pacotes de formas do modpack de forma 100% segura e compatível com CurseForge.
+      </p>
+
+      <div class="addons-table-wrap" style="max-height: 420px; overflow-y:auto; margin: 12px 0;">
+        <table class="forms-table">
+          <thead>
+            <tr>
+              <th data-i18n="addon_th_status">Status</th>
+              <th data-i18n="addon_th_name">Nome do Mod</th>
+              <th data-i18n="addon_th_version">Versão</th>
+              <th data-i18n="addon_th_author">Autor</th>
+              <th data-i18n="addon_th_file">Arquivo .jar</th>
+              <th data-i18n="addon_th_size">Tamanho</th>
+            </tr>
+          </thead>
+          <tbody id="addonsTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button id="btnCloseAddons" type="button" class="btn btn-primary" data-i18n="btn_close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings / Folder Picker Modal -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-card modal-wide">
+      <h3>⚙️ Selecionar Pasta do Modpack ou Arquivo JSON</h3>
+      <p style="color:var(--text-secondary); font-size:12px;">
+        Selecione onde está a pasta <code>config/dragonminez</code> do seu Modpack (CurseForge / cliente / servidor) e/ou o arquivo <code>.json</code> de transformações.
+      </p>
+
+      <div class="field-group">
+        <label for="inpModpackPath">Pasta do Modpack / Config DragonMineZ (Opcional se usar apenas JSON)</label>
+        <div class="filter-row">
+          <input id="inpModpackPath" type="text" class="input-field" style="flex:1;" placeholder="Em branco — clique em Procurar Pasta..." />
+          <button id="btnBrowseFolder" type="button" class="btn btn-cyan">📂 Procurar Pasta...</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="inpJsonPath">Arquivo .JSON de Transformações (Opcional se usar a pasta do Modpack)</label>
+        <div class="filter-row">
+          <input id="inpJsonPath" type="text" class="input-field" style="flex:1;" placeholder="Em branco — clique em Procurar JSON..." />
+          <button id="btnBrowseJson" type="button" class="btn btn-cyan">📄 Procurar JSON...</button>
+        </div>
+      </div>
+
+      <div class="quick-btns">
+        <button id="btnResetDefaultPath" type="button" class="btn btn-sm">🧹 Limpar Caminhos (Deixar em Branco)</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+        <button id="btnCloseSettings" type="button" class="btn" data-i18n="btn_close">Fechar</button>
+        <button id="btnSaveSettings" type="button" class="btn btn-primary">Salvar e Carregar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Scale Modal -->
+  <div id="batchModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h3>⚡ Escala de Balanceamento em Lote</h3>
+      <p style="color:var(--text-secondary); font-size:12px;">
+        Multiplica automaticamente valores em massa. Ao escalar <strong>Custo TP</strong>, transformações gratuitas (<code>0</code>) e Priceless/Shenron (<code>-1</code>) são preservadas intactas.
+      </p>
+
+      <div class="field-group">
+        <label for="batchScopeSelect">Escopo de Aplicação</label>
+        <select id="batchScopeSelect" class="select-field">
+          <option value="current">Escopo Atual Selecionado na Lateral</option>
+          <option value="all">Todas as Raças + Formas Universais</option>
+          <option value="universal">Apenas Formas Universais / Stack</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <div class="field-group">
+          <label for="batchFieldSelect">Atributo Alvo</label>
+          <select id="batchFieldSelect" class="select-field">
+            <option value="tp">Custo de TP</option>
+            <option value="bp">Multiplicadores Combate (BP)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="batchFactorInput">Fator Multiplicador (ex: 2.0, 5.0, 0.5)</label>
+          <input id="batchFactorInput" type="number" step="0.1" min="0.05" value="2.0" class="input-field" />
+        </div>
+      </div>
+
+      <div class="quick-btns">
+        <button type="button" class="btn btn-sm" data-batch-factor="0.5">0.5x (-50%)</button>
+        <button type="button" class="btn btn-sm" data-batch-factor="1.5">1.5x (+50%)</button>
+        <button type="button" class="btn btn-sm" data-batch-factor="2">2.0x</button>
+        <button type="button" class="btn btn-sm" data-batch-factor="3">3.0x</button>
+        <button type="button" class="btn btn-sm" data-batch-factor="5">5.0x</button>
+        <button type="button" class="btn btn-sm" data-batch-factor="10">10.0x</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+        <button id="btnCloseBatch" type="button" class="btn" data-i18n="btn_cancel">Cancelar</button>
+        <button id="btnConfirmBatch" type="button" class="btn btn-primary">Aplicar Escala</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="/assets/dmz_form_editor_presets.js"></script>
+  <script src="/assets/dmz_form_editor.js"></script>
+</body>
+</html>
