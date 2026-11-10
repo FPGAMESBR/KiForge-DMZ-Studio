@@ -111,6 +111,7 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <h2 id="inspTitle">Nome da Forma</h2>
+                <span id="inspTierBadge" class="tier-badge tier-1">T1</span>
                 <span id="inspAddonBadge" class="badge badge-addon">Core</span>
               </div>
               <div id="inspSub" class="inspector-sub">raca · arvore · id</div>
@@ -123,12 +124,15 @@
           <div id="siblingNotice" class="hint-note" style="display:none;"></div>
         </div>
 
-        <div class="inspector-body">
+        <div id="inspectorBody" class="inspector-body" style="overflow-y: scroll !important; -webkit-overflow-scrolling: touch;">
           <!-- Card 1: Economia & TP -->
           <div class="card">
             <div class="card-title">
               <span data-i18n="card_tp_title">1. Custo de TP &amp; Desbloqueio</span>
-              <span id="inspTpPreview" class="badge badge-tp">0 TP</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span id="inspTpPreview" class="badge badge-tp">0 TP</span>
+                <span class="card-chevron">▼</span>
+              </div>
             </div>
 
             <div class="grid-2">
@@ -178,7 +182,11 @@
           <div class="card">
             <div class="card-title">
               <span data-i18n="card_bp_title">2. Multiplicadores de Status (BP)</span>
-              <span id="inspBpPreview" class="badge badge-bp">1.0x</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span id="inspTierDetail" class="tier-badge tier-1">Tier 1</span>
+                <span id="inspBpPreview" class="badge badge-bp">1.0x</span>
+                <span class="card-chevron">▼</span>
+              </div>
             </div>
 
             <div class="grid-2">
@@ -257,7 +265,10 @@
 
           <!-- Card 3: Drenos (/s) & Stacking -->
           <div class="card">
-            <div class="card-title" data-i18n="card_drains_title">3. Drenos (/s) &amp; Empilhamento (Stack)</div>
+            <div class="card-title">
+              <span data-i18n="card_drains_title">3. Drenos (/s) &amp; Empilhamento (Stack)</span>
+              <span class="card-chevron">▼</span>
+            </div>
             <div class="grid-3">
               <div class="field-group">
                 <label for="dr_ki" data-i18n="lbl_drain_ki">Dreno de Ki (/s)</label>
@@ -290,7 +301,10 @@
 
           <!-- Card 4: Maestria -->
           <div class="card">
-            <div class="card-title" data-i18n="card_mastery_title">4. Maestria da Forma</div>
+            <div class="card-title">
+              <span data-i18n="card_mastery_title">4. Maestria da Forma</span>
+              <span class="card-chevron">▼</span>
+            </div>
             <div class="grid-2">
               <div class="field-group">
                 <label for="mst_max" data-i18n="lbl_max_mastery">Maestria Máxima</label>
@@ -329,7 +343,10 @@
 
           <!-- Card 5: Requisitos -->
           <div class="card">
-            <div class="card-title" data-i18n="card_reqs_title">5. Requisitos &amp; Vínculo Narrativo</div>
+            <div class="card-title">
+              <span data-i18n="card_reqs_title">5. Requisitos &amp; Vínculo Narrativo</span>
+              <span class="card-chevron">▼</span>
+            </div>
             <div class="grid-2">
               <div class="field-group">
                 <label for="req_dmz_lvl" data-i18n="lbl_min_dmz">Nível Mínimo do Personagem (requiredDMZLevel)</label>
@@ -341,8 +358,8 @@
               </div>
             </div>
             <!-- Saga Obrigatória -->
-            <div class="field-group" style="margin-bottom: 8px;">
-              <label for="req_saga_select" data-i18n="lbl_saga_req">Saga Obrigatória para Desbloqueio</label>
+            <div class="field-group" style="margin-bottom: 8px; padding: 10px 12px; background: rgba(15,23,42,0.5); border: 1px solid var(--border-default); border-radius: var(--radius-sm);">
+              <label for="req_saga_select" data-i18n="lbl_saga_req" style="margin-bottom: 6px; font-weight: 600; color: #E2E8F0;">📜 Saga Obrigatória para Desbloqueio</label>
               <select id="req_saga_select" class="select-field" style="margin-bottom: 6px; width: 100%;">
                 <option value="">— Nenhuma saga exigida —</option>
               </select>
@@ -353,8 +370,8 @@
             </div>
 
             <!-- Forma Prévia Obrigatória -->
-            <div class="field-group" style="margin-bottom: 8px;">
-              <label for="req_prev_form_select" data-i18n="lbl_prev_form">Forma Prévia Obrigatória (Requisito)</label>
+            <div class="field-group" style="margin-bottom: 8px; padding: 10px 12px; background: rgba(15,23,42,0.5); border: 1px solid var(--border-default); border-radius: var(--radius-sm);">
+              <label for="req_prev_form_select" data-i18n="lbl_prev_form" style="margin-bottom: 6px; font-weight: 600; color: #E2E8F0;">⚡ Forma Prévia Obrigatória (Requisito)</label>
               <select id="req_prev_form_select" class="select-field" style="margin-bottom: 6px; width: 100%;">
                 <option value="">— Nenhuma forma prévia exigida —</option>
               </select>
@@ -400,7 +417,10 @@
 
           <!-- Card 6: Visual & Shaders Live Preview -->
           <div class="card">
-            <div class="card-title" data-i18n="card_visual_title">6. Efeitos Visuais &amp; Shader</div>
+            <div class="card-title">
+              <span data-i18n="card_visual_title">6. Efeitos Visuais &amp; Shader</span>
+              <span class="card-chevron">▼</span>
+            </div>
 
             <!-- Live Aura Energy Visualizer Box -->
             <div class="aura-live-box" style="margin-bottom: 12px; padding: 12px; background: rgba(15,23,42,0.65); border: 1px solid var(--border-default); border-radius: var(--radius-md); display:flex; align-items:center; gap:14px;">
@@ -838,7 +858,16 @@
           </div>
           <div class="field-group">
             <label for="batchFormSearch" data-i18n="lbl_batch_search">Filtrar na Lista de Formas</label>
-            <input id="batchFormSearch" type="text" class="input-field" placeholder="Buscar por nome ou ID..." data-i18n-placeholder="ph_batch_form_search" />
+            <div style="display:flex; gap:6px;">
+              <input id="batchFormSearch" type="text" class="input-field" placeholder="Buscar por nome ou ID..." data-i18n-placeholder="ph_batch_form_search" style="flex:1;" />
+              <select id="batchTierFilter" class="select-field" style="width:145px; font-size:11px;" title="Filtrar por Tier">
+                <option value="all" data-i18n="opt_tier_all">Todos os Tiers</option>
+                <option value="early" data-i18n="opt_tier_early">Tiers 1-3 (Iniciais)</option>
+                <option value="mid" data-i18n="opt_tier_mid">Tiers 4-6 (Místicos/God)</option>
+                <option value="high" data-i18n="opt_tier_high">Tiers 7-8 (Divinos Avançados)</option>
+                <option value="endgame" data-i18n="opt_tier_endgame">Tiers 9-10 (Endgame)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -863,18 +892,19 @@
       <div class="batch-section">
         <div class="batch-section-title">
           <span data-i18n="batch_sec2_title">2. Escolha da Regra de Balanceamento</span>
-          <span id="batchRuleBadge" class="badge badge-addon" style="font-size:10px;">Escala Simples</span>
+          <span id="batchRuleBadge" class="badge badge-addon" style="font-size:10px;">Teto Hierárquico</span>
         </div>
 
         <div class="field-group">
           <label for="batchRuleSelect" data-i18n="lbl_batch_rule">Tipo de Regra</label>
           <select id="batchRuleSelect" class="select-field">
-            <option value="escala_simples" data-i18n="rule_simple_scale">1. Escala Multiplicativa Direta (Simple Scale)</option>
-            <option value="risco_recompensa" data-i18n="rule_risk_reward">2. Risco &amp; Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)</option>
-            <option value="teto_maximo" data-i18n="rule_cap">3. Teto Máximo de Poder (Impossible Cap / Limite de Soma)</option>
-            <option value="recalcular_tp" data-i18n="rule_recalc_tp">4. Recalcular Custo de TP por Poder (Progression Economy)</option>
-            <option value="normalizar_drenos" data-i18n="rule_drain_smooth">5. Normalização de Drenos de Ki (Sustainable Combat)</option>
-            <option value="especializacao" data-i18n="rule_specialize">6. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)</option>
+            <option value="teto_hierarquico" data-i18n="rule_hierarchical_tier" selected>⭐ 1. Teto Hierárquico por Tiers (Preservar Progressão Lore) [Recomendado]</option>
+            <option value="escala_simples" data-i18n="rule_simple_scale">2. Escala Multiplicativa Direta (Simple Scale)</option>
+            <option value="risco_recompensa" data-i18n="rule_risk_reward">3. Risco &amp; Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)</option>
+            <option value="teto_maximo" data-i18n="rule_cap">4. Teto Rígido Individual ou de Soma (Impossible Cap)</option>
+            <option value="recalcular_tp" data-i18n="rule_recalc_tp">5. Recalcular Custo de TP por Poder (Progression Economy)</option>
+            <option value="normalizar_drenos" data-i18n="rule_drain_smooth">6. Normalização de Drenos de Ki (Sustainable Combat)</option>
+            <option value="especializacao" data-i18n="rule_specialize">7. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)</option>
           </select>
         </div>
 

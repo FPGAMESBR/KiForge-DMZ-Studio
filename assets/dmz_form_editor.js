@@ -190,12 +190,13 @@
       btn_invert_sel: "⇄ Inverter",
       batch_sec2_title: "2. Escolha da Regra de Balanceamento",
       lbl_batch_rule: "Tipo de Regra",
-      rule_simple_scale: "1. Escala Multiplicativa Direta (Simple Scale)",
-      rule_risk_reward: "2. Risco & Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)",
-      rule_cap: "3. Teto Máximo de Poder (Impossible Cap / Limite de Soma)",
-      rule_recalc_tp: "4. Recalcular Custo de TP por Poder (Progression Economy)",
-      rule_drain_smooth: "5. Normalização de Drenos de Ki (Sustainable Combat)",
-      rule_specialize: "6. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)",
+      rule_hierarchical_tier: "⭐ 1. Teto Hierárquico por Tiers (Preservar Progressão Lore) [Recomendado]",
+      rule_simple_scale: "2. Escala Multiplicativa Direta (Simple Scale)",
+      rule_risk_reward: "3. Risco & Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)",
+      rule_cap: "4. Teto Rígido Individual ou de Soma (Impossible Cap)",
+      rule_recalc_tp: "5. Recalcular Custo de TP por Poder (Progression Economy)",
+      rule_drain_smooth: "6. Normalização de Drenos de Ki (Sustainable Combat)",
+      rule_specialize: "7. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)",
       btn_apply_batch: "⚡ Aplicar Balanceamento em Lote",
       batch_lbl_target_field: "Atributo Alvo",
       batch_lbl_factor: "Fator Multiplicador",
@@ -209,6 +210,15 @@
       batch_lbl_max_ki_drain: "Teto Máximo de Dreno de Ki (/s)",
       batch_lbl_min_ki_drain: "Piso Mínimo para Formas Fortes (BP ≥ 3x)",
       batch_lbl_archetype: "Arquétipo de Especialização",
+      batch_lbl_tier_cap: "Teto Máximo Tier 10 (Soma BP)",
+      batch_lbl_tier_floor: "Piso Mínimo Tier 1 (Soma BP)",
+      batch_lbl_tier_curve: "Curva de Progressão",
+      batch_lbl_tier_filter: "Filtrar por Tier",
+      opt_tier_all: "Todos os Tiers (T1 a T10)",
+      opt_tier_early: "Tiers 1-3: Iniciais & Inatos (<= 30x)",
+      opt_tier_mid: "Tiers 4-6: Místicos & Divinos (30x a 75x)",
+      opt_tier_high: "Tiers 7-8: Divinos Avançados (75x a 120x)",
+      opt_tier_endgame: "Tiers 9-10: Instinto & Endgame (> 120x)",
     },
     en: {
       app_title: "KiForge: DMZ Form Studio",
@@ -396,12 +406,13 @@
       btn_invert_sel: "⇄ Invert",
       batch_sec2_title: "2. Balancing Rule Selection",
       lbl_batch_rule: "Rule Type",
-      rule_simple_scale: "1. Direct Multiplicative Scale (Simple Scale)",
-      rule_risk_reward: "2. Risk & Reward (+Stat Bonus, +Ki/Stamina Drain)",
-      rule_cap: "3. Maximum Power Cap (Impossible Cap / Stat Sum Limit)",
-      rule_recalc_tp: "4. Recalculate TP Cost by Combat Power (Progression Economy)",
-      rule_drain_smooth: "5. Ki Drain Normalization (Sustainable Combat)",
-      rule_specialize: "6. Class Specialization (Berserker, Ki Master, Tank, Speedster)",
+      rule_hierarchical_tier: "⭐ 1. Hierarchical Power Tier Cap (Preserve Lore Progression) [Recommended]",
+      rule_simple_scale: "2. Direct Multiplicative Scale (Simple Scale)",
+      rule_risk_reward: "3. Risk & Reward (+Stat Bonus, +Ki/Stamina Drain)",
+      rule_cap: "4. Rigid Individual or Sum Cap (Impossible Cap)",
+      rule_recalc_tp: "5. Recalculate TP Cost by Combat Power (Progression Economy)",
+      rule_drain_smooth: "6. Ki Drain Normalization (Sustainable Combat)",
+      rule_specialize: "7. Class Specialization (Berserker, Ki Master, Tank, Speedster)",
       btn_apply_batch: "⚡ Apply Batch Balancing",
       batch_lbl_target_field: "Target Attribute",
       batch_lbl_factor: "Multiplier Factor",
@@ -415,6 +426,15 @@
       batch_lbl_max_ki_drain: "Max Ki Drain Cap (/s)",
       batch_lbl_min_ki_drain: "Min Ki Drain Floor for Strong Forms (BP ≥ 3x)",
       batch_lbl_archetype: "Specialization Archetype",
+      batch_lbl_tier_cap: "Tier 10 Max Cap (BP Sum)",
+      batch_lbl_tier_floor: "Tier 1 Floor (BP Sum)",
+      batch_lbl_tier_curve: "Progression Curve",
+      batch_lbl_tier_filter: "Filter by Power Tier",
+      opt_tier_all: "All Tiers (T1 to T10)",
+      opt_tier_early: "Tiers 1-3: Early & Innate (<= 30x)",
+      opt_tier_mid: "Tiers 4-6: Mystic & Divine (30x to 75x)",
+      opt_tier_high: "Tiers 7-8: Advanced Divine (75x to 120x)",
+      opt_tier_endgame: "Tiers 9-10: Instinct & Endgame (> 120x)",
     }
   };
 
@@ -889,6 +909,8 @@
       const auraBadgeHtml = (f.visual && f.visual.cor_aura)
         ? `<span class="aura-hex-badge" style="background:${aura}18; color:${aura}; border:1px solid ${aura}55;">${aura}</span>`
         : "";
+      const tNum = f.categoria_poder || 1;
+      const tierBadgeHtml = `<span class="tier-badge tier-${tNum}" title="${escapeHtml(f.tier_label || 'Tier ' + tNum)} (Poder Base: ${f.poder_base_original || (strM * 4).toFixed(1)}x)">T${tNum}</span>`;
 
       return `
         <tr class="form-row${isSel}" data-key="${escapeHtml(row.key)}">
@@ -901,6 +923,7 @@
               <div>
                 <div class="form-name-text">
                   <span>${escapeHtml(f.nome)}</span>
+                  ${tierBadgeHtml}
                   ${auraBadgeHtml}
                   ${addonHtml}
                 </div>
@@ -940,6 +963,8 @@
       else tr.classList.remove("selected");
     });
     refreshInspectorFromSelection();
+    const inspBody = el("inspectorBody");
+    if (inspBody) inspBody.scrollTop = 0;
   }
 
   function findSelectedRow() {
@@ -967,6 +992,19 @@
     const badgeAddon = el("inspAddonBadge");
     if (badgeAddon) {
       badgeAddon.textContent = f.addon_origem || "Core";
+    }
+
+    const tNum = f.categoria_poder || 1;
+    const badgeTier = el("inspTierBadge");
+    if (badgeTier) {
+      badgeTier.className = `tier-badge tier-${tNum}`;
+      badgeTier.textContent = `T${tNum}`;
+      badgeTier.title = f.tier_label || `Tier ${tNum}`;
+    }
+    const tierDetail = el("inspTierDetail");
+    if (tierDetail) {
+      tierDetail.className = `tier-badge tier-${tNum}`;
+      tierDetail.textContent = f.tier_label || `Tier ${tNum}`;
     }
 
     // Populate Inspector Fields
@@ -1614,6 +1652,7 @@
       const isUniversal = escopoSelect && escopoSelect.value === "universal";
       if (isUniversal) {
         if (raceGroup) raceGroup.style.display = "none";
+        if (rSelect) rSelect.disabled = true;
         if (scopeGrid) scopeGrid.style.gridTemplateColumns = "1fr 1fr";
         if (lblTree) {
           lblTree.textContent = state.language === "en" ? "Universal Group" : "Grupo Universal";
@@ -1633,7 +1672,8 @@
         tSelect.appendChild(optCustom);
       } else {
         if (raceGroup) raceGroup.style.display = "";
-        if (scopeGrid) scopeGrid.style.gridTemplateColumns = "";
+        if (rSelect) rSelect.disabled = false;
+        if (scopeGrid) scopeGrid.style.gridTemplateColumns = "1fr 1fr 1fr";
         if (lblTree) {
           lblTree.textContent = state.language === "en" ? "Transformation Tree" : "Árvore de Transformação";
         }
@@ -1641,7 +1681,10 @@
       }
     };
 
-    if (escopoSelect) escopoSelect.onchange = updateScopeAndTrees;
+    if (escopoSelect) {
+      escopoSelect.value = "raca";
+      escopoSelect.onchange = updateScopeAndTrees;
+    }
     rSelect.onchange = updateTreeSelect;
     updateScopeAndTrees();
 
@@ -1729,6 +1772,11 @@
       if (k) elem.textContent = t(k);
     });
 
+    document.querySelectorAll("#addFormModal [data-i18n-placeholder]").forEach((elem) => {
+      const k = elem.getAttribute("data-i18n-placeholder");
+      if (k) elem.placeholder = t(k);
+    });
+
     updateAddFormAuraPreview();
     updateAddFormBpPreview();
     updateAddFormTpPreview();
@@ -1737,11 +1785,11 @@
   }
 
   async function handleConfirmAddForm() {
-    const escopo = el("add_escopo").value;
-    const raca = el("add_raca").value;
-    const arvore = el("add_arvore").value;
-    const formId = el("add_id").value.trim().toLowerCase();
-    const nome = el("add_nome").value.trim();
+    const escopo = el("add_escopo") ? el("add_escopo").value : "raca";
+    const raca = escopo === "universal" ? "" : (el("add_raca") ? el("add_raca").value : "");
+    const arvore = el("add_arvore") ? el("add_arvore").value : "forms";
+    const formId = el("add_id") ? el("add_id").value.trim().toLowerCase() : "";
+    const nome = el("add_nome") ? el("add_nome").value.trim() : "";
 
     if (!formId) {
       showToast(state.language === "en" ? "Form ID is required!" : "ID da forma é obrigatório!", true);
@@ -2023,6 +2071,14 @@
 
   // Setup Event Listeners
   function setupEvents() {
+    // Collapsible accordion cards in Inspector
+    document.querySelectorAll(".inspector-body .card-title").forEach((title) => {
+      title.addEventListener("click", () => {
+        const card = title.closest(".card");
+        if (card) card.classList.toggle("collapsed");
+      });
+    });
+
     // Backdrop click-to-close for all modals
     document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
       backdrop.addEventListener("click", (e) => {
@@ -2261,10 +2317,20 @@
         }
       }
 
+      const tierFilterSelect = el("batchTierFilter");
+
       function renderChecklist() {
         fList.innerHTML = "";
         const q = (searchInp ? searchInp.value : "").trim().toLowerCase();
+        const tf = tierFilterSelect ? tierFilterSelect.value : "all";
+
         activeForms.forEach((f) => {
+          const tNum = f.categoria_poder || 1;
+          if (tf === "early" && tNum > 3) return;
+          if (tf === "mid" && (tNum < 4 || tNum > 6)) return;
+          if (tf === "high" && (tNum < 7 || tNum > 8)) return;
+          if (tf === "endgame" && tNum < 9) return;
+
           const hay = `${f.id} ${f.nome} ${f.racaNome}`.toLowerCase();
           if (q && !hay.includes(q)) return;
 
@@ -2305,6 +2371,12 @@
           right.style.gap = "6px";
           right.style.alignItems = "center";
 
+          const tierPill = document.createElement("span");
+          tierPill.className = `tier-badge tier-${tNum}`;
+          tierPill.style.fontSize = "9.5px";
+          tierPill.textContent = `T${tNum}`;
+          tierPill.title = f.tier_label || `Tier ${tNum}`;
+
           const tpPill = document.createElement("span");
           tpPill.className = "badge badge-tp";
           tpPill.style.fontSize = "10px";
@@ -2315,6 +2387,7 @@
           bpPill.style.fontSize = "10px";
           bpPill.textContent = f.multiplicador_bp;
 
+          right.appendChild(tierPill);
           right.appendChild(tpPill);
           right.appendChild(bpPill);
 
@@ -2323,6 +2396,10 @@
           fList.appendChild(row);
         });
         updateCount();
+      }
+
+      if (tierFilterSelect) {
+        tierFilterSelect.onchange = renderChecklist;
       }
 
       rSelect.onchange = () => {
@@ -2393,7 +2470,47 @@
         badge.textContent = opt ? opt.textContent.split(".")[1]?.trim() || opt.textContent : rule;
       }
 
-      if (rule === "escala_simples") {
+      if (rule === "teto_hierarquico") {
+        container.innerHTML = `
+          <div style="font-size:12px; color:#67E8F9; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); padding:8px 10px; border-radius:var(--radius-sm); margin-bottom:8px; line-height:1.4;">
+            <strong>${isEn ? "⭐ Intelligent Power Tier Scaling:" : "⭐ Escala Hierárquica por Tiers:"}</strong>
+            ${isEn
+              ? "Categorizes all transformations into Tiers 1-10 based on original modpack power. Tier 10 scales up to the Max Cap (e.g. 50x), while Tiers 1-9 scale strictly proportionally. Precursors (like False SSJ) will NEVER surpass evolutions (SSJ1)."
+              : "Categoriza todas as transformações em Tiers de 1 a 10 pelo poder original do modpack. O Tier 10 atinge o Teto Máximo (ex: 50x) e os Tiers 1 a 9 escalam estritamente proporcional. Pré-requisitos (como False SSJ) NUNCA superam evoluções (SSJ1)."}
+          </div>
+          <div class="grid-3">
+            <div class="field-group">
+              <label for="batchParamTierCap">${t("batch_lbl_tier_cap")}</label>
+              <input id="batchParamTierCap" type="number" step="1" min="10" value="50.0" class="input-field" />
+            </div>
+            <div class="field-group">
+              <label for="batchParamTierFloor">${t("batch_lbl_tier_floor")}</label>
+              <input id="batchParamTierFloor" type="number" step="0.5" min="1" value="5.0" class="input-field" />
+            </div>
+            <div class="field-group">
+              <label for="batchParamTierCurve">${t("batch_lbl_tier_curve")}</label>
+              <select id="batchParamTierCurve" class="select-field">
+                <option value="suave">${isEn ? "Smooth RPG Curve (Recommended)" : "Curva Suave RPG (Recomendado)"}</option>
+                <option value="linear">${isEn ? "Linear (Uniform Scale)" : "Linear (Escala Uniforme)"}</option>
+                <option value="agressiva">${isEn ? "Aggressive (High Endgame)" : "Agressiva (Destaque Endgame)"}</option>
+              </select>
+            </div>
+          </div>
+          <div class="quick-btns" style="margin-top:6px;">
+            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="40.0" data-floor="4.0">40x Cap (Hardcore)</button>
+            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="50.0" data-floor="5.0">50x Cap (Standard DMZ)</button>
+            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="80.0" data-floor="6.0">80x Cap (High Power)</button>
+            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="100.0" data-floor="8.0">100x Cap (Anime Epic)</button>
+          </div>
+        `;
+        container.querySelectorAll(".btn-batch-tier-preset").forEach((btn) => {
+          btn.onclick = () => {
+            el("batchParamTierCap").value = btn.dataset.cap;
+            el("batchParamTierFloor").value = btn.dataset.floor;
+          };
+        });
+
+      } else if (rule === "escala_simples") {
         container.innerHTML = `
           <div class="grid-2">
             <div class="field-group">
@@ -2592,7 +2709,11 @@
         formas_selecionadas: selectedIds,
       };
 
-      if (rule === "escala_simples") {
+      if (rule === "teto_hierarquico") {
+        payload.teto_maximo = parseFloat(el("batchParamTierCap") ? el("batchParamTierCap").value : "50.0") || 50.0;
+        payload.piso_minimo = parseFloat(el("batchParamTierFloor") ? el("batchParamTierFloor").value : "5.0") || 5.0;
+        payload.curva = el("batchParamTierCurve") ? el("batchParamTierCurve").value : "suave";
+      } else if (rule === "escala_simples") {
         payload.campo = el("batchParamField") ? el("batchParamField").value : "tp";
         payload.fator = parseFloat(el("batchParamFactor") ? el("batchParamFactor").value : "1.5") || 1.0;
       } else if (rule === "risco_recompensa") {

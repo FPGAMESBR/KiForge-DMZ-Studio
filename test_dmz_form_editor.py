@@ -1448,6 +1448,155 @@ def test_master_offerings_synced_on_modpack_apply(mock_modpack: Path) -> None:
     assert "supersaiyanx" in data["skillOfferings"]["whis"]
 
 
+def test_power_tiers_and_hierarchical_tier_scaling() -> None:
+    """Verify background Power Tier classification (Tiers 1-10) and hierarchical cap scaling."""
+    from dmz_form_editor_core import compute_power_tier, apply_batch_balance
+
+    # 1. Tier computation and precursor progression
+    false_ssj = {
+        "id": "false_ssj",
+        "nome": "False Super Saiyajin",
+        "nivel_habilidade": 1,
+        "multiplicadores_detalhados": {
+            "forca_str": 1.5,
+            "poder_ki_pwr": 1.5,
+            "defesa_def": 1.5,
+            "golpe_skp": 1.5,
+        },  # Sum = 6.0 -> Tier 1
+        "requisitos": {"forma_previa": None},
+    }
+    ssj1 = {
+        "id": "supersaiyan1",
+        "nome": "Super Saiyajin 1",
+        "nivel_habilidade": 2,
+        "multiplicadores_detalhados": {
+            "forca_str": 2.0,
+            "poder_ki_pwr": 2.0,
+            "defesa_def": 2.0,
+            "golpe_skp": 2.0,
+        },  # Sum = 8.0 -> Tier 1
+        "requisitos": {"forma_previa": "false_ssj"},
+    }
+    ssj_blue = {
+        "id": "ssj_blue",
+        "nome": "Super Saiyajin Blue",
+        "nivel_habilidade": 3,
+        "multiplicadores_detalhados": {
+            "forca_str": 17.5,
+            "poder_ki_pwr": 17.5,
+            "defesa_def": 17.5,
+            "golpe_skp": 17.5,
+        },  # Sum = 70.0 -> Tier 6
+        "requisitos": {"forma_previa": "supersaiyan_god"},
+    }
+    mui = {
+        "id": "mastered_ultra_instinct",
+        "nome": "Mastered Ultra Instinct",
+        "nivel_habilidade": 5,
+        "multiplicadores_detalhados": {
+            "forca_str": 45.0,
+            "poder_ki_pwr": 45.0,
+            "defesa_def": 45.0,
+            "golpe_skp": 45.0,
+        },  # Sum = 180.0 -> Tier 10
+        "requisitos": {"forma_previa": "ui_sign"},
+    }
+
+    pt_false = compute_power_tier(false_ssj)
+    pt_ssj1 = compute_power_tier(ssj1)
+    pt_blue = compute_power_tier(ssj_blue)
+    pt_mui = compute_power_tier(mui)
+
+    assert pt_false["tier"] == 1
+    assert pt_ssj1["tier"] == 1
+    assert pt_blue["tier"] == 6
+    assert pt_mui["tier"] == 10
+
+    # Strict hierarchy: precursor False SSJ rank < SSJ1 rank < SSJ Blue < MUI
+    assert pt_false["rank_score"] < pt_ssj1["rank_score"]
+    assert pt_ssj1["rank_score"] < pt_blue["rank_score"]
+    assert pt_blue["rank_score"] < pt_mui["rank_score"]
+
+    # 2. Hierarchical Scaling (Teto Hierárquico)
+    test_catalog = {
+        "racas": {
+            "saiyan": {
+                "id_raca": "saiyan",
+                "nome_exibicao": "Saiyajin",
+                "arvores_de_transformacao": {
+                    "ssjtree": {
+                        "id_arvore": "ssjtree",
+                        "formas": [copy.deepcopy(false_ssj), copy.deepcopy(ssj1), copy.deepcopy(ssj_blue), copy.deepcopy(mui)],
+                    }
+                },
+            }
+        },
+        "formas_universais_e_stack": {},
+        "total_racas": 1,
+        "total_transformacoes": 4,
+    }
+
+    balanced = apply_batch_balance(
+        test_catalog,
+        {
+            "regra": "teto_hierarquico",
+            "teto_maximo": 50.0,
+            "piso_minimo": 5.0,
+            "curva": "suave",
+            "escopo_alvo": {"tipo": "tudo"},
+        },
+    )
+
+    forms = balanced["racas"]["saiyan"]["arvores_de_transformacao"]["ssjtree"]["formas"]
+    b_false = next(f for f in forms if f["id"] == "false_ssj")
+    b_ssj1 = next(f for f in forms if f["id"] == "supersaiyan1")
+    b_blue = next(f for f in forms if f["id"] == "ssj_blue")
+    b_mui = next(f for f in forms if f["id"] == "mastered_ultra_instinct")
+
+    sum_false = sum(b_false["multiplicadores_detalhados"][k] for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"))
+    sum_ssj1 = sum(b_ssj1["multiplicadores_detalhados"][k] for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"))
+    sum_blue = sum(b_blue["multiplicadores_detalhados"][k] for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"))
+    sum_mui = sum(b_mui["multiplicadores_detalhados"][k] for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"))
+
+    # MUI hits the desired 50x cap
+    assert round(sum_mui, 1) == 50.0
+    # SSJ1 and False SSJ do NOT get flattened to 50x!
+    assert sum_false < sum_ssj1
+    assert sum_ssj1 < sum_blue
+    assert sum_blue < sum_mui
+    assert sum_false < 10.0
+    assert 20.0 < sum_blue < 45.0
+
+
+def test_inspector_scroll_and_accordion_structure() -> None:
+    """Verify CSS and HTML structure preventing inspector scroll lock and enabling accordion/tier badges."""
+    assets_dir = Path(__file__).parent / "assets"
+    css_content = (assets_dir / "dmz_form_editor.css").read_text(encoding="utf-8")
+    html_content = (assets_dir / "dmz_form_editor.html").read_text(encoding="utf-8")
+    js_content = (assets_dir / "dmz_form_editor.js").read_text(encoding="utf-8")
+
+    # Workspace row lock to 100% of height
+    assert "grid-template-rows: 100%" in css_content
+    # Inspector overflow and height constraints
+    assert "overflow-y: scroll !important" in css_content
+    # Power Tier Badge classes (tier-1 to tier-10)
+    assert ".tier-badge" in css_content
+    assert ".tier-1" in css_content
+    assert ".tier-10" in css_content
+    # Flex shrink 0 on cards preventing vertical flattening
+    assert "flex-shrink: 0" in css_content
+
+    # Inspector Body and Accordion Chevrons in HTML
+    assert 'id="inspectorBody"' in html_content
+    assert 'class="card-chevron"' in html_content
+    assert 'id="inspTierBadge"' in html_content
+    assert 'id="batchTierFilter"' in html_content
+
+    # Scope universal disables race selection in modal
+    assert "rSelect.disabled = true" in js_content
+    assert 'data-i18n="add_sec1_title"' in html_content
+
+
 
 
 

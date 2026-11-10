@@ -329,6 +329,98 @@ def format_bp_string(multipliers: dict[str, float]) -> str:
     return f"{str_m}x (STR) / {pwr_m}x (PWR)"
 
 
+def compute_power_tier(form_dict: dict[str, Any]) -> dict[str, Any]:
+    """Computes canonical power tier (1 to 10) and hierarchy progression score.
+    
+    Tiers are determined by original un-modified combat multiplier sum (STR + PWR + DEF + SKP):
+      Tier 1: <= 10.0 (Formas Iniciais / Inatas: False SSJ, SSJ1, Oozaru, Kaioken x2)
+      Tier 2: 10.0 < sum <= 20.0 (Super Guerreiro I: Grade 2, Grade 3, SSJ2, Kaioken x10)
+      Tier 3: 20.0 < sum <= 30.0 (Super Guerreiro II: SSJ3, Majin Mark, Kaioken x20)
+      Tier 4: 30.0 < sum <= 45.0 (Super Guerreiro III / Místico: Ultimate, Golden Oozaru, SSJ4)
+      Tier 5: 45.0 < sum <= 60.0 (Divino I: Super Saiyajin God, Golden Frieza base)
+      Tier 6: 60.0 < sum <= 75.0 (Divino II: Super Saiyajin Blue, SSJ Rosé)
+      Tier 7: 75.0 < sum <= 95.0 (Divino III: SSJ Blue Kaioken, Rosé 2, Golden Frieza Max)
+      Tier 8: 95.0 < sum <= 120.0 (Evolução Divina / Hakaishin: SSJ Blue Evolution, Rosé 3)
+      Tier 9: 120.0 < sum <= 160.0 (Instinto & Ego / Beast: Ultra Instinct Sign, Ultra Ego, Beast)
+      Tier 10: > 160.0 (Transcendental / Endgame: Mastered Ultra Instinct, True Ultra Instinct, 200x+)
+    """
+    mults = form_dict.get("multiplicadores_detalhados", {})
+    if "poder_base_original" in form_dict and isinstance(form_dict["poder_base_original"], (int, float)):
+        base_sum = float(form_dict["poder_base_original"])
+    elif mults:
+        base_sum = (
+            float(mults.get("forca_str", 1.0))
+            + float(mults.get("poder_ki_pwr", 1.0))
+            + float(mults.get("defesa_def", 1.0))
+            + float(mults.get("golpe_skp", 1.0))
+        )
+    elif "multiplicador_numerico_base" in form_dict:
+        base_sum = float(form_dict["multiplicador_numerico_base"]) * 4.0
+    else:
+        base_sum = 4.0
+
+    base_sum = max(1.0, round(base_sum, 3))
+
+    if base_sum <= 10.0:
+        tier = 1
+        tier_label = "Tier 1: Inicial / Inato"
+        tier_min, tier_max = 1.0, 10.0
+    elif base_sum <= 20.0:
+        tier = 2
+        tier_label = "Tier 2: Super Guerreiro I"
+        tier_min, tier_max = 10.0, 20.0
+    elif base_sum <= 30.0:
+        tier = 3
+        tier_label = "Tier 3: Super Guerreiro II"
+        tier_min, tier_max = 20.0, 30.0
+    elif base_sum <= 45.0:
+        tier = 4
+        tier_label = "Tier 4: Super Guerreiro III / Místico"
+        tier_min, tier_max = 30.0, 45.0
+    elif base_sum <= 60.0:
+        tier = 5
+        tier_label = "Tier 5: Divino I (God)"
+        tier_min, tier_max = 45.0, 60.0
+    elif base_sum <= 75.0:
+        tier = 6
+        tier_label = "Tier 6: Divino II (Blue)"
+        tier_min, tier_max = 60.0, 75.0
+    elif base_sum <= 95.0:
+        tier = 7
+        tier_label = "Tier 7: Divino III (Blue Kaioken/Rosé 2)"
+        tier_min, tier_max = 75.0, 95.0
+    elif base_sum <= 120.0:
+        tier = 8
+        tier_label = "Tier 8: Evolução Divina (Evolved/Rosé 3)"
+        tier_min, tier_max = 95.0, 120.0
+    elif base_sum <= 160.0:
+        tier = 9
+        tier_label = "Tier 9: Instinto & Ego / Beast"
+        tier_min, tier_max = 120.0, 160.0
+    else:
+        tier = 10
+        tier_label = "Tier 10: Transcendental / Endgame"
+        tier_min, tier_max = 160.0, 250.0
+
+    denom = max(0.1, tier_max - tier_min)
+    intra = min(1.0, max(0.0, (base_sum - tier_min) / denom))
+
+    slot = int(form_dict.get("nivel_habilidade", 1) or 1)
+    reqs = form_dict.get("requisitos", {})
+    has_prior = bool(reqs.get("forma_previa"))
+    prior_bonus = 0.06 if has_prior else 0.0
+    slot_bonus = min(0.15, max(0.0, (slot - 1) * 0.03))
+
+    rank_score = round(tier + (intra * 0.75) + slot_bonus + prior_bonus, 3)
+
+    return {
+        "tier": tier,
+        "tier_label": tier_label,
+        "base_sum": base_sum,
+        "rank_score": rank_score,
+    }
+
+
 def format_tp_display(tp_numeric: int) -> int | str:
     if tp_numeric < 0:
         return PRICELESS_LABEL
@@ -440,6 +532,12 @@ def _build_form_entry(
         },
         "addon_origem": detect_addon_origin(group_key, form_id),
     }
+    pinfo = compute_power_tier(res)
+    res["poder_base_original"] = pinfo["base_sum"]
+    res["categoria_poder"] = pinfo["tier"]
+    res["tier_label"] = pinfo["tier_label"]
+    res["tier_rank_score"] = pinfo["rank_score"]
+    return res
 
 
 def _normalize_loaded_entry(
@@ -541,6 +639,11 @@ def _normalize_loaded_entry(
             raw_c = "#" + raw_c
         vis[k] = raw_c
     cloned["visual"] = vis
+    pinfo = compute_power_tier(cloned)
+    cloned.setdefault("poder_base_original", pinfo["base_sum"])
+    cloned["categoria_poder"] = pinfo["tier"]
+    cloned["tier_label"] = pinfo["tier_label"]
+    cloned["tier_rank_score"] = pinfo["rank_score"]
     return cloned
 
 
@@ -636,6 +739,11 @@ def _merge_single_form_changes(
                 ]
         updated["requisitos"] = reqs
 
+    pinfo = compute_power_tier(updated)
+    updated.setdefault("poder_base_original", pinfo["base_sum"])
+    updated["categoria_poder"] = pinfo["tier"]
+    updated["tier_label"] = pinfo["tier_label"]
+    updated["tier_rank_score"] = pinfo["rank_score"]
     return updated
 
 
@@ -807,10 +915,60 @@ def _apply_rule_to_entry(
         if cur_stm > 0:
             drenos["estamina"] = round(cur_stm * fator_dreno_stm, 4)
 
+    elif regra in ("teto_hierarquico", "hierarchical_tier"):
+        teto_maximo = float(payload.get("teto_maximo", payload.get("limite_maximo", 50.0)))
+        piso_minimo = float(payload.get("piso_minimo", 4.0))
+        curva = str(payload.get("curva", "suave"))
+
+        if teto_maximo <= piso_minimo:
+            teto_maximo = piso_minimo + 1.0
+
+        pinfo = compute_power_tier(cloned)
+        rank = pinfo["rank_score"]
+
+        # Rank ranges from ~1.0 to ~10.5. Normalize progress x in [0.0, 1.0]
+        x = min(1.0, max(0.0, (rank - 1.0) / 9.0))
+
+        if curva == "suave":
+            factor_curve = (x ** 1.15)
+        elif curva == "agressiva":
+            factor_curve = (x ** 1.35)
+        else:  # "linear"
+            factor_curve = x
+
+        target_sum = round(piso_minimo + (teto_maximo - piso_minimo) * factor_curve, 3)
+
+        current_sum = sum(
+            float(mults[k])
+            for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp")
+        )
+        if current_sum > 0:
+            scale_ratio = target_sum / current_sum
+            for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"):
+                mults[k] = round(max(0.1, float(mults[k]) * scale_ratio), 3)
+
     elif regra == "teto_maximo":
         tipo_teto = str(payload.get("tipo_teto", "soma"))
         limite = float(payload.get("limite_maximo", 50.0))
-        if tipo_teto == "soma":
+        if tipo_teto == "hierarquico":
+            pinfo = compute_power_tier(cloned)
+            rank = pinfo["rank_score"]
+            x = min(1.0, max(0.0, (rank - 1.0) / 9.0))
+            curva = str(payload.get("curva", "suave"))
+            factor_curve = (x ** 1.15) if curva == "suave" else ((x ** 1.35) if curva == "agressiva" else x)
+            piso_minimo = float(payload.get("piso_minimo", 4.0))
+            if limite <= piso_minimo:
+                limite = piso_minimo + 1.0
+            target_sum = round(piso_minimo + (limite - piso_minimo) * factor_curve, 3)
+            current_sum = sum(
+                float(mults[k])
+                for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp")
+            )
+            if current_sum > 0:
+                scale_ratio = target_sum / current_sum
+                for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"):
+                    mults[k] = round(max(0.1, float(mults[k]) * scale_ratio), 3)
+        elif tipo_teto == "soma":
             soma_atual = sum(
                 float(mults[k])
                 for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp")
@@ -879,6 +1037,11 @@ def _apply_rule_to_entry(
     cloned["multiplicador_numerico_base"] = mults["forca_str"]
     cloned["multiplicador_bp"] = format_bp_string(mults)
     cloned["drenos"] = drenos
+    pinfo = compute_power_tier(cloned)
+    cloned.setdefault("poder_base_original", pinfo["base_sum"])
+    cloned["categoria_poder"] = pinfo["tier"]
+    cloned["tier_label"] = pinfo["tier_label"]
+    cloned["tier_rank_score"] = pinfo["rank_score"]
     return cloned
 
 
