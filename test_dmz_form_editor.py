@@ -1167,4 +1167,36 @@ def test_api_endpoints_add_delete_addons_and_language(mock_modpack: Path, tmp_pa
         server.server_close()
 
 
+def test_modal_active_css_and_json_desktop_auto_fallback(tmp_path: Path) -> None:
+    """Verify modal active/open display CSS rules, topbar i18n, and auto Desktop JSON save fallback."""
+    from dmz_form_editor_gui import EditorController
+
+    assets_dir = Path(__file__).parent / "assets"
+    css_content = (assets_dir / "dmz_form_editor.css").read_text(encoding="utf-8")
+    assert ".modal-backdrop.open," in css_content or ".modal-backdrop.active" in css_content
+    assert "display: flex !important;" in css_content
+
+    html_content = (assets_dir / "dmz_form_editor.html").read_text(encoding="utf-8")
+    assert 'data-i18n="btn_add_form"' in html_content
+    assert 'data-i18n="btn_addons"' in html_content
+    assert 'data-i18n="btn_config_folder"' in html_content
+    assert 'data-i18n="btn_undo"' in html_content
+    assert 'data-i18n="btn_redo"' in html_content
+    assert 'data-i18n="btn_batch"' in html_content
+    assert 'data-i18n="btn_reload"' in html_content
+    assert 'data-i18n="btn_save_json"' in html_content
+
+    # Test auto fallback when no paths are provided
+    ctrl = EditorController(
+        dmz_config_dir="",
+        desktop_json_path="",
+        instance_json_path="",
+        allowed_roots=[str(tmp_path)],
+    )
+    targets = ctrl._target_json_paths()
+    assert len(targets) == 1
+    assert "Dragon_Mine_Z_Transformacoes.json" in targets[0]
+
+
+
 

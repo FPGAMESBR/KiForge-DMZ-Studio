@@ -473,6 +473,13 @@
     el("btnRedo").disabled = !state.canRedo;
     el("btnApplyModpack").disabled = !state.modpackAvailable;
 
+    el("btnUndo").title = state.canUndo
+      ? (isEn ? "Undo last change (Ctrl+Z)" : "Desfazer última alteração (Ctrl+Z)")
+      : (isEn ? "Undo (Ctrl+Z) - Available after making changes" : "Desfazer (Ctrl+Z) - Disponível após modificar uma forma");
+    el("btnRedo").title = state.canRedo
+      ? (isEn ? "Redo last change (Ctrl+Y)" : "Refazer alteração (Ctrl+Y)")
+      : (isEn ? "Redo (Ctrl+Y)" : "Refazer (Ctrl+Y)");
+
     const langBtn = el("btnLangToggle");
     if (langBtn) {
       langBtn.textContent = state.language === "en" ? "🌐 EN" : "🌐 PT";
@@ -897,6 +904,28 @@
     }
   }
 
+  // Modal Helpers
+  function openModal(id) {
+    const modal = el(id);
+    if (!modal) return;
+    modal.classList.add("active");
+    modal.classList.add("open");
+  }
+
+  function closeModal(id) {
+    const modal = el(id);
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.classList.remove("open");
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll(".modal-backdrop").forEach((m) => {
+      m.classList.remove("active");
+      m.classList.remove("open");
+    });
+  }
+
   // Add Form Modal logic
   function openAddFormModal() {
     const cat = state.catalog;
@@ -945,7 +974,7 @@
     el("add_lvl").value = "1";
     el("add_addon").value = "Dragon Mine Z (Core)";
 
-    el("addFormModal").classList.add("active");
+    openModal("addFormModal");
   }
 
   async function handleConfirmAddForm() {
@@ -984,7 +1013,7 @@
 
     try {
       const data = await apiPost("/api/form/add", payload);
-      el("addFormModal").classList.remove("active");
+      closeModal("addFormModal");
       applyServerState(data);
       const targetKey = escopo === "universal" ? `universal:${arvore}:${formId}` : `raca:${raca}:${arvore}:${formId}`;
       selectFormRow(targetKey);
@@ -1003,7 +1032,7 @@
     el("deleteModalDesc").textContent = isEn
       ? `Are you sure you want to permanently delete '${f.nome}' (${f.id}) from ${sel.racaNome}?`
       : `Tem certeza de que deseja remover permanentemente '${f.nome}' (${f.id}) de ${sel.racaNome}?`;
-    el("deleteFormModal").classList.add("active");
+    openModal("deleteFormModal");
   }
 
   async function handleConfirmDeleteForm() {
@@ -1018,7 +1047,7 @@
     };
     try {
       const data = await apiPost("/api/form/delete", payload);
-      el("deleteFormModal").classList.remove("active");
+      closeModal("deleteFormModal");
       applyServerState(data);
       showToast(state.language === "en" ? "Transformation deleted! Press Ctrl+Z to undo." : "Transformação removida! Pressione Ctrl+Z para desfazer.");
     } catch (err) {
@@ -1033,7 +1062,7 @@
       state.addonsList = data.addons || [];
       renderAddonsTable();
       el("addonsCountBadge").textContent = `${state.addonsList.length} Addons`;
-      el("addonsModal").classList.add("active");
+      openModal("addonsModal");
     } catch (err) {
       showToast(err.message, true);
     }
@@ -1104,40 +1133,61 @@
         showToast(state.language === "en" ? "Saved to JSON!" : "Salvo no JSON!");
       }).catch((err) => showToast(err.message, true));
     } else if (e.key === "Escape") {
-      document.querySelectorAll(".modal-backdrop.active").forEach((m) => m.classList.remove("active"));
+      closeAllModals();
     }
   });
 
   // Setup Event Listeners
   function setupEvents() {
+    // Backdrop click-to-close for all modals
+    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop) {
+          closeModal(backdrop.id);
+        }
+      });
+    });
+
     el("btnLangToggle").addEventListener("click", () => {
       setLanguage(state.language === "pt" ? "en" : "pt");
     });
 
     el("btnOpenAddForm").addEventListener("click", openAddFormModal);
-    el("btnCancelAddForm").addEventListener("click", () => el("addFormModal").classList.remove("active"));
+    el("btnCancelAddForm").addEventListener("click", () => closeModal("addFormModal"));
     el("btnConfirmAddForm").addEventListener("click", handleConfirmAddForm);
 
     el("btnDeleteForm").addEventListener("click", openDeleteFormModal);
-    el("btnCancelDelete").addEventListener("click", () => el("deleteFormModal").classList.remove("active"));
+    el("btnCancelDelete").addEventListener("click", () => closeModal("deleteFormModal"));
     el("btnConfirmDelete").addEventListener("click", handleConfirmDeleteForm);
 
     el("btnOpenAddons").addEventListener("click", openAddonsModal);
-    el("btnCloseAddons").addEventListener("click", () => el("addonsModal").classList.remove("active"));
+    el("btnCloseAddons").addEventListener("click", () => closeModal("addonsModal"));
 
     el("btnApplyForm").addEventListener("click", handleApplyForm);
 
     el("btnUndo").addEventListener("click", () => {
-      apiPost("/api/undo").then(applyServerState).catch((err) => showToast(err.message, true));
+      apiPost("/api/undo").then((data) => {
+        applyServerState(data);
+        showToast(state.language === "en" ? "Action undone (Ctrl+Z)" : "Ação desfeita (Ctrl+Z)");
+      }).catch((err) => showToast(err.message, true));
     });
     el("btnRedo").addEventListener("click", () => {
-      apiPost("/api/redo").then(applyServerState).catch((err) => showToast(err.message, true));
+      apiPost("/api/redo").then((data) => {
+        applyServerState(data);
+        showToast(state.language === "en" ? "Action redone (Ctrl+Y)" : "Ação refeita (Ctrl+Y)");
+      }).catch((err) => showToast(err.message, true));
     });
 
     el("btnSaveJson").addEventListener("click", () => {
       apiPost("/api/save-json").then((data) => {
         applyServerState(data);
-        showToast(state.language === "en" ? "Saved to JSON!" : "Salvo no JSON!");
+        const savedList = (data.json_salvos || []).map((p) => p.replace(/\\/g, "/").split("/").pop());
+        const info = savedList.length > 0 ? ` (${savedList.join(", ")})` : "";
+        showToast(
+          state.language === "en"
+            ? `Saved to JSON!${info}`
+            : `JSON salvo com sucesso!${info}`
+        );
       }).catch((err) => showToast(err.message, true));
     });
 
@@ -1149,16 +1199,23 @@
     });
 
     el("btnReloadModpack").addEventListener("click", () => {
-      apiPost("/api/reload", { source: state.source }).then(applyServerState).catch((err) => showToast(err.message, true));
+      apiPost("/api/reload", { source: state.source }).then((data) => {
+        applyServerState(data);
+        showToast(
+          state.language === "en"
+            ? "Modpack reloaded successfully!"
+            : "Modpack recarregado com sucesso!"
+        );
+      }).catch((err) => showToast(err.message, true));
     });
 
     // Settings Modal
     el("btnOpenSettings").addEventListener("click", () => {
       el("inpModpackPath").value = state.dmzConfigDir || "";
       el("inpJsonPath").value = state.desktopJson || "";
-      el("settingsModal").classList.add("active");
+      openModal("settingsModal");
     });
-    el("btnCloseSettings").addEventListener("click", () => el("settingsModal").classList.remove("active"));
+    el("btnCloseSettings").addEventListener("click", () => closeModal("settingsModal"));
     el("btnBrowseFolder").addEventListener("click", async () => {
       try {
         const res = await apiPost("/api/browse-folder");
@@ -1182,7 +1239,7 @@
           desktop_json_path: el("inpJsonPath").value.trim(),
           clear_paths: !el("inpModpackPath").value.trim() && !el("inpJsonPath").value.trim(),
         });
-        el("settingsModal").classList.remove("active");
+        closeModal("settingsModal");
         applyServerState(data);
         showToast(state.language === "en" ? "Settings updated!" : "Configurações atualizadas!");
       } catch (err) {
@@ -1191,8 +1248,8 @@
     });
 
     // Batch Modal
-    el("btnOpenBatch").addEventListener("click", () => el("batchModal").classList.add("active"));
-    el("btnCloseBatch").addEventListener("click", () => el("batchModal").classList.remove("active"));
+    el("btnOpenBatch").addEventListener("click", () => openModal("batchModal"));
+    el("btnCloseBatch").addEventListener("click", () => closeModal("batchModal"));
     el("btnConfirmBatch").addEventListener("click", async () => {
       const scopeVal = el("batchScopeSelect").value;
       const target_scope = { tipo: scopeVal };
@@ -1214,7 +1271,7 @@
           fator: parseFloat(el("batchFactorInput").value),
           escopo: target_scope,
         });
-        el("batchModal").classList.remove("active");
+        closeModal("batchModal");
         applyServerState(data);
         showToast(state.language === "en" ? "Batch scale applied!" : "Escala em lote aplicada!");
       } catch (err) {

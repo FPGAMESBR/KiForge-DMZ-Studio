@@ -543,9 +543,14 @@ class EditorController:
             if inst_parent and os.path.isdir(inst_parent):
                 targets.append(self._instance_json_path)
         if not targets:
-            raise ValueError(
-                "Configure o local do arquivo .json em '⚙️ Pasta Config' antes de salvar."
+            desktop_path = os.path.join(
+                os.path.expanduser("~"), "Desktop", "Dragon_Mine_Z_Transformacoes.json"
             )
+            self._desktop_json_path = desktop_path
+            d_dir = os.path.dirname(os.path.realpath(desktop_path))
+            if d_dir and d_dir not in self._allowed_roots:
+                self._allowed_roots = [*self._allowed_roots, d_dir]
+            targets.append(desktop_path)
         return targets
 
     def save_json_only(self) -> dict[str, Any]:
