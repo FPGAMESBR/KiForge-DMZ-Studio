@@ -134,6 +134,33 @@
       opt_no_saga: "— Nenhuma saga exigida —",
       opt_no_master: "— Nenhum mestre vinculado —",
       opt_custom_master: "Personalizado / Outro...",
+      add_sec1_title: "📁 1. Identificação & Localização na Árvore",
+      lbl_add_scope: "Escopo",
+      opt_add_scope_race: "Específica de Raça",
+      opt_add_scope_universal: "Universal / Stack",
+      lbl_add_race: "Raça",
+      lbl_add_tree: "Árvore / Grupo",
+      lbl_add_id: "ID Técnico da Forma",
+      badge_user_created: "Você Cria",
+      hint_add_id: "⚙️ Identificador único salvo no modpack (slug minúsculo).",
+      lbl_add_nome: "Nome de Exibição",
+      hint_add_nome: "🎮 Nome que os jogadores verão na HUD e habilidades.",
+      lbl_add_addon: "Addon / Pacote de Origem",
+      hint_add_addon: "Origem da forma para filtros.",
+      add_sec2_title: "💰 2. Economia de TP & Requisitos de Desbloqueio",
+      lbl_add_tp: "Custo de TP",
+      lbl_add_lvl: "Nível Slot Habilidade (Slot Level)",
+      lbl_add_master: "Mestre que Ensina (Opcional)",
+      lbl_add_saga: "Saga Obrigatória para Desbloqueio",
+      lbl_add_prev: "Forma Prévia Obrigatória (Requisito)",
+      add_sec3_title: "⚔️ 3. Multiplicadores de Status (Battle Power)",
+      lbl_add_mult_all: "Multiplicar Todos:",
+      add_sec4_title: "✨ 4. Efeitos Visuais & Aura da Transformação",
+      add_aura_preview_title: "Visualização em Tempo Real da Forma",
+      add_aura_paleta_title: "Paleta Rápida Dragon Ball:",
+      lbl_add_aura_hex: "Cor da Aura (Hex)",
+      lbl_add_hair_hex: "Cor do Cabelo (Hex)",
+      btn_add_confirm_submit: "✨ Criar Transformação",
     },
     en: {
       app_title: "KiForge: DMZ Form Studio",
@@ -265,6 +292,33 @@
       opt_no_saga: "— No saga required —",
       opt_no_master: "— No master bound —",
       opt_custom_master: "Custom / Other...",
+      add_sec1_title: "📁 1. Identification & Tree Placement",
+      lbl_add_scope: "Scope",
+      opt_add_scope_race: "Race-Specific",
+      opt_add_scope_universal: "Universal / Stack",
+      lbl_add_race: "Race",
+      lbl_add_tree: "Tree / Group",
+      lbl_add_id: "Technical Form ID",
+      badge_user_created: "You Create",
+      hint_add_id: "⚙️ Unique technical slug saved in modpack (lowercase).",
+      lbl_add_nome: "Display Name",
+      hint_add_nome: "🎮 Visible in-game name shown in HUD & skill tree.",
+      lbl_add_addon: "Origin Addon / Pack",
+      hint_add_addon: "Origin package used for catalog filtering.",
+      add_sec2_title: "💰 2. TP Economy & Unlock Requirements",
+      lbl_add_tp: "TP Cost",
+      lbl_add_lvl: "Skill Slot Level (Slot Level)",
+      lbl_add_master: "Teaching Master (Optional)",
+      lbl_add_saga: "Required Saga to Unlock",
+      lbl_add_prev: "Required Prior Form (Requisite)",
+      add_sec3_title: "⚔️ 3. Combat Multipliers (Battle Power)",
+      lbl_add_mult_all: "Multiply All:",
+      add_sec4_title: "✨ 4. Visual Effects & Transformation Aura",
+      add_aura_preview_title: "Real-Time Form Visualizer",
+      add_aura_paleta_title: "Quick Dragon Ball Palette:",
+      lbl_add_aura_hex: "Aura Color (Hex)",
+      lbl_add_hair_hex: "Hair Color (Hex)",
+      btn_add_confirm_submit: "✨ Create Transformation",
     }
   };
 
@@ -1455,8 +1509,45 @@
       tSelect.appendChild(optCustom);
     };
 
+    const escopoSelect = el("add_escopo");
+    const raceGroup = el("add_race_group");
+    const scopeGrid = el("add_scope_grid");
+    const lblTree = el("lbl_add_arvore");
+
+    const updateScopeAndTrees = () => {
+      const isUniversal = escopoSelect && escopoSelect.value === "universal";
+      if (isUniversal) {
+        if (raceGroup) raceGroup.style.display = "none";
+        if (scopeGrid) scopeGrid.style.gridTemplateColumns = "1fr 1fr";
+        if (lblTree) {
+          lblTree.textContent = state.language === "en" ? "Universal Group" : "Grupo Universal";
+        }
+        tSelect.innerHTML = "";
+        const uGroups = Object.keys(cat.formas_universais_e_stack || {});
+        if (uGroups.length === 0) uGroups.push("stack", "forms");
+        uGroups.forEach((g) => {
+          const opt = document.createElement("option");
+          opt.value = g;
+          opt.textContent = g;
+          tSelect.appendChild(opt);
+        });
+        const optCustom = document.createElement("option");
+        optCustom.value = "customgroup";
+        optCustom.textContent = "+ customgroup";
+        tSelect.appendChild(optCustom);
+      } else {
+        if (raceGroup) raceGroup.style.display = "";
+        if (scopeGrid) scopeGrid.style.gridTemplateColumns = "";
+        if (lblTree) {
+          lblTree.textContent = state.language === "en" ? "Transformation Tree" : "Árvore de Transformação";
+        }
+        updateTreeSelect();
+      }
+    };
+
+    if (escopoSelect) escopoSelect.onchange = updateScopeAndTrees;
     rSelect.onchange = updateTreeSelect;
-    updateTreeSelect();
+    updateScopeAndTrees();
 
     // Populate Sagas Select
     const sagaSel = el("add_saga_select");
@@ -1503,9 +1594,29 @@
       });
     }
 
-    // Defaults
-    el("add_id").value = "";
-    el("add_nome").value = "";
+    // Auto-slug sync and defaults
+    const idInp = el("add_id");
+    const nomeInp = el("add_nome");
+    if (idInp) {
+      idInp.value = "";
+      idInp.dataset.userEdited = "";
+      idInp.oninput = () => {
+        idInp.dataset.userEdited = "true";
+      };
+    }
+    if (nomeInp) {
+      nomeInp.value = "";
+      nomeInp.oninput = (e) => {
+        if (idInp && !idInp.dataset.userEdited) {
+          idInp.value = e.target.value
+            .toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+        }
+      };
+    }
+
     el("add_tp").value = "500000";
     el("add_lvl").value = "1";
     el("add_addon").value = "Dragon Mine Z (Core)";
@@ -1515,6 +1626,12 @@
     el("add_mult_skp").value = "2.5";
     el("add_cor_aura").value = "#FFD700";
     el("add_cor_cabelo").value = "#FFE89E";
+
+    // Translate modal elements dynamically
+    document.querySelectorAll("#addFormModal [data-i18n]").forEach((elem) => {
+      const k = elem.getAttribute("data-i18n");
+      if (k) elem.textContent = t(k);
+    });
 
     updateAddFormAuraPreview();
     updateAddFormBpPreview();

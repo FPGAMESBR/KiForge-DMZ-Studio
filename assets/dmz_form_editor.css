@@ -239,6 +239,9 @@ html, body {
 
 .input-field {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   height: 32px;
   padding: 0 10px;
   border-radius: var(--radius-sm);
@@ -338,6 +341,12 @@ html, body {
 }
 
 .select-field {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  overflow: hidden;
   height: 32px;
   padding: 0 10px;
   border-radius: var(--radius-sm);
@@ -601,6 +610,7 @@ table.forms-table {
 .inspector-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 12px 14px 24px;
   display: flex;
   flex-direction: column;
@@ -615,6 +625,9 @@ table.forms-table {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .card-title {

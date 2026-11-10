@@ -340,26 +340,27 @@
                 <input id="req_lvl_req" type="number" step="1" min="0" class="input-field" />
               </div>
             </div>
-            <div class="grid-2">
-              <div class="field-group">
-                <label for="req_saga_select" data-i18n="lbl_saga_req">Saga Obrigatória para Desbloqueio</label>
-                <select id="req_saga_select" class="select-field" style="margin-bottom: 6px;">
-                  <option value="">— Nenhuma saga exigida —</option>
-                </select>
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono);">ID:</span>
-                  <input id="req_saga" type="text" class="input-field" placeholder="ex: namek_saga:freeza_final" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono);" />
-                </div>
+            <!-- Saga Obrigatória -->
+            <div class="field-group" style="margin-bottom: 8px;">
+              <label for="req_saga_select" data-i18n="lbl_saga_req">Saga Obrigatória para Desbloqueio</label>
+              <select id="req_saga_select" class="select-field" style="margin-bottom: 6px; width: 100%;">
+                <option value="">— Nenhuma saga exigida —</option>
+              </select>
+              <div style="display:flex; align-items:center; gap:6px; width: 100%;">
+                <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); flex-shrink: 0;">ID:</span>
+                <input id="req_saga" type="text" class="input-field" placeholder="ex: namek_saga:freeza_final" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono); flex: 1; min-width: 0;" />
               </div>
-              <div class="field-group">
-                <label for="req_prev_form_select" data-i18n="lbl_prev_form">Forma Prévia Obrigatória (Requisito)</label>
-                <select id="req_prev_form_select" class="select-field" style="margin-bottom: 6px;">
-                  <option value="">— Nenhuma forma prévia exigida —</option>
-                </select>
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono);">ID:</span>
-                  <input id="req_prev_form" type="text" class="input-field" placeholder="ex: supersaiyan.supersaiyan1" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono);" />
-                </div>
+            </div>
+
+            <!-- Forma Prévia Obrigatória -->
+            <div class="field-group" style="margin-bottom: 8px;">
+              <label for="req_prev_form_select" data-i18n="lbl_prev_form">Forma Prévia Obrigatória (Requisito)</label>
+              <select id="req_prev_form_select" class="select-field" style="margin-bottom: 6px; width: 100%;">
+                <option value="">— Nenhuma forma prévia exigida —</option>
+              </select>
+              <div style="display:flex; align-items:center; gap:6px; width: 100%;">
+                <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); flex-shrink: 0;">ID:</span>
+                <input id="req_prev_form" type="text" class="input-field" placeholder="ex: supersaiyan.supersaiyan1" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono); flex: 1; min-width: 0;" />
               </div>
             </div>
             <div class="field-group">
@@ -473,54 +474,63 @@
 
       <!-- Seção 1: Identificação & Localização -->
       <div class="add-form-section">
-        <div class="add-form-section-title">📁 1. Identificação &amp; Localização na Árvore</div>
-        <div class="grid-3" style="margin-bottom:10px;">
+        <div class="add-form-section-title" data-i18n="add_sec1_title">📁 1. Identificação &amp; Localização na Árvore</div>
+        <div class="grid-3" id="add_scope_grid" style="margin-bottom:10px;">
           <div class="field-group">
-            <label for="add_escopo">Escopo</label>
+            <label for="add_escopo" data-i18n="lbl_add_scope">Escopo</label>
             <select id="add_escopo" class="select-field">
-              <option value="raca">Específica de Raça</option>
-              <option value="universal">Universal / Stack</option>
+              <option value="raca" data-i18n="opt_add_scope_race">Específica de Raça</option>
+              <option value="universal" data-i18n="opt_add_scope_universal">Universal / Stack</option>
             </select>
           </div>
           <div class="field-group" id="add_race_group">
-            <label for="add_raca">Raça</label>
+            <label for="add_raca" data-i18n="lbl_add_race">Raça</label>
             <select id="add_raca" class="select-field"></select>
           </div>
           <div class="field-group" id="add_tree_group">
-            <label for="add_arvore">Árvore / Grupo</label>
+            <label for="add_arvore" id="lbl_add_arvore" data-i18n="lbl_add_tree">Árvore / Grupo</label>
             <select id="add_arvore" class="select-field"></select>
           </div>
         </div>
 
         <div class="grid-3">
           <div class="field-group">
-            <label for="add_id">ID da Forma (slug_sem_espaco)</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+              <label for="add_id" data-i18n="lbl_add_id" style="margin-bottom:0;">ID Técnico da Forma</label>
+              <span class="badge" style="font-size:9px; background:rgba(56,189,248,0.15); color:#38BDF8;" data-i18n="badge_user_created">Você Cria</span>
+            </div>
             <input id="add_id" type="text" class="input-field" placeholder="ex: ssj_primal" style="font-family:var(--font-mono); font-weight:600;" />
+            <div style="font-size:10px; color:var(--text-muted); margin-top:2px;" data-i18n="hint_add_id">⚙️ Identificador único salvo no modpack (slug minúsculo).</div>
           </div>
           <div class="field-group">
-            <label for="add_nome">Nome de Exibição</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+              <label for="add_nome" data-i18n="lbl_add_nome" style="margin-bottom:0;">Nome de Exibição</label>
+              <span class="badge" style="font-size:9px; background:rgba(52,211,153,0.15); color:#34D399;" data-i18n="badge_user_created">Você Cria</span>
+            </div>
             <input id="add_nome" type="text" class="input-field" placeholder="ex: Super Saiyajin Primal" />
+            <div style="font-size:10px; color:var(--text-muted); margin-top:2px;" data-i18n="hint_add_nome">🎮 Nome que os jogadores verão na HUD e habilidades.</div>
           </div>
           <div class="field-group">
-            <label for="add_addon">Addon / Pacote de Origem</label>
+            <label for="add_addon" data-i18n="lbl_add_addon">Addon / Pacote de Origem</label>
             <input id="add_addon" type="text" class="input-field" placeholder="Dragon Mine Z (Core)" />
+            <div style="font-size:10px; color:var(--text-muted); margin-top:2px;" data-i18n="hint_add_addon">Origem da forma para filtros.</div>
           </div>
         </div>
       </div>
 
       <!-- Seção 2: Economia de TP & Requisitos Narrativos -->
       <div class="add-form-section">
-        <div class="add-form-section-title">💰 2. Economia de TP &amp; Requisitos de Desbloqueio</div>
+        <div class="add-form-section-title" data-i18n="add_sec2_title">💰 2. Economia de TP &amp; Requisitos de Desbloqueio</div>
         <div class="grid-2" style="margin-bottom:10px;">
           <div class="field-group">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <label for="add_tp" style="margin-bottom:0;">Custo de TP</label>
+              <label for="add_tp" data-i18n="lbl_add_tp" style="margin-bottom:0;">Custo de TP</label>
               <span id="addTpBadgePreview" class="badge badge-tp" style="font-size:10px;">500.000 TP</span>
             </div>
             <input id="add_tp" type="number" step="1000" value="500000" class="input-field" style="margin-bottom:6px;" />
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-              <button type="button" class="btn btn-preset-add-tp" data-tp="0">Grátis (0)</button>
-              <button type="button" class="btn btn-preset-add-tp" data-tp="-1">Priceless (-1)</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="0" data-i18n="btn_free">Grátis (0)</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="-1" data-i18n="btn_priceless">Priceless (-1)</button>
               <button type="button" class="btn btn-preset-add-tp" data-tp="50000">50k</button>
               <button type="button" class="btn btn-preset-add-tp" data-tp="100000">100k</button>
               <button type="button" class="btn btn-preset-add-tp" data-tp="500000">500k</button>
@@ -529,10 +539,10 @@
             </div>
           </div>
           <div class="field-group">
-            <label for="add_lvl">Nível Slot Habilidade (Slot Level)</label>
+            <label for="add_lvl" data-i18n="lbl_add_lvl">Nível Slot Habilidade (Slot Level)</label>
             <input id="add_lvl" type="number" step="1" min="1" max="10" value="1" class="input-field" />
             <div style="margin-top:8px;">
-              <label for="add_mestre_select">Mestre que Ensina (Opcional)</label>
+              <label for="add_mestre_select" data-i18n="lbl_add_master">Mestre que Ensina (Opcional)</label>
               <select id="add_mestre_select" class="select-field">
                 <option value="">— Nenhum mestre exigido —</option>
               </select>
@@ -542,13 +552,13 @@
 
         <div class="grid-2">
           <div class="field-group">
-            <label for="add_saga_select">Saga Obrigatória para Desbloqueio</label>
+            <label for="add_saga_select" data-i18n="lbl_add_saga">Saga Obrigatória para Desbloqueio</label>
             <select id="add_saga_select" class="select-field">
               <option value="">— Nenhuma saga exigida —</option>
             </select>
           </div>
           <div class="field-group">
-            <label for="add_prev_form_select">Forma Prévia Obrigatória (Requisito)</label>
+            <label for="add_prev_form_select" data-i18n="lbl_add_prev">Forma Prévia Obrigatória (Requisito)</label>
             <select id="add_prev_form_select" class="select-field">
               <option value="">— Nenhuma forma prévia exigida —</option>
             </select>
@@ -559,29 +569,29 @@
       <!-- Seção 3: Multiplicadores de Combate (BP) -->
       <div class="add-form-section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <div class="add-form-section-title" style="margin-bottom:0;">⚔️ 3. Multiplicadores de Status (Battle Power)</div>
+          <div class="add-form-section-title" data-i18n="add_sec3_title" style="margin-bottom:0;">⚔️ 3. Multiplicadores de Status (Battle Power)</div>
           <span id="addBpPreview" class="badge badge-bp" style="font-size:11px;">2.50x (STR) / 2.50x (PWR)</span>
         </div>
         <div class="grid-4" style="margin-bottom:8px;">
           <div class="field-group">
-            <label for="add_mult_str">Força (STR)</label>
+            <label for="add_mult_str" data-i18n="lbl_str">Força (STR)</label>
             <input id="add_mult_str" type="number" step="0.1" value="2.5" class="input-field" />
           </div>
           <div class="field-group">
-            <label for="add_mult_pwr">Poder Ki (PWR)</label>
+            <label for="add_mult_pwr" data-i18n="lbl_pwr">Poder Ki (PWR)</label>
             <input id="add_mult_pwr" type="number" step="0.1" value="2.5" class="input-field" />
           </div>
           <div class="field-group">
-            <label for="add_mult_def">Defesa (DEF)</label>
+            <label for="add_mult_def" data-i18n="lbl_def">Defesa (DEF)</label>
             <input id="add_mult_def" type="number" step="0.1" value="2.5" class="input-field" />
           </div>
           <div class="field-group">
-            <label for="add_mult_skp">Golpe Especial (SKP)</label>
+            <label for="add_mult_skp" data-i18n="lbl_skp">Golpe Especial (SKP)</label>
             <input id="add_mult_skp" type="number" step="0.1" value="2.5" class="input-field" />
           </div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
-          <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">Multiplicar Todos:</span>
+          <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;" data-i18n="lbl_add_mult_all">Multiplicar Todos:</span>
           <button type="button" class="btn btn-preset-add-bp" data-bpmult="0.8">0.8x</button>
           <button type="button" class="btn btn-preset-add-bp" data-bpmult="1.2">1.2x</button>
           <button type="button" class="btn btn-preset-add-bp" data-bpmult="1.5">1.5x</button>
@@ -592,7 +602,7 @@
 
       <!-- Seção 4: Efeitos Visuais & Shader (Live Visualizer) -->
       <div class="add-form-section">
-        <div class="add-form-section-title">✨ 4. Efeitos Visuais &amp; Aura da Transformação</div>
+        <div class="add-form-section-title" data-i18n="add_sec4_title">✨ 4. Efeitos Visuais &amp; Aura da Transformação</div>
         
         <!-- Live Visualizer Orb Box -->
         <div class="aura-live-box" style="margin-bottom: 10px; padding: 10px 14px; background: rgba(15,23,42,0.65); border: 1px solid var(--border-default); border-radius: var(--radius-md); display:flex; align-items:center; gap:14px;">
@@ -602,7 +612,7 @@
             <div id="addHairFlameDot" class="hair-flame-dot" style="position:absolute; bottom:0; right:0; width:13px; height:13px; border-radius:50%; background:#FFE89E; border:2px solid #0B0F19; box-shadow:0 0 4px rgba(0,0,0,0.8); transition: all 0.3s ease;" title="Cor do Cabelo"></div>
           </div>
           <div style="flex:1;">
-            <div style="font-size:11.5px; font-weight:700; color:#FFFFFF;">Visualização em Tempo Real da Forma</div>
+            <div style="font-size:11.5px; font-weight:700; color:#FFFFFF;" data-i18n="add_aura_preview_title">Visualização em Tempo Real da Forma</div>
             <div style="display:flex; gap:6px; margin-top:4px; flex-wrap:wrap;">
               <span id="addAuraHexBadge" class="badge" style="background:rgba(255,215,0,0.15); border:1px solid #FFD700; color:#FFD700; font-family:var(--font-mono); font-size:10px;">Aura: #FFD700</span>
               <span id="addHairHexBadge" class="badge" style="background:rgba(255,232,158,0.15); border:1px solid #FFE89E; color:#FFE89E; font-family:var(--font-mono); font-size:10px;">Cabelo: #FFE89E</span>
@@ -612,7 +622,7 @@
 
         <!-- Paleta Rápida Dragon Ball -->
         <div style="margin-bottom:10px;">
-          <div style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px;">Paleta Rápida Dragon Ball:</div>
+          <div style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px;" data-i18n="add_aura_paleta_title">Paleta Rápida Dragon Ball:</div>
           <div style="display:flex; gap:5px; flex-wrap:wrap;">
             <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#FFD700" data-hair="#FFE89E" style="background:#EAB308; color:#000;">SSJ</button>
             <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#00D2FF" data-hair="#00F0FF" style="background:#0284C7; color:#fff;">Blue</button>
@@ -630,14 +640,14 @@
         <!-- Inputs de Cor Hex + Color Pickers Nativos -->
         <div class="grid-2">
           <div class="field-group">
-            <label for="add_cor_aura">Cor da Aura (Hex)</label>
+            <label for="add_cor_aura" data-i18n="lbl_add_aura_hex">Cor da Aura (Hex)</label>
             <div style="display:flex; gap:6px; align-items:center;">
               <input id="add_cor_aura" type="text" class="input-field" placeholder="#FFD700" value="#FFD700" style="font-family:var(--font-mono);" />
               <input id="add_cor_aura_picker" type="color" value="#FFD700" class="color-picker-input" title="Escolher cor da aura" />
             </div>
           </div>
           <div class="field-group">
-            <label for="add_cor_cabelo">Cor do Cabelo (Hex)</label>
+            <label for="add_cor_cabelo" data-i18n="lbl_add_hair_hex">Cor do Cabelo (Hex)</label>
             <div style="display:flex; gap:6px; align-items:center;">
               <input id="add_cor_cabelo" type="text" class="input-field" placeholder="#FFE89E" value="#FFE89E" style="font-family:var(--font-mono);" />
               <input id="add_cor_cabelo_picker" type="color" value="#FFE89E" class="color-picker-input" title="Escolher cor do cabelo" />
@@ -649,7 +659,7 @@
       <!-- Rodapé com Ações -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:12px; border-top:1px solid var(--border-default);">
         <button id="btnCancelAddForm" type="button" class="btn" data-i18n="btn_cancel">Cancelar</button>
-        <button id="btnConfirmAddForm" type="button" class="btn btn-emerald" style="padding:10px 24px; font-weight:700; font-size:13px;" data-i18n="btn_confirm_add">
+        <button id="btnConfirmAddForm" type="button" class="btn btn-emerald" style="padding:10px 24px; font-weight:700; font-size:13px;" data-i18n="btn_add_confirm_submit">
           ✨ Criar Transformação
         </button>
       </div>
