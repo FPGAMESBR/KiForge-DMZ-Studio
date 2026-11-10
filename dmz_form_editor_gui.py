@@ -13,6 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 import secrets
+import subprocess
 import sys
 import threading
 from typing import Any
@@ -79,6 +80,72 @@ def _empty_catalog() -> dict[str, Any]:
         "formas_universais_e_stack": {},
         "opcoes_sagas": [],
     }
+
+
+def _powershell_pick_folder(start_dir: str = "") -> str:
+    """Native topmost Windows folder picker via isolated PowerShell process."""
+    start = (
+        start_dir
+        if (start_dir and os.path.isdir(start_dir))
+        else os.path.expanduser("~")
+    )
+    clean_start = start.replace("'", "''")
+    script = (
+        "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; "
+        "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
+        "$f.Description = 'Selecione a pasta do Modpack ou config/dragonminez'; "
+        f"$f.SelectedPath = '{clean_start}'; "
+        "$f.ShowNewFolderButton = $false; "
+        "$form = New-Object System.Windows.Forms.Form; "
+        "$form.TopMost = $true; "
+        "if ($f.ShowDialog($form) -eq [System.Windows.Forms.DialogResult]::OK) { "
+        "    Write-Output $f.SelectedPath "
+        "}"
+    )
+    try:
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+            capture_output=True,
+            text=True,
+            creationflags=0x08000000,
+            timeout=180,
+        )
+        return res.stdout.strip()
+    except Exception:
+        return ""
+
+
+def _powershell_pick_json(start_dir: str = "") -> str:
+    """Native topmost Windows OpenFileDialog via isolated PowerShell process."""
+    start = (
+        start_dir
+        if (start_dir and os.path.isdir(start_dir))
+        else os.path.expanduser("~")
+    )
+    clean_start = start.replace("'", "''")
+    script = (
+        "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; "
+        "$f = New-Object System.Windows.Forms.OpenFileDialog; "
+        "$f.Title = 'Selecione o arquivo .json de Transformações'; "
+        "$f.Filter = 'Arquivos JSON (*.json)|*.json|Todos os Arquivos (*.*)|*.*'; "
+        f"$f.InitialDirectory = '{clean_start}'; "
+        "$form = New-Object System.Windows.Forms.Form; "
+        "$form.TopMost = $true; "
+        "if ($f.ShowDialog($form) -eq [System.Windows.Forms.DialogResult]::OK) { "
+        "    Write-Output $f.FileName "
+        "}"
+    )
+    try:
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+            capture_output=True,
+            text=True,
+            creationflags=0x08000000,
+            timeout=180,
+        )
+        return res.stdout.strip()
+    except Exception:
+        return ""
 
 
 class EditorController:
@@ -442,6 +509,12 @@ class EditorController:
             except Exception:
                 chosen = ""
 
+        if not chosen and sys.platform == "win32":
+            try:
+                chosen = _powershell_pick_folder(start_dir)
+            except Exception:
+                chosen = ""
+
         if not chosen:
             try:
                 import tkinter as tk
@@ -460,7 +533,7 @@ class EditorController:
             except Exception:
                 chosen = ""
 
-        return {"ok": True, "selected_path": chosen or ""}
+        return {"ok": True, "path": chosen or "", "selected_path": chosen or ""}
 
     def browse_json_file(self) -> dict[str, Any]:
         start_dir = (
@@ -483,6 +556,12 @@ class EditorController:
             except Exception:
                 chosen = ""
 
+        if not chosen and sys.platform == "win32":
+            try:
+                chosen = _powershell_pick_json(start_dir)
+            except Exception:
+                chosen = ""
+
         if not chosen:
             try:
                 import tkinter as tk
@@ -502,7 +581,50 @@ class EditorController:
             except Exception:
                 chosen = ""
 
-        return {"ok": True, "selected_path": chosen or ""}
+        return {"ok": True, "path": chosen or "", "selected_path": chosen or ""}
+
+    def detect_known_locations(self) -> dict[str, Any]:
+        """Auto-detect existing DMZ modpack folders and JSON files on this machine."""
+        user_home = os.path.expanduser("~")
+        desktop_dir = os.path.join(user_home, "Desktop")
+        appdata_dir = os.path.expandvars(r"%APPDATA%\.minecraft\config\dragonminez")
+
+        candidates_modpack = [
+            os.path.join(desktop_dir, "Dragon_Mine_Z_Client", ".minecraft", "config", "dragonminez"),
+            os.path.join(desktop_dir, "Dragon_Mine_Z_Client"),
+            os.path.join(desktop_dir, "Dragon_Mine_Z_Server", "config", "dragonminez"),
+            os.path.join(desktop_dir, "Dragon_Mine_Z_Server"),
+            os.path.join(desktop_dir, "Dragon Mine Z- Definitive Edition-v1.0"),
+            appdata_dir,
+            DEFAULT_DMZ_CONFIG_DIR,
+        ]
+
+        candidates_json = [
+            os.path.join(desktop_dir, "Dragon_Mine_Z_Transformacoes.json"),
+            os.path.join(desktop_dir, "dmz_transformations_guide.json"),
+            DEFAULT_DESKTOP_JSON,
+            DEFAULT_INSTANCE_JSON,
+        ]
+
+        found_modpacks: list[str] = []
+        for p in candidates_modpack:
+            if p and os.path.isdir(p):
+                real_p = os.path.realpath(p)
+                if real_p not in found_modpacks:
+                    found_modpacks.append(real_p)
+
+        found_jsons: list[str] = []
+        for j in candidates_json:
+            if j and os.path.isfile(j):
+                real_j = os.path.realpath(j)
+                if real_j not in found_jsons:
+                    found_jsons.append(real_j)
+
+        return {
+            "ok": True,
+            "detected_modpacks": found_modpacks,
+            "detected_jsons": found_jsons,
+        }
 
     def reload_catalog(self, source: str = "modpack") -> dict[str, Any]:
         with self._lock:
@@ -738,6 +860,8 @@ def create_http_server(
                     self._send_json(200, controller.reload_catalog(src))
                 elif path == "/api/settings":
                     self._send_json(200, controller.update_paths(body))
+                elif path == "/api/detect-locations":
+                    self._send_json(200, controller.detect_known_locations())
                 elif path == "/api/browse-folder":
                     self._send_json(200, controller.browse_folder())
                 elif path == "/api/browse-json":

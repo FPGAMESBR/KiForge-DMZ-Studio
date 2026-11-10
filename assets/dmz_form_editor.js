@@ -1137,6 +1137,63 @@
     }
   });
 
+  async function loadDetectedLocations() {
+    const container = el("detectedChipsContainer");
+    const countBadge = el("detectedCountLabel");
+    if (!container) return;
+    try {
+      const data = await apiPost("/api/detect-locations");
+      const modpacks = data.detected_modpacks || [];
+      const jsons = data.detected_jsons || [];
+      const total = modpacks.length + jsons.length;
+      if (countBadge) countBadge.textContent = `${total} encontrados`;
+
+      container.innerHTML = "";
+      if (total === 0) {
+        container.innerHTML = `<div style="font-size:11.5px; color:var(--text-muted);">${state.language === "en" ? "No standard locations detected automatically. Use Browse buttons or paste the path." : "Nenhum local padrão detectado automaticamente. Use os botões Procurar ou cole o caminho."}</div>`;
+        return;
+      }
+
+      modpacks.forEach((p) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "btn btn-emerald";
+        item.style.cssText = "justify-content:flex-start; text-align:left; height:auto; padding:6px 10px; font-size:11.5px; border-radius:6px; width:100%; word-break:break-all;";
+        const label = p.replace(/\\/g, "/").split("/").slice(-3).join("/");
+        item.innerHTML = `📁 <strong>Usar Modpack:</strong> ${escapeHtml(label)} <span style="font-size:10px; opacity:0.8; margin-left:auto;">(Clique para selecionar)</span>`;
+        item.addEventListener("click", () => {
+          el("inpModpackPath").value = p;
+          showToast(state.language === "en" ? `Selected: ${label}` : `Selecionado: ${label}`);
+        });
+        container.appendChild(item);
+      });
+
+      jsons.forEach((j) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "btn btn-cyan";
+        item.style.cssText = "justify-content:flex-start; text-align:left; height:auto; padding:6px 10px; font-size:11.5px; border-radius:6px; width:100%; word-break:break-all;";
+        const fileName = j.replace(/\\/g, "/").split("/").pop();
+        item.innerHTML = `📄 <strong>Usar JSON:</strong> ${escapeHtml(fileName)} <span style="font-size:10px; opacity:0.8; margin-left:auto;">(Clique para selecionar)</span>`;
+        item.addEventListener("click", () => {
+          el("inpJsonPath").value = j;
+          showToast(state.language === "en" ? `Selected: ${fileName}` : `Selecionado: ${fileName}`);
+        });
+        container.appendChild(item);
+      });
+
+      // Auto pre-fill if both fields are currently empty
+      if (!el("inpModpackPath").value.trim() && modpacks.length > 0) {
+        el("inpModpackPath").value = modpacks[0];
+      }
+      if (!el("inpJsonPath").value.trim() && jsons.length > 0) {
+        el("inpJsonPath").value = jsons[0];
+      }
+    } catch (err) {
+      container.innerHTML = `<div style="font-size:11.5px; color:var(--accent-rose);">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
   // Setup Event Listeners
   function setupEvents() {
     // Backdrop click-to-close for all modals
@@ -1210,22 +1267,39 @@
     });
 
     // Settings Modal
-    el("btnOpenSettings").addEventListener("click", () => {
+    el("btnOpenSettings").addEventListener("click", async () => {
       el("inpModpackPath").value = state.dmzConfigDir || "";
       el("inpJsonPath").value = state.desktopJson || "";
       openModal("settingsModal");
+      await loadDetectedLocations();
     });
     el("btnCloseSettings").addEventListener("click", () => closeModal("settingsModal"));
+
+    el("inpModpackPath").addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/^["']+|["']+$/g, "").trim();
+    });
+    el("inpJsonPath").addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/^["']+|["']+$/g, "").trim();
+    });
+
     el("btnBrowseFolder").addEventListener("click", async () => {
       try {
         const res = await apiPost("/api/browse-folder");
-        if (res.path) el("inpModpackPath").value = res.path;
+        const chosen = res.path || res.selected_path || "";
+        if (chosen) {
+          el("inpModpackPath").value = chosen;
+          showToast(state.language === "en" ? `Folder selected: ${chosen}` : `Pasta selecionada: ${chosen}`);
+        }
       } catch (err) { showToast(err.message, true); }
     });
     el("btnBrowseJson").addEventListener("click", async () => {
       try {
         const res = await apiPost("/api/browse-json");
-        if (res.path) el("inpJsonPath").value = res.path;
+        const chosen = res.path || res.selected_path || "";
+        if (chosen) {
+          el("inpJsonPath").value = chosen;
+          showToast(state.language === "en" ? `JSON selected: ${chosen}` : `JSON selecionado: ${chosen}`);
+        }
       } catch (err) { showToast(err.message, true); }
     });
     el("btnResetDefaultPath").addEventListener("click", () => {
@@ -1233,15 +1307,17 @@
       el("inpJsonPath").value = "";
     });
     el("btnSaveSettings").addEventListener("click", async () => {
+      const dmzVal = el("inpModpackPath").value.replace(/^["']+|["']+$/g, "").trim();
+      const jsonVal = el("inpJsonPath").value.replace(/^["']+|["']+$/g, "").trim();
       try {
         const data = await apiPost("/api/settings", {
-          dmz_config_dir: el("inpModpackPath").value.trim(),
-          desktop_json_path: el("inpJsonPath").value.trim(),
-          clear_paths: !el("inpModpackPath").value.trim() && !el("inpJsonPath").value.trim(),
+          dmz_config_dir: dmzVal,
+          desktop_json_path: jsonVal,
+          clear_paths: !dmzVal && !jsonVal,
         });
         closeModal("settingsModal");
         applyServerState(data);
-        showToast(state.language === "en" ? "Settings updated!" : "Configurações atualizadas!");
+        showToast(state.language === "en" ? "Settings saved and modpack loaded!" : "Configurações salvas e Modpack carregado com sucesso!");
       } catch (err) {
         showToast(err.message, true);
       }
