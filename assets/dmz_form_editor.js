@@ -118,6 +118,21 @@
       btn_confirm_add: "Criar Transformação",
       btn_confirm_del: "Confirmar Remoção",
       shortcuts_hint: "Dica: use ↑ / ↓ para navegar · Ctrl+Z desfaz · Ctrl+S salva",
+      lbl_training_master: "Mestre que Ensina / Vende",
+      lbl_master_desc: "Disponível para aprender interagindo com o mestre no jogo.",
+      aura_live_title: "Visualização em Tempo Real",
+      lbl_aura_presets: "Paleta Rápida Dragon Ball:",
+      btn_open_mods: "📁 Abrir Pasta Mods",
+      btn_reload_mods: "🔄 Recarregar",
+      addons_loading_title: "Escaneando pasta de mods do Modpack...",
+      addons_loading_sub: "Lendo arquivos .jar, metadados e compatibilidade de transformações",
+      tab_all: "Todos",
+      tab_active: "Ativos",
+      tab_disabled: "Desativados",
+      addons_safe_hint: "Desativar renomeia para .jar.disabled de forma 100% segura sem apagar nada.",
+      opt_no_saga: "— Nenhuma saga exigida —",
+      opt_no_master: "— Nenhum mestre vinculado —",
+      opt_custom_master: "Personalizado / Outro...",
     },
     en: {
       app_title: "KiForge: DMZ Form Studio",
@@ -233,6 +248,21 @@
       btn_confirm_add: "Create Transformation",
       btn_confirm_del: "Confirm Deletion",
       shortcuts_hint: "Tip: use ↑ / ↓ to navigate · Ctrl+Z undos · Ctrl+S saves",
+      lbl_training_master: "Training Master / Vendor",
+      lbl_master_desc: "Available to learn by interacting with this master in-game.",
+      aura_live_title: "Real-Time Visualizer",
+      lbl_aura_presets: "Dragon Ball Quick Palette:",
+      btn_open_mods: "📁 Open Mods Folder",
+      btn_reload_mods: "🔄 Reload",
+      addons_loading_title: "Scanning Modpack mods directory...",
+      addons_loading_sub: "Inspecting .jar files, toml metadata and form integrations",
+      tab_all: "All",
+      tab_active: "Enabled",
+      tab_disabled: "Disabled",
+      addons_safe_hint: "Disabling safely renames to .jar.disabled without deleting anything.",
+      opt_no_saga: "— No saga required —",
+      opt_no_master: "— No master bound —",
+      opt_custom_master: "Custom / Other...",
     }
   };
 
@@ -339,6 +369,18 @@
     if (token.includes("beast")) return "#C084FC";
     if (token.includes("ikari")) return "#22C55E";
     return "#64748B";
+  }
+
+  function resolveHairColor(f) {
+    if (!f || !f.visual || !f.visual.cor_cabelo) return "";
+    let str = String(f.visual.cor_cabelo).trim();
+    if (!str.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(str)) {
+      str = "#" + str;
+    }
+    if (/^#[0-9a-fA-F]{3,8}$/.test(str)) {
+      return str;
+    }
+    return "";
   }
 
   const formatNumberPt = (num) => Number(num).toLocaleString(state.language === "en" ? "en-US" : "pt-BR");
@@ -663,6 +705,7 @@
     const htmlParts = state.flatRows.map((row) => {
       const f = row.form;
       const aura = resolveAuraDotColor(f);
+      const hair = resolveHairColor(f);
       const isSel = row.key === state.selectedKey ? " selected" : "";
       const drains = f.drenos || {};
       const drainParts = [];
@@ -678,7 +721,10 @@
       const spdM = mults.velocidade_spd ?? 1.0;
 
       const flags = [];
-      if (f.comprar_no_mestre) flags.push(`<span class="badge badge-master">${f.mestre_nome || (state.language === "en" ? "Master" : "Mestre")}</span>`);
+      if (f.comprar_no_mestre) {
+        const mName = f.mestre_nome || f.mestre || (state.language === "en" ? "Master" : "Mestre");
+        flags.push(`<span class="badge badge-master" title="Mestre: ${escapeHtml(mName)}">🥋 ${escapeHtml(mName)}</span>`);
+      }
       if (f.requisitos && f.requisitos.saga) flags.push(`<span class="badge badge-saga">${escapeHtml(f.requisitos.saga)}</span>`);
       if (f.requisitos && f.requisitos.forma_previa) flags.push(`<span class="badge badge-req">Req: ${escapeHtml(f.requisitos.forma_previa)}</span>`);
       if (drains.acumulavel) flags.push(`<span class="badge badge-stack">Stack</span>`);
@@ -687,13 +733,25 @@
         ? `<span class="badge badge-addon" style="margin-left:6px;">${escapeHtml(f.addon_origem)}</span>`
         : "";
 
+      const hairDotHtml = hair ? `<span class="hair-dot" style="background:${hair}; box-shadow:0 0 4px ${hair};" title="Cabelo: ${hair}"></span>` : "";
+      const auraBadgeHtml = (f.visual && f.visual.cor_aura)
+        ? `<span class="aura-hex-badge" style="background:${aura}18; color:${aura}; border:1px solid ${aura}55;">${aura}</span>`
+        : "";
+
       return `
         <tr class="form-row${isSel}" data-key="${escapeHtml(row.key)}">
           <td>
             <div class="form-title-cell">
-              <span class="aura-dot" style="background:${aura}; box-shadow:0 0 8px ${aura};"></span>
+              <div class="aura-orb-wrapper" title="Aura: ${aura}${hair ? ` | Cabelo: ${hair}` : ''}">
+                <div class="aura-orb" style="background: radial-gradient(circle at 35% 30%, #ffffff 0%, ${aura} 60%, rgba(0,0,0,0.7) 100%); box-shadow: 0 0 10px ${aura}, inset 0 0 3px rgba(255,255,255,0.75);"></div>
+                ${hairDotHtml}
+              </div>
               <div>
-                <div class="form-name-text">${escapeHtml(f.nome)} ${addonHtml}</div>
+                <div class="form-name-text">
+                  <span>${escapeHtml(f.nome)}</span>
+                  ${auraBadgeHtml}
+                  ${addonHtml}
+                </div>
                 <div class="form-id-text">${escapeHtml(f.id)} · Slot ${f.nivel_habilidade}</div>
               </div>
             </div>
@@ -763,7 +821,7 @@
     el("inpTp").value = f.custo_tp_numerico;
     el("inpSkillLvl").value = f.nivel_habilidade;
     el("chkBuyMaster").checked = Boolean(f.comprar_no_mestre);
-    el("inpMasterDisplay").textContent = f.mestre_nome || f.mestre || "—";
+    populateMastersSelect(f.mestre, f.mestre_nome);
 
     const mults = f.multiplicadores_detalhados || {};
     el("mult_str").value = mults.forca_str ?? 1.0;
@@ -797,6 +855,7 @@
     el("req_dmz_lvl").value = rq.nivel_dmz_minimo ?? 1;
     el("req_lvl_req").value = rq.nivel_requisito ?? 0;
     el("req_saga").value = rq.saga || "";
+    populateSagasSelect(rq.saga || "");
     el("req_prev_form").value = rq.forma_previa || "";
     el("req_incompatible").value = (rq.incompativel_com || []).join(", ");
 
@@ -811,6 +870,7 @@
     }
 
     updateInspectorPreviews();
+    updateAuraLivePreview();
   }
 
   function updateInspectorPreviews() {
@@ -833,9 +893,131 @@
     prevBp.textContent = strM === pwrM ? `${strM}x` : `${strM}x (STR) / ${pwrM}x (PWR)`;
   }
 
+  function populateSagasSelect(selectedVal) {
+    const sel = el("req_saga_select");
+    if (!sel) return;
+    const sagas = (state.catalog && state.catalog.opcoes_sagas) || [];
+    sel.innerHTML = `<option value="">${t("opt_no_saga")}</option>`;
+
+    let foundExact = false;
+    const cleanSel = (selectedVal || "").trim();
+
+    sagas.forEach((saga) => {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = saga.nome;
+      (saga.quests || []).forEach((q) => {
+        const opt = document.createElement("option");
+        opt.value = q.valor;
+        const qNumText = q.numero > 0 ? `[#${q.numero}] ` : "";
+        opt.textContent = `${qNumText}${q.titulo} (${q.valor})`;
+        if (cleanSel && q.valor === cleanSel) {
+          opt.selected = true;
+          foundExact = true;
+        }
+        optgroup.appendChild(opt);
+      });
+      if (optgroup.children.length > 0) {
+        sel.appendChild(optgroup);
+      }
+    });
+
+    if (cleanSel && !foundExact) {
+      const customOpt = document.createElement("option");
+      customOpt.value = cleanSel;
+      customOpt.textContent = `Personalizada: ${cleanSel}`;
+      customOpt.selected = true;
+      sel.appendChild(customOpt);
+    }
+
+    if (!cleanSel) {
+      sel.value = "";
+    }
+  }
+
+  function populateMastersSelect(masterId, masterName) {
+    const sel = el("inpMasterSelect");
+    const badge = el("inpMasterBadge");
+    if (!sel) return;
+    const masters = (state.catalog && state.catalog.opcoes_mestres) || [];
+    sel.innerHTML = `<option value="">${t("opt_no_master")}</option>`;
+
+    const curId = (masterId || "").trim();
+    let found = false;
+
+    masters.forEach((m) => {
+      const opt = document.createElement("option");
+      opt.value = m.id;
+      opt.textContent = `${m.nome} (${m.id})`;
+      if (curId && (m.id === curId || m.nome === masterName)) {
+        opt.selected = true;
+        found = true;
+      }
+      sel.appendChild(opt);
+    });
+
+    if (curId && !found) {
+      const opt = document.createElement("option");
+      opt.value = curId;
+      opt.textContent = `${masterName || curId} (${curId})`;
+      opt.selected = true;
+      sel.appendChild(opt);
+    }
+
+    if (badge) {
+      const activeName = masterName || (sel.selectedOptions[0] && sel.selectedOptions[0].textContent) || "—";
+      badge.textContent = curId ? `🥋 ${activeName.split("(")[0].trim()}` : "—";
+    }
+
+    sel.disabled = !el("chkBuyMaster").checked;
+  }
+
+  function updateAuraLivePreview() {
+    const auraInp = el("vis_aura");
+    const hairInp = el("vis_hair");
+    let auraHex = (auraInp && auraInp.value.trim()) || "";
+    let hairHex = (hairInp && hairInp.value.trim()) || "";
+
+    if (auraHex && !auraHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(auraHex)) auraHex = "#" + auraHex;
+    if (hairHex && !hairHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(hairHex)) hairHex = "#" + hairHex;
+    if (!auraHex) {
+      const sel = findSelectedRow();
+      auraHex = sel ? resolveAuraDotColor(sel.form) : "#FFD700";
+    }
+    if (!hairHex) hairHex = "#000000";
+
+    const glow = el("auraFlameGlow");
+    const orb = el("auraFlameOrb");
+    const hairDot = el("hairFlameDot");
+    const badgeAura = el("auraHexBadge");
+    const badgeHair = el("hairHexBadge");
+
+    if (glow) glow.style.background = auraHex;
+    if (orb) {
+      orb.style.background = `radial-gradient(circle at 35% 30%, #ffffff 0%, ${auraHex} 60%, rgba(0,0,0,0.7) 100%)`;
+      orb.style.boxShadow = `0 0 14px ${auraHex}`;
+    }
+    if (hairDot) hairDot.style.background = hairHex;
+    if (badgeAura) {
+      badgeAura.textContent = `Aura: ${auraHex}`;
+      badgeAura.style.color = auraHex;
+      badgeAura.style.borderColor = auraHex;
+      badgeAura.style.background = `${auraHex}22`;
+    }
+    if (badgeHair) {
+      badgeHair.textContent = `Cabelo: ${hairHex}`;
+      badgeHair.style.borderColor = hairHex;
+    }
+  }
+
   function buildFormUpdatePayload() {
     const sel = findSelectedRow();
     if (!sel) return null;
+
+    const mSel = el("inpMasterSelect");
+    const chosenMasterId = (mSel && el("chkBuyMaster").checked) ? mSel.value.trim() : "";
+    const chosenMasterName = (mSel && chosenMasterId && mSel.selectedOptions[0])
+      ? mSel.selectedOptions[0].textContent.split("(")[0].trim()
+      : "";
 
     const payload = {
       escopo: sel.escopo,
@@ -846,6 +1028,8 @@
       custo_tp_numerico: parseInt(el("inpTp").value, 10),
       nivel_habilidade: parseInt(el("inpSkillLvl").value, 10),
       comprar_no_mestre: el("chkBuyMaster").checked,
+      mestre: chosenMasterId,
+      mestre_nome: chosenMasterName,
       multiplicadores_detalhados: {
         forca_str: parseFloat(el("mult_str").value) || 1.0,
         poder_ki_pwr: parseFloat(el("mult_pwr").value) || 1.0,
@@ -1056,57 +1240,109 @@
   }
 
   // Addons Manager Modal logic
-  async function openAddonsModal() {
+  async function openAddonsModal(force = false) {
+    openModal("addonsModal");
+    const loadState = el("addonsLoadingState");
+    const contentState = el("addonsContentState");
+    if (loadState) loadState.style.display = "flex";
+    if (contentState) contentState.style.display = "none";
+
     try {
-      const data = await apiGet("/api/addons");
+      const data = await apiGet(force ? "/api/addons?force=1" : "/api/addons");
       state.addonsList = data.addons || [];
-      renderAddonsTable();
-      el("addonsCountBadge").textContent = `${state.addonsList.length} Addons`;
-      openModal("addonsModal");
+      renderAddonsCards();
+      if (loadState) loadState.style.display = "none";
+      if (contentState) contentState.style.display = "flex";
     } catch (err) {
+      if (loadState) loadState.style.display = "none";
       showToast(err.message, true);
     }
   }
 
-  function renderAddonsTable() {
-    const tbody = el("addonsTableBody");
-    tbody.innerHTML = "";
-    if (state.addonsList.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">${state.language === "en" ? "No addons found in mods folder." : "Nenhum addon encontrado na pasta mods."}</td></tr>`;
+  function renderAddonsCards() {
+    const container = el("addonsCardList");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const allAddons = state.addonsList || [];
+    const activeCount = allAddons.filter((a) => a.enabled).length;
+    const disabledCount = allAddons.filter((a) => !a.enabled).length;
+
+    if (el("addonsCountBadge")) el("addonsCountBadge").textContent = `${allAddons.length} Addons`;
+    if (el("addonCountAll")) el("addonCountAll").textContent = String(allAddons.length);
+    if (el("addonCountActive")) el("addonCountActive").textContent = String(activeCount);
+    if (el("addonCountDisabled")) el("addonCountDisabled").textContent = String(disabledCount);
+
+    const q = (state.addonFilterText || "").toLowerCase();
+    const tab = state.addonActiveTab || "all";
+
+    const filtered = allAddons.filter((add) => {
+      if (tab === "active" && !add.enabled) return false;
+      if (tab === "disabled" && add.enabled) return false;
+      if (q) {
+        const hay = `${add.display_name} ${add.mod_id} ${add.authors} ${add.filename} ${add.description}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:32px 16px; color:var(--text-muted); background:rgba(15,23,42,0.4); border-radius:var(--radius-md); border:1px dashed var(--border-default);">
+          <div style="font-size:28px; margin-bottom:8px;">🧩</div>
+          <div style="font-size:13px; font-weight:600; color:#CBD5E1;">${state.language === "en" ? "No addons found matching filters." : "Nenhum addon encontrado para os filtros selecionados."}</div>
+        </div>
+      `;
       return;
     }
 
-    state.addonsList.forEach((add) => {
-      const tr = document.createElement("tr");
+    filtered.forEach((add) => {
+      const card = document.createElement("div");
+      card.className = add.enabled ? "addon-card" : "addon-card disabled";
       const isChecked = add.enabled ? " checked" : "";
-      tr.innerHTML = `
-        <td style="width:70px; text-align:center;">
-          <label class="switch-toggle">
+      const formsCount = (add.contributed_forms || []).length;
+      const formsBadge = formsCount > 0
+        ? `<span class="badge badge-addon" style="font-size:10px;">⚡ ${formsCount} ${state.language === "en" ? "Forms" : "Formas"}</span>`
+        : "";
+
+      card.innerHTML = `
+        <div class="addon-card-left">
+          <label class="switch-toggle" style="margin-right:4px;">
             <input type="checkbox" class="addon-toggle-chk" data-file="${escapeHtml(add.filename)}"${isChecked}>
             <span class="switch-slider"></span>
           </label>
-        </td>
-        <td>
-          <div style="font-weight:700; color:#FFFFFF;">${escapeHtml(add.display_name)}</div>
-          <div style="font-size:10.5px; color:var(--text-muted);">${escapeHtml(add.description || "")}</div>
-        </td>
-        <td><span class="badge badge-addon">${escapeHtml(add.version)}</span></td>
-        <td style="color:#CBD5E1;">${escapeHtml(add.authors)}</td>
-        <td style="font-family:var(--font-mono); font-size:11px; color:#67E8F9;">${escapeHtml(add.filename)}</td>
-        <td style="color:var(--text-muted);">${add.size_mb} MB</td>
+          <div class="addon-card-info">
+            <div class="addon-card-title">
+              <span>${escapeHtml(add.display_name)}</span>
+              <span class="badge" style="background:rgba(255,255,255,0.08); color:#CBD5E1; font-size:10.5px;">v${escapeHtml(add.version)}</span>
+              <span class="badge" style="background:rgba(56,189,248,0.12); color:#38BDF8; font-size:10.5px;">${add.size_mb} MB</span>
+              ${formsBadge}
+            </div>
+            ${add.description ? `<div class="addon-card-desc">${escapeHtml(add.description)}</div>` : ''}
+            <div class="addon-card-meta">
+              <span>👤 ${escapeHtml(add.authors || "Community")}</span>
+              <span style="font-family:var(--font-mono); color:#67E8F9;">📄 ${escapeHtml(add.filename)}</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <span class="addon-status-pill ${add.enabled ? 'active' : 'disabled'}">
+            ${add.enabled ? '● ' + t('addon_enabled') : '○ ' + t('addon_disabled')}
+          </span>
+        </div>
       `;
-      tbody.appendChild(tr);
+      container.appendChild(card);
     });
 
-    tbody.querySelectorAll(".addon-toggle-chk").forEach((chk) => {
-      chk.addEventListener("change", async (e) => {
+    container.querySelectorAll(".addon-toggle-chk").forEach((chk) => {
+      chk.addEventListener("change", async () => {
         const fname = chk.getAttribute("data-file");
         const enVal = chk.checked;
         try {
           const res = await apiPost("/api/addons/toggle", { filename: fname, enabled: enVal });
           showToast(enVal ? `Addon ${fname} ativado!` : `Addon ${fname} desativado!`);
           state.addonsList = res.addons || [];
-          renderAddonsTable();
+          renderAddonsCards();
         } catch (err) {
           chk.checked = !enVal;
           showToast(err.message, true);
@@ -1361,12 +1597,106 @@
       });
     });
 
-    // Color pickers sync
+    // Color pickers & Live Aura Visualizer
+    el("vis_aura").addEventListener("input", updateAuraLivePreview);
+    el("vis_hair").addEventListener("input", updateAuraLivePreview);
     el("vis_aura_picker").addEventListener("input", (e) => {
       el("vis_aura").value = e.target.value.toUpperCase();
+      updateAuraLivePreview();
     });
     el("vis_hair_picker").addEventListener("input", (e) => {
       el("vis_hair").value = e.target.value.toUpperCase();
+      updateAuraLivePreview();
+    });
+
+    // Preset color chips
+    document.querySelectorAll(".btn-preset-color").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const aura = btn.getAttribute("data-aura");
+        const hair = btn.getAttribute("data-hair");
+        if (aura) {
+          el("vis_aura").value = aura;
+          el("vis_aura_picker").value = aura;
+        }
+        if (hair) {
+          el("vis_hair").value = hair;
+          el("vis_hair_picker").value = hair;
+        }
+        updateAuraLivePreview();
+      });
+    });
+
+    // Sagas selection sync
+    const reqSagaSelect = el("req_saga_select");
+    const reqSagaInp = el("req_saga");
+    if (reqSagaSelect && reqSagaInp) {
+      reqSagaSelect.addEventListener("change", (e) => {
+        reqSagaInp.value = e.target.value;
+      });
+      reqSagaInp.addEventListener("input", (e) => {
+        populateSagasSelect(e.target.value);
+      });
+    }
+
+    // Master purchase & selection sync
+    const chkBuyMaster = el("chkBuyMaster");
+    const inpMasterSelect = el("inpMasterSelect");
+    const inpMasterBadge = el("inpMasterBadge");
+    if (chkBuyMaster && inpMasterSelect) {
+      chkBuyMaster.addEventListener("change", (e) => {
+        inpMasterSelect.disabled = !e.target.checked;
+        if (inpMasterBadge) {
+          if (!e.target.checked) {
+            inpMasterBadge.textContent = "—";
+          } else if (inpMasterSelect.selectedOptions[0]) {
+            inpMasterBadge.textContent = inpMasterSelect.value
+              ? `🥋 ${inpMasterSelect.selectedOptions[0].textContent.split("(")[0].trim()}`
+              : "—";
+          }
+        }
+      });
+      inpMasterSelect.addEventListener("change", (e) => {
+        if (inpMasterBadge) {
+          inpMasterBadge.textContent = e.target.value && e.target.selectedOptions[0]
+            ? `🥋 ${e.target.selectedOptions[0].textContent.split("(")[0].trim()}`
+            : "—";
+        }
+      });
+    }
+
+    // Addons Modal toolbar controls & filter tabs
+    const btnOpenModsFolder = el("btnOpenModsFolder");
+    if (btnOpenModsFolder) {
+      btnOpenModsFolder.addEventListener("click", async () => {
+        try {
+          const res = await apiPost("/api/addons/open-folder");
+          showToast(res.message || (state.language === "en" ? "Mods folder opened!" : "Pasta de mods aberta!"));
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      });
+    }
+
+    const btnReloadAddons = el("btnReloadAddons");
+    if (btnReloadAddons) {
+      btnReloadAddons.addEventListener("click", () => openAddonsModal(true));
+    }
+
+    const addonSearchInput = el("addonSearchInput");
+    if (addonSearchInput) {
+      addonSearchInput.addEventListener("input", (e) => {
+        state.addonFilterText = e.target.value;
+        renderAddonsCards();
+      });
+    }
+
+    document.querySelectorAll(".filter-tab-btn").forEach((tabBtn) => {
+      tabBtn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-tab-btn").forEach((b) => b.classList.remove("active"));
+        tabBtn.classList.add("active");
+        state.addonActiveTab = tabBtn.getAttribute("data-tab") || "all";
+        renderAddonsCards();
+      });
     });
 
     // Search and filter inputs

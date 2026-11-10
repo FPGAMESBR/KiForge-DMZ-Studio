@@ -37,6 +37,7 @@ from dmz_form_editor_core import (  # noqa: E402
     add_form,
     apply_batch_scale,
     apply_form_update,
+    MASTER_FRIENDLY_NAMES,
     default_allowed_roots,
     delete_form,
     validate_allowed_path,
@@ -50,6 +51,7 @@ from dmz_form_editor_io import (  # noqa: E402
     toggle_addon_mod,
 )
 from dmz_form_editor_sagas import (  # noqa: E402
+    extract_modpack_sagas,
     load_editor_settings,
     resolve_modpack_config_dir,
     save_editor_settings,
@@ -78,7 +80,11 @@ def _empty_catalog() -> dict[str, Any]:
         "total_transformacoes": 0,
         "racas": {},
         "formas_universais_e_stack": {},
-        "opcoes_sagas": [],
+        "opcoes_sagas": extract_modpack_sagas(None, {}),
+        "opcoes_mestres": [
+            {"id": m_id, "nome": m_name}
+            for m_id, m_name in sorted(MASTER_FRIENDLY_NAMES.items(), key=lambda x: x[1])
+        ],
     }
 
 
@@ -354,14 +360,33 @@ class EditorController:
                     pass
             return self._build_state_unlocked()
 
-    def get_addons(self) -> list[dict[str, Any]]:
+    def get_addons(self, force: bool = False) -> list[dict[str, Any]]:
         with self._lock:
             inst_dir = (
                 os.path.dirname(os.path.dirname(self._dmz_config_dir))
                 if self._dmz_config_dir
                 else ""
             )
-            return scan_dmz_addons(inst_dir)
+            return scan_dmz_addons(inst_dir, force=force)
+
+    def open_mods_folder(self) -> dict[str, Any]:
+        with self._lock:
+            inst_dir = (
+                os.path.dirname(os.path.dirname(self._dmz_config_dir))
+                if self._dmz_config_dir
+                else ""
+            )
+            if not inst_dir:
+                raise ValueError("Nenhum Modpack configurado.")
+            mods_dir = os.path.join(inst_dir, "mods")
+            if not os.path.isdir(mods_dir):
+                raise FileNotFoundError(f"Pasta de mods não encontrada: {mods_dir}")
+            validate_allowed_path(mods_dir, allowed_roots=self._allowed_roots)
+            try:
+                os.startfile(mods_dir)
+                return {"ok": True, "path": mods_dir}
+            except Exception as exc:
+                return {"ok": False, "error": str(exc)}
 
     def toggle_addon(self, filename: str, enable: bool) -> dict[str, Any]:
         with self._lock:
@@ -820,7 +845,8 @@ def create_http_server(
                 return
 
             if path == "/api/addons":
-                self._send_json(200, {"ok": True, "addons": controller.get_addons()})
+                force = "force=1" in self.path or "reload=1" in self.path
+                self._send_json(200, {"ok": True, "addons": controller.get_addons(force=force)})
                 return
 
             self._send_json(404, {"ok": False, "error": "Rota não encontrada."})
@@ -846,6 +872,8 @@ def create_http_server(
                     fname = str(body.get("filename", "")).strip()
                     en = bool(body.get("enabled", True))
                     self._send_json(200, controller.toggle_addon(fname, en))
+                elif path == "/api/addons/open-folder":
+                    self._send_json(200, controller.open_mods_folder())
                 elif path == "/api/language":
                     lang = str(body.get("language", "pt"))
                     self._send_json(200, controller.set_language(lang))

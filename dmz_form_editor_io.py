@@ -24,6 +24,7 @@ from dmz_form_editor_core import (
     _normalize_loaded_entry,
     default_allowed_roots,
     detect_addon_origin,
+    infer_master_for_form,
     resolve_race_friendly_name,
     validate_allowed_path,
 )
@@ -110,6 +111,10 @@ def _resolve_tp_and_master(
                 return 0, buy_from_master, mestre_id, mestre_nome
             if 0 < level <= len(prices):
                 val = int(prices[level - 1])
+                if buy_from_master and not mestre_nome:
+                    inf_id, inf_nome = infer_master_for_form(stem, form_id, form_type)
+                    if inf_id:
+                        mestre_id, mestre_nome = inf_id, inf_nome
                 return (-1 if val < 0 else val), buy_from_master, mestre_id, mestre_nome
 
     if level == 0:
@@ -120,7 +125,16 @@ def _resolve_tp_and_master(
             costs = global_skills[key].get("costs", [])
             if 0 < level <= len(costs):
                 val = int(costs[level - 1])
+                if buy_from_master and not mestre_nome:
+                    inf_id, inf_nome = infer_master_for_form(stem, form_id, form_type)
+                    if inf_id:
+                        mestre_id, mestre_nome = inf_id, inf_nome
                 return (-1 if val < 0 else val), buy_from_master, mestre_id, mestre_nome
+
+    if buy_from_master and not mestre_nome:
+        inf_id, inf_nome = infer_master_for_form(stem, form_id, form_type)
+        if inf_id:
+            mestre_id, mestre_nome = inf_id, inf_nome
 
     return -1, buy_from_master, mestre_id, mestre_nome
 
@@ -318,6 +332,10 @@ def load_catalog_from_modpack(
     catalog["opcoes_sagas"] = extract_modpack_sagas(
         inferred_instance, translations, catalog
     )
+    catalog["opcoes_mestres"] = [
+        {"id": m_id, "nome": m_name}
+        for m_id, m_name in sorted(MASTER_FRIENDLY_NAMES.items(), key=lambda x: x[1])
+    ]
     return catalog
 
 
@@ -344,6 +362,10 @@ def load_catalog_from_json(
         ]
     if not result.get("opcoes_sagas"):
         result["opcoes_sagas"] = extract_modpack_sagas(None, {}, result)
+    result["opcoes_mestres"] = [
+        {"id": m_id, "nome": m_name}
+        for m_id, m_name in sorted(MASTER_FRIENDLY_NAMES.items(), key=lambda x: x[1])
+    ]
     return result
 
 
@@ -728,13 +750,26 @@ def apply_catalog_to_modpack(
     }
 
 
-def scan_dmz_addons(instance_dir: str | None) -> list[dict[str, Any]]:
+_ADDONS_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+
+
+def scan_dmz_addons(instance_dir: str | None, force: bool = False) -> list[dict[str, Any]]:
     """Scan mods directory for DMZ addons and return structured status and metadata."""
     if not instance_dir or not os.path.isdir(instance_dir):
         return []
     mods_dir = os.path.join(instance_dir, "mods")
     if not os.path.isdir(mods_dir):
         return []
+
+    try:
+        mtime = os.path.getmtime(mods_dir)
+    except OSError:
+        mtime = 0.0
+
+    if not force and mods_dir in _ADDONS_CACHE:
+        cached_mtime, cached_list = _ADDONS_CACHE[mods_dir]
+        if cached_mtime == mtime:
+            return copy.deepcopy(cached_list)
 
     addons: list[dict[str, Any]] = []
     dmz_keywords = (
@@ -836,6 +871,7 @@ def scan_dmz_addons(instance_dir: str | None) -> list[dict[str, Any]]:
                 }
             )
 
+    _ADDONS_CACHE[mods_dir] = (mtime, copy.deepcopy(addons))
     return addons
 
 
@@ -848,6 +884,7 @@ def toggle_addon_mod(
     """Safely enable or disable a mod by renaming between .jar and .jar.disabled."""
     safe_inst = validate_allowed_path(instance_dir, allowed_roots=allowed_roots)
     mods_dir = os.path.join(safe_inst, "mods")
+    _ADDONS_CACHE.pop(mods_dir, None)
     if not os.path.isdir(mods_dir):
         raise FileNotFoundError(f"Pasta de mods não encontrada: {mods_dir}")
 

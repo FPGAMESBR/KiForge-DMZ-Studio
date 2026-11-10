@@ -236,8 +236,55 @@ MASTER_FRIENDLY_NAMES: dict[str, str] = {
     "master_soul_society": "Mestre Soul Society",
     "dmzultra_soul_society_master": "Mestre Soul Society (Ultra)",
     "master_fullbring": "Mestre Fullbring",
+    "sword_master": "Mestre da Espada Brava (Tapion)",
     "traitor_captain": "Aizen (Capitão Traidor)",
 }
+
+DEFAULT_TREE_MASTERS: dict[str, str] = {
+    "corruptedforms": "babidi",
+    "majinmark": "babidi",
+    "majinforms": "babidi",
+    "evilsaiyan": "babidi",
+    "godforms": "whis",
+    "godritual": "whis",
+    "godx": "whis",
+    "ssjgod": "whis",
+    "ultrainstinct": "whis",
+    "ultraego": "beerus",
+    "hakaishin": "beerus",
+    "kaioken": "kingkai",
+    "spiritbomb": "kingkai",
+    "kaioh": "kingkai",
+    "mystic": "oldkai",
+    "ultimate": "oldkai",
+    "beast": "gohan",
+    "konatsiano": "sword_master",
+    "sword": "sword_master",
+    "brave_sword": "sword_master",
+    "shinigami": "master_soul_society",
+    "soul_reaper": "master_soul_society",
+    "fullbring": "master_fullbring",
+    "fullbringer": "master_fullbring",
+    "visored": "master_visored",
+    "demon": "dabura",
+    "makaijin": "dabura",
+    "bio_android": "gero",
+    "android": "gero",
+    "gamma": "gero",
+    "sparking": "roshi",
+    "turtle": "roshi",
+    "shadow_saga": "oldkai",
+}
+
+
+def infer_master_for_form(tree: str, form_id: str, form_type: str = "") -> tuple[str, str]:
+    """Infer the training master from form keywords or skill tree when not explicitly bound."""
+    tokens = f"{tree} {form_id} {form_type}".lower().replace("_", " ").replace("-", " ")
+    for key, m_id in DEFAULT_TREE_MASTERS.items():
+        if key in tokens:
+            m_nome = MASTER_FRIENDLY_NAMES.get(m_id, m_id.replace("_", " ").title())
+            return m_id, m_nome
+    return "", ""
 
 PRICELESS_LABEL = "Priceless / Desejo de Shenron / Quest"
 
@@ -410,6 +457,15 @@ def _normalize_loaded_entry(
     cloned.setdefault("comprar_no_mestre", False)
     cloned.setdefault("mestre", "")
     cloned.setdefault("mestre_nome", "")
+    if cloned.get("comprar_no_mestre") and not cloned.get("mestre_nome"):
+        inf_id, inf_nome = infer_master_for_form(
+            cloned.get("arvore" if not is_universal else "grupo", ""),
+            cloned.get("id", ""),
+            cloned.get("tipo_habilidade", ""),
+        )
+        if inf_id:
+            cloned["mestre"] = inf_id
+            cloned["mestre_nome"] = inf_nome
     cloned.setdefault(
         "tipo_habilidade",
         cloned.get("arvore" if not is_universal else "grupo", ""),
@@ -508,6 +564,15 @@ def _merge_single_form_changes(
         updated["mestre"] = str(payload["mestre"]).strip()
     if "mestre_nome" in payload:
         updated["mestre_nome"] = str(payload["mestre_nome"]).strip()
+    if updated.get("comprar_no_mestre") and not updated.get("mestre_nome"):
+        inf_id, inf_nome = infer_master_for_form(
+            updated.get("arvore", updated.get("grupo", "")),
+            updated.get("id", ""),
+            updated.get("tipo_habilidade", ""),
+        )
+        if inf_id:
+            updated["mestre"] = inf_id
+            updated["mestre_nome"] = inf_nome
     if "addon_origem" in payload:
         updated["addon_origem"] = str(payload["addon_origem"]).strip()
 

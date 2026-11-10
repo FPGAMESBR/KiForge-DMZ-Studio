@@ -431,29 +431,86 @@ table.forms-table {
   vertical-align: middle;
 }
 
+.form-title-cell,
 .form-cell-main {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
+}
+
+.aura-orb-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.aura-orb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.form-row:hover .aura-orb {
+  transform: scale(1.2);
+}
+
+.hair-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #0B0F19;
+  flex-shrink: 0;
 }
 
 .aura-dot {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+.form-name-text,
 .form-name-txt {
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: #FFFFFF;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
+
+.form-id-text,
 .form-id-txt {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.aura-hex-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .badge {
@@ -741,8 +798,157 @@ table.forms-table {
   color: var(--text-muted);
 }
 
-.modal-card.modal-wide {
-  width: 560px;
+.modal-card.modal-addons {
+  width: 920px;
+  max-width: 95vw;
+  max-height: 88vh;
+}
+
+/* Radar Spinner for Addons Scanning */
+.radar-spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(6, 182, 212, 0.2);
+  border-top-color: var(--accent-cyan);
+  border-right-color: var(--accent-emerald);
+  animation: spinRadar 0.8s linear infinite;
+}
+@keyframes spinRadar {
+  to { transform: rotate(360deg); }
+}
+
+/* Skeleton Loading Cards */
+.skeleton-card {
+  height: 60px;
+  background: linear-gradient(90deg, rgba(30, 41, 59, 0.4) 25%, rgba(51, 65, 85, 0.6) 50%, rgba(30, 41, 59, 0.4) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-md);
+  animation: skeletonShimmer 1.5s infinite;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Addon Modern Cards */
+.addon-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+.addon-card:hover {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.addon-card.disabled {
+  opacity: 0.6;
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+.addon-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+.addon-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.addon-card-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.addon-card-desc {
+  font-size: 11.5px;
+  color: #94A3B8;
+  line-height: 1.35;
+}
+.addon-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+.addon-card-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.addon-status-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.addon-status-pill.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.addon-status-pill.disabled {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94A3B8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Filter Tab Buttons */
+.filter-tab-btn {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-tab-btn:hover {
+  background: rgba(51, 65, 85, 0.8);
+  color: #FFFFFF;
+}
+.filter-tab-btn.active {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: var(--accent-cyan);
+  color: #67E8F9;
+}
+
+/* DBZ Color Presets */
+.btn-preset-color {
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.btn-preset-color:hover {
+  transform: translateY(-1px) scale(1.05);
+  filter: brightness(1.15);
 }
 
 /* Stat Label Descriptions & Yellow Highlights */

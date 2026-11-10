@@ -159,13 +159,16 @@
             </label>
 
             <div id="masterInfoBox" class="field-group" style="margin-top: 10px; padding: 10px 12px; background: rgba(15,23,42,0.55); border-radius: 6px; border: 1px solid rgba(56,189,248,0.2);">
-              <label style="color: var(--accent-cyan); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                <span data-i18n="master_box_title">🥋 Mestre que Ensina / Vende</span>
-              </label>
-              <div id="inpMasterDisplay" style="font-size: 13px; font-weight: 700; color: #FFFFFF; margin-top: 3px;">
-                —
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <label style="color: var(--accent-cyan); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; margin-bottom:0;">
+                  <span data-i18n="master_box_title">🥋 Mestre que Ensina / Vende</span>
+                </label>
+                <span id="inpMasterBadge" class="badge badge-master">—</span>
               </div>
-              <div id="masterHintText" style="font-size: 11px; color: var(--text-secondary); margin-top: 3px; line-height: 1.3;" data-i18n="master_hint">
+              <select id="inpMasterSelect" class="select-field" style="margin-bottom: 6px; font-size: 12.5px;">
+                <option value="">— Nenhum mestre vinculado —</option>
+              </select>
+              <div id="masterHintText" style="font-size: 11px; color: var(--text-secondary); line-height: 1.3;" data-i18n="master_hint">
                 Disponível para aprender interagindo com o mestre no jogo.
               </div>
             </div>
@@ -339,11 +342,14 @@
             </div>
             <div class="grid-2">
               <div class="field-group">
-                <label for="req_saga" data-i18n="lbl_saga_req">Saga Obrigatória para Desbloqueio</label>
-                <select id="req_saga_select" class="select-field" style="margin-bottom: 4px;">
+                <label for="req_saga_select" data-i18n="lbl_saga_req">Saga Obrigatória para Desbloqueio</label>
+                <select id="req_saga_select" class="select-field" style="margin-bottom: 6px;">
                   <option value="">— Nenhuma saga exigida —</option>
                 </select>
-                <input id="req_saga" type="text" class="input-field" placeholder="ex: namek_saga:freeza_final" />
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono);">ID:</span>
+                  <input id="req_saga" type="text" class="input-field" placeholder="ex: namek_saga:freeza_final" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono);" />
+                </div>
               </div>
               <div class="field-group">
                 <label for="req_prev_form" data-i18n="lbl_prev_form">ID da Forma Prévia Obrigatória</label>
@@ -356,9 +362,43 @@
             </div>
           </div>
 
-          <!-- Card 6: Visual -->
+          <!-- Card 6: Visual & Shaders Live Preview -->
           <div class="card">
             <div class="card-title" data-i18n="card_visual_title">6. Efeitos Visuais &amp; Shader</div>
+
+            <!-- Live Aura Energy Visualizer Box -->
+            <div class="aura-live-box" style="margin-bottom: 12px; padding: 12px; background: rgba(15,23,42,0.65); border: 1px solid var(--border-default); border-radius: var(--radius-md); display:flex; align-items:center; gap:14px;">
+              <div class="aura-live-orb-container" style="position:relative; width:48px; height:48px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <div id="auraFlameGlow" class="aura-flame-glow" style="position:absolute; width:44px; height:44px; border-radius:50%; background: #FFD700; filter: blur(8px); opacity:0.6; transition: all 0.3s ease;"></div>
+                <div id="auraFlameOrb" class="aura-flame-orb" style="position:relative; width:32px; height:32px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #FFD700 60%, rgba(0,0,0,0.7) 100%); border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 0 12px #FFD700; transition: all 0.3s ease;"></div>
+                <div id="hairFlameDot" class="hair-flame-dot" style="position:absolute; bottom:0; right:0; width:14px; height:14px; border-radius:50%; background:#000000; border:2px solid #0B0F19; box-shadow:0 0 4px rgba(0,0,0,0.8); transition: all 0.3s ease;" title="Cor do Cabelo"></div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:12px; font-weight:700; color:#FFFFFF;" data-i18n="aura_live_title">Visualização em Tempo Real</div>
+                <div style="display:flex; gap:6px; margin-top:5px; flex-wrap:wrap;">
+                  <span id="auraHexBadge" class="badge" style="background:rgba(255,215,0,0.15); border:1px solid #FFD700; color:#FFD700; font-family:var(--font-mono); font-size:10.5px;">Aura: #FFD700</span>
+                  <span id="hairHexBadge" class="badge" style="background:rgba(255,255,255,0.06); border:1px solid #64748B; color:#CBD5E1; font-family:var(--font-mono); font-size:10.5px;">Cabelo: #000000</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick DBZ Color Presets -->
+            <div style="margin-bottom:12px;">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px;" data-i18n="lbl_aura_presets">Paleta Rápida Dragon Ball:</span>
+              <div class="aura-presets-grid" style="display:flex; gap:5px; margin-top:6px; flex-wrap:wrap;">
+                <button type="button" class="btn-preset-color" data-aura="#FFD700" data-hair="#FFE89E" style="background:#FFD700; color:#18181B;" title="Super Saiyajin (Dourado)">SSJ</button>
+                <button type="button" class="btn-preset-color" data-aura="#00A8FF" data-hair="#00D2FF" style="background:#00A8FF; color:#FFFFFF;" title="SSJ Blue (Divino)">Blue</button>
+                <button type="button" class="btn-preset-color" data-aura="#FF3366" data-hair="#FF7597" style="background:#FF3366; color:#FFFFFF;" title="SSJ Rosé (Zamasu)">Rosé</button>
+                <button type="button" class="btn-preset-color" data-aura="#FF2A2A" data-hair="#FF4D4D" style="background:#FF2A2A; color:#FFFFFF;" title="SSJ God (Vermelho)">God</button>
+                <button type="button" class="btn-preset-color" data-aura="#E8F0FE" data-hair="#FFFFFF" style="background:#E8F0FE; color:#1E293B;" title="Ultra Instinto (Prata)">Instinct</button>
+                <button type="button" class="btn-preset-color" data-aura="#A855F7" data-hair="#C084FC" style="background:#A855F7; color:#FFFFFF;" title="Ultra Ego (Hakaishin)">Ego</button>
+                <button type="button" class="btn-preset-color" data-aura="#00FF66" data-hair="#33FF88" style="background:#00FF66; color:#0F172A;" title="Ikari (Verde Wrathful)">Ikari</button>
+                <button type="button" class="btn-preset-color" data-aura="#C084FC" data-hair="#D8B4FE" style="background:#C084FC; color:#0F172A;" title="Beast (Gohan)">Beast</button>
+                <button type="button" class="btn-preset-color" data-aura="#FF7A00" data-hair="#FFA726" style="background:#FF7A00; color:#FFFFFF;" title="Orange (Piccolo)">Orange</button>
+                <button type="button" class="btn-preset-color" data-aura="#334155" data-hair="#1E293B" style="background:#334155; border:1px solid #64748B; color:#FFFFFF;" title="Black (Frieza)">Black</button>
+              </div>
+            </div>
+
             <div class="grid-2">
               <div class="field-group">
                 <label for="vis_aura" data-i18n="lbl_aura_hex">Cor da Aura (Hex)</label>
@@ -489,32 +529,68 @@
 
   <!-- Addons & Mods Manager Modal -->
   <div id="addonsModal" class="modal-backdrop">
-    <div class="modal-card modal-wide">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 data-i18n="modal_addons_title">🧩 Gerenciador de Addons &amp; Mods do DMZ</h3>
-        <span id="addonsCountBadge" class="badge badge-addon">0 Addons</span>
-      </div>
-      <p style="color:var(--text-secondary); font-size:12px; margin-top:4px;" data-i18n="modal_addons_desc">
-        Ative ou desative mods e pacotes de formas do modpack de forma 100% segura e compatível com CurseForge.
-      </p>
-
-      <div class="addons-table-wrap" style="max-height: 420px; overflow-y:auto; margin: 12px 0;">
-        <table class="forms-table">
-          <thead>
-            <tr>
-              <th data-i18n="addon_th_status">Status</th>
-              <th data-i18n="addon_th_name">Nome do Mod</th>
-              <th data-i18n="addon_th_version">Versão</th>
-              <th data-i18n="addon_th_author">Autor</th>
-              <th data-i18n="addon_th_file">Arquivo .jar</th>
-              <th data-i18n="addon_th_size">Tamanho</th>
-            </tr>
-          </thead>
-          <tbody id="addonsTableBody"></tbody>
-        </table>
+    <div class="modal-card modal-addons">
+      <!-- Modal Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border-default); padding-bottom:12px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0;" data-i18n="modal_addons_title">🧩 Gerenciador de Addons &amp; Mods do DMZ</h3>
+            <span id="addonsCountBadge" class="badge badge-addon" style="font-size:11px;">0 Addons</span>
+          </div>
+          <p style="color:var(--text-secondary); font-size:12px; margin:4px 0 0 0;" data-i18n="modal_addons_desc">
+            Ative ou desative mods e pacotes de formas do modpack de forma 100% segura e compatível com CurseForge.
+          </p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="btnOpenModsFolder" type="button" class="btn btn-secondary btn-sm" title="Abrir pasta mods no Windows Explorer" data-i18n="btn_open_mods">
+            📁 Abrir Pasta Mods
+          </button>
+          <button id="btnReloadAddons" type="button" class="btn btn-secondary btn-sm" title="Re-escanear pasta de mods" data-i18n="btn_reload_mods">
+            🔄 Recarregar
+          </button>
+        </div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <!-- Loading State (Shown immediately on open) -->
+      <div id="addonsLoadingState" class="addons-loading-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
+        <div class="radar-spinner"></div>
+        <div style="font-size:14px; font-weight:700; color:#FFFFFF; margin-top:16px;" data-i18n="addons_loading_title">Escaneando pasta de mods do Modpack...</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:4px;" data-i18n="addons_loading_sub">Lendo arquivos .jar, metadados e compatibilidade de transformações</div>
+        <div class="skeleton-list" style="width:100%; max-width:600px; margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+
+      <!-- Content State (Shown when addons are ready) -->
+      <div id="addonsContentState" style="display:none; flex-direction:column; gap:12px;">
+        <!-- Search & Filter Toolbar -->
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:4px;">
+          <input id="addonSearchInput" type="text" class="input-field" placeholder="🔍 Buscar addon por nome, autor, id ou arquivo .jar..." style="flex:1; min-width:240px;" />
+          <div class="filter-tabs-group" style="display:flex; gap:6px;">
+            <button type="button" class="filter-tab-btn active" data-addon-filter="all">
+              <span data-i18n="tab_all">Todos</span> (<span id="addonCountAll">0</span>)
+            </button>
+            <button type="button" class="filter-tab-btn" data-addon-filter="active">
+              <span data-i18n="tab_active">Ativos</span> (<span id="addonCountActive">0</span>)
+            </button>
+            <button type="button" class="filter-tab-btn" data-addon-filter="disabled">
+              <span data-i18n="tab_disabled">Desativados</span> (<span id="addonCountDisabled">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Addons Card List (Smooth, spacious desktop layout) -->
+        <div id="addonsCardList" class="addons-card-list" style="max-height: 440px; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-default); padding-top:12px; margin-top:4px;">
+        <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+          <span>🔒</span>
+          <span data-i18n="addons_safe_hint">Desativar renomeia para .jar.disabled de forma 100% segura sem apagar nada.</span>
+        </div>
         <button id="btnCloseAddons" type="button" class="btn btn-primary" data-i18n="btn_close">Fechar</button>
       </div>
     </div>

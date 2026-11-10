@@ -1198,5 +1198,44 @@ def test_modal_active_css_and_json_desktop_auto_fallback(tmp_path: Path) -> None
     assert "Dragon_Mine_Z_Transformacoes.json" in targets[0]
 
 
+def test_master_lore_inference_and_addons_cache(tmp_path: Path) -> None:
+    """Verify Master lore automatic inference, friendly master names, and addons cache."""
+    from dmz_form_editor_core import infer_master_for_form, MASTER_FRIENDLY_NAMES
+    from dmz_form_editor_io import scan_dmz_addons, _ADDONS_CACHE
+
+    # Master inference
+    m_id, m_name = infer_master_for_form("corruptedforms", "majinmark", "")
+    assert m_id == "babidi"
+    assert "Babidi" in m_name
+
+    m_id2, m_name2 = infer_master_for_form("godforms", "supersaiyanblue", "")
+    assert m_id2 == "whis"
+    assert "Whis" in m_name2
+
+    m_id3, m_name3 = infer_master_for_form("ultraego", "ultraego", "")
+    assert m_id3 == "beerus"
+    assert "Bills" in m_name3 or "Beerus" in m_name3
+
+    # Addons cache
+    import zipfile
+    inst_dir = tmp_path / "inst"
+    mods_dir = inst_dir / "mods"
+    mods_dir.mkdir(parents=True)
+    jar_file = mods_dir / "dmz-addon.jar"
+    with zipfile.ZipFile(jar_file, "w") as zf:
+        zf.writestr("META-INF/mods.toml", '[[mods]]\nmodId="dmzaddon"\n')
+
+    _ADDONS_CACHE.clear()
+    addons1 = scan_dmz_addons(str(inst_dir))
+    assert len(addons1) == 1
+    assert str(mods_dir.resolve()) in _ADDONS_CACHE
+
+    # Second call should use cache
+    addons2 = scan_dmz_addons(str(inst_dir))
+    assert len(addons2) == 1
+    assert addons2[0]["filename"] == "dmz-addon.jar"
+
+
+
 
 
