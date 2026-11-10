@@ -1421,6 +1421,33 @@ def test_batch_balance_controller_and_undo(mock_modpack: Path, tmp_path: Path) -
     assert ssj1_undone["custo_tp_numerico"] == 480000
 
 
+def test_master_offerings_synced_on_modpack_apply(mock_modpack: Path) -> None:
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+    # Update supersaiyan1 to require Whis as master
+    updated = apply_form_update(
+        catalog,
+        {
+            "escopo": "raca",
+            "raca": "saiyan",
+            "arvore": "supersaiyanx",
+            "id": "supersaiyan1",
+            "comprar_no_mestre": True,
+            "mestre": "whis",
+            "mestre_nome": "Whis (Anjo)",
+        },
+    )
+    res = apply_catalog_to_modpack(updated, str(mock_modpack), create_backup=False)
+    assert res["arquivos_atualizados"] > 0
+
+    skills_file = mock_modpack / "skills.json"
+    with open(skills_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert "skillOfferings" in data
+    assert "whis" in data["skillOfferings"]
+    assert "supersaiyanx" in data["skillOfferings"]["whis"]
+
+
 
 
 

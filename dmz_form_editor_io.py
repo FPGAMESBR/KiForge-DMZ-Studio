@@ -737,6 +737,46 @@ def apply_catalog_to_modpack(
             if skills_modified:
                 skills_doc = {**skills_doc, "skills": skills_map}
 
+    if skills_doc is not None:
+        skill_offerings = dict(skills_doc.get("skillOfferings", {}))
+        offerings_changed = False
+
+        # Ensure masters offer the skills in-game when buyFromMaster is enabled
+        for r_obj in catalog.get("racas", {}).values():
+            for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+                for entry in t_obj.get("formas", []):
+                    m_id = str(entry.get("mestre") or "").strip().lower()
+                    if entry.get("comprar_no_mestre") and m_id:
+                        s_key = entry.get("tipo_habilidade") or t_key or entry.get("id")
+                        if m_id in skill_offerings:
+                            cur_offs = list(skill_offerings[m_id])
+                            if s_key not in cur_offs:
+                                cur_offs.append(s_key)
+                                skill_offerings[m_id] = cur_offs
+                                offerings_changed = True
+                        else:
+                            skill_offerings[m_id] = [s_key]
+                            offerings_changed = True
+
+        for g_key, g_obj in catalog.get("formas_universais_e_stack", {}).items():
+            for entry in g_obj.get("formas", []):
+                m_id = str(entry.get("mestre") or "").strip().lower()
+                if entry.get("comprar_no_mestre") and m_id:
+                    s_key = entry.get("tipo_habilidade") or g_key or entry.get("id")
+                    if m_id in skill_offerings:
+                        cur_offs = list(skill_offerings[m_id])
+                        if s_key not in cur_offs:
+                            cur_offs.append(s_key)
+                            skill_offerings[m_id] = cur_offs
+                            offerings_changed = True
+                    else:
+                        skill_offerings[m_id] = [s_key]
+                        offerings_changed = True
+
+        if offerings_changed:
+            skills_doc["skillOfferings"] = skill_offerings
+            skills_modified = True
+
     if skills_doc is not None and skills_modified:
         _backup_file_if_exists(skills_path, safe_dmz, backup_dir)
         with open(skills_path, "w", encoding="utf-8") as fh:
