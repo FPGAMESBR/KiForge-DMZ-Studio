@@ -35,6 +35,7 @@ from dmz_form_editor_core import (  # noqa: E402
     DEFAULT_INSTANCE_JSON,
     SecurityPathError,
     add_form,
+    apply_batch_balance,
     apply_batch_scale,
     apply_form_update,
     MASTER_FRIENDLY_NAMES,
@@ -287,23 +288,18 @@ class EditorController:
             self._dirty = True
             return self._build_state_unlocked()
 
-    def batch_scale(self, payload: dict[str, Any]) -> dict[str, Any]:
+    def batch_balance(self, payload: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(payload, dict):
-            raise ValueError("Payload inválido para escala em lote.")
-        target_scope = payload.get("escopo_alvo", {"tipo": "tudo"})
-        field_group = str(payload.get("campo", "tp"))
-        factor = float(payload.get("fator", 1.0))
+            raise ValueError("Payload inválido para balanceamento em lote.")
         with self._lock:
-            next_catalog = apply_batch_scale(
-                self._catalog,
-                target_scope=target_scope,
-                field_group=field_group,
-                factor=factor,
-            )
+            next_catalog = apply_batch_balance(self._catalog, payload)
             self._push_undo_unlocked()
             self._catalog = next_catalog
             self._dirty = True
             return self._build_state_unlocked()
+
+    def batch_scale(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self.batch_balance(payload)
 
     def undo(self) -> dict[str, Any]:
         with self._lock:
@@ -877,8 +873,8 @@ def create_http_server(
                 elif path == "/api/language":
                     lang = str(body.get("language", "pt"))
                     self._send_json(200, controller.set_language(lang))
-                elif path == "/api/batch-scale":
-                    self._send_json(200, controller.batch_scale(body))
+                elif path in ("/api/batch-scale", "/api/batch-balance"):
+                    self._send_json(200, controller.batch_balance(body))
                 elif path == "/api/undo":
                     self._send_json(200, controller.undo())
                 elif path == "/api/redo":

@@ -12,6 +12,7 @@ if _EDITOR_DIR not in sys.path:
 from dmz_form_editor_core import (
     SecurityPathError,
     add_form,
+    apply_batch_balance,
     apply_batch_scale,
     apply_form_update,
     delete_form,
@@ -1305,6 +1306,120 @@ def test_prior_and_incompatible_selectors_and_new_form_modal() -> None:
     assert f["requisitos"]["saga"] == "cell_saga:perfect_cell"
     assert f["requisitos"]["forma_previa"] == "supersaiyan.supersaiyan2"
     assert f["visual"]["cor_aura"] == "#00D2FF"
+
+
+def test_apply_batch_balance_with_selected_forms_filter(mock_modpack: Path) -> None:
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+    snapshot = copy.deepcopy(catalog)
+
+    # Scale only supersaiyan1, leave oozaru_base untouched
+    balanced = apply_batch_balance(
+        catalog,
+        {
+            "regra": "escala_simples",
+            "campo": "tp",
+            "fator": 2.0,
+            "escopo_alvo": {"tipo": "raca", "raca": "saiyan"},
+            "formas_selecionadas": ["supersaiyan1"],
+        },
+    )
+    assert catalog == snapshot
+
+    ssj_forms = balanced["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    ssj1 = next(f for f in ssj_forms if f["id"] == "supersaiyan1")
+    oozaru = next(f for f in ssj_forms if f["id"] == "oozaru_base")
+
+    # ssj1 should be scaled (480000 * 2 = 960000)
+    assert ssj1["custo_tp"] == 960000
+    # oozaru_base was NOT selected, should remain untouched
+    assert oozaru["custo_tp"] == 0
+
+
+def test_apply_batch_balance_rules_risk_reward_and_impossible_cap(mock_modpack: Path) -> None:
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+
+    # Test Rule 2: Risco & Recompensa (+Bônus, +Dreno)
+    res_risk = apply_batch_balance(
+        catalog,
+        {
+            "regra": "risco_recompensa",
+            "fator_bp": 1.5,
+            "fator_dreno_ki": 2.0,
+            "fator_dreno_estamina": 2.0,
+            "escopo_alvo": {"tipo": "raca", "raca": "saiyan"},
+            "formas_selecionadas": ["supersaiyan1"],
+        },
+    )
+    ssj1_risk = next(
+        f
+        for f in res_risk["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+        if f["id"] == "supersaiyan1"
+    )
+    # Original STR was 2.5x -> 2.5 * 1.5 = 3.75x
+    assert ssj1_risk["multiplicadores_detalhados"]["forca_str"] == 3.75
+    # Original Ki drain was 0.10 -> 0.10 * 2.0 = 0.20
+    assert ssj1_risk["drenos"]["energia_ki"] == 0.20
+
+    # Test Rule 3: Teto Máximo / Impossible Cap (Max Sum <= 50x)
+    # First inject a high-BP form into catalog
+    high_cat = copy.deepcopy(catalog)
+    high_form = high_cat["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"][0]
+    high_form["multiplicadores_detalhados"]["forca_str"] = 30.0
+    high_form["multiplicadores_detalhados"]["poder_ki_pwr"] = 30.0
+    high_form["multiplicadores_detalhados"]["defesa_def"] = 20.0
+    high_form["multiplicadores_detalhados"]["golpe_skp"] = 20.0  # Total sum = 100.0
+
+    capped_cat = apply_batch_balance(
+        high_cat,
+        {
+            "regra": "teto_maximo",
+            "tipo_teto": "soma",
+            "limite_maximo": 50.0,
+            "escopo_alvo": {"tipo": "raca", "raca": "saiyan"},
+        },
+    )
+    f_capped = capped_cat["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"][0]
+    mults = f_capped["multiplicadores_detalhados"]
+    total_capped = mults["forca_str"] + mults["poder_ki_pwr"] + mults["defesa_def"] + mults["golpe_skp"]
+    assert total_capped <= 50.01
+    assert mults["forca_str"] == 15.0  # 30 * (50/100) = 15.0
+
+
+def test_batch_balance_controller_and_undo(mock_modpack: Path, tmp_path: Path) -> None:
+    from dmz_form_editor_gui import EditorController
+
+    controller = EditorController(
+        dmz_config_dir=str(mock_modpack),
+        desktop_json_path=str(tmp_path / "desktop.json"),
+        allowed_roots=[str(tmp_path)],
+    )
+
+    state1 = controller.batch_balance(
+        {
+            "regra": "recalcular_tp",
+            "ratio_tp_por_bp": 20000,
+            "preservar_especiais": True,
+            "escopo_alvo": {"tipo": "raca", "raca": "saiyan"},
+            "formas_selecionadas": ["supersaiyan1"],
+        }
+    )
+    ssj1 = next(
+        f
+        for f in state1["catalog"]["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+        if f["id"] == "supersaiyan1"
+    )
+    assert ssj1["custo_tp_numerico"] > 0
+    assert state1["can_undo"] is True
+
+    # Undo
+    state_undone = controller.undo()
+    ssj1_undone = next(
+        f
+        for f in state_undone["catalog"]["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+        if f["id"] == "supersaiyan1"
+    )
+    assert ssj1_undone["custo_tp_numerico"] == 480000
+
 
 
 

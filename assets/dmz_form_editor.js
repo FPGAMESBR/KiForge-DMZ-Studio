@@ -161,6 +161,54 @@
       lbl_add_aura_hex: "Cor da Aura (Hex)",
       lbl_add_hair_hex: "Cor do Cabelo (Hex)",
       btn_add_confirm_submit: "✨ Criar Transformação",
+      settings_title: "⚙️ Selecionar Pasta do Modpack ou Arquivo JSON",
+      settings_desc: "Selecione onde está a pasta config/dragonminez do seu Modpack (CurseForge / cliente / servidor) e/ou o arquivo .json de transformações.",
+      settings_detected_title: "⚡ Pastas e Arquivos Detectados no seu PC (1 Clique para Selecionar)",
+      settings_searching: "Buscando...",
+      settings_searching_desc: "Procurando pastas de modpack e arquivos .json...",
+      lbl_modpack_path: "Pasta do Modpack / Config DragonMineZ (Opcional se usar apenas JSON)",
+      ph_modpack_path: "Em branco — clique em Procurar Pasta ou cole o caminho...",
+      btn_browse_folder: "📂 Procurar Pasta...",
+      hint_modpack_path: "Dica: Você pode selecionar a pasta do Modpack (ex: Dragon_Mine_Z_Client) ou direto a subpasta config/dragonminez.",
+      lbl_json_path: "Arquivo .JSON de Transformações (Opcional se usar a pasta do Modpack)",
+      ph_json_path: "Em branco — clique em Procurar JSON ou cole o caminho...",
+      btn_browse_json: "📄 Procurar JSON...",
+      btn_reset_paths: "🧹 Limpar Caminhos (Deixar em Branco)",
+      btn_save_settings: "Salvar e Carregar",
+      batch_studio_title: "⚡ Balanceamento em Lote Avançado",
+      batch_studio_desc: "Balanceie atributos, aplique regras dinâmicas e filtre transformações por raça e seleção individual.",
+      batch_sec1_title: "1. Filtro de Raça & Seleção de Transformações",
+      batch_sec1_hint: "Desmarque as formas que não deseja alterar",
+      lbl_batch_race: "Raça / Escopo",
+      opt_batch_scope_current: "Escopo Atual Selecionado na Lateral",
+      opt_batch_scope_all: "Todas as Raças + Universais",
+      opt_batch_scope_universal: "Apenas Formas Universais & Stack",
+      lbl_batch_search: "Filtrar na Lista de Formas",
+      ph_batch_form_search: "Buscar por nome ou ID...",
+      btn_select_all: "✓ Marcar Todas",
+      btn_deselect_all: "✗ Desmarcar Todas",
+      btn_invert_sel: "⇄ Inverter",
+      batch_sec2_title: "2. Escolha da Regra de Balanceamento",
+      lbl_batch_rule: "Tipo de Regra",
+      rule_simple_scale: "1. Escala Multiplicativa Direta (Simple Scale)",
+      rule_risk_reward: "2. Risco & Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)",
+      rule_cap: "3. Teto Máximo de Poder (Impossible Cap / Limite de Soma)",
+      rule_recalc_tp: "4. Recalcular Custo de TP por Poder (Progression Economy)",
+      rule_drain_smooth: "5. Normalização de Drenos de Ki (Sustainable Combat)",
+      rule_specialize: "6. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)",
+      btn_apply_batch: "⚡ Aplicar Balanceamento em Lote",
+      batch_lbl_target_field: "Atributo Alvo",
+      batch_lbl_factor: "Fator Multiplicador",
+      batch_lbl_status_bonus: "Bônus nos Multiplicadores de BP",
+      batch_lbl_ki_drain_mult: "Multiplicador no Dreno de Ki",
+      batch_lbl_stm_drain_mult: "Multiplicador no Dreno de Estamina",
+      batch_lbl_cap_type: "Tipo de Teto Máximo",
+      batch_lbl_cap_val: "Limite Máximo (Cap)",
+      batch_lbl_tp_ratio: "TP por 1.0x de Poder (BP)",
+      batch_chk_keep_special_tp: "Preservar Gratuitas (0) e Desejo/Shenron (-1)",
+      batch_lbl_max_ki_drain: "Teto Máximo de Dreno de Ki (/s)",
+      batch_lbl_min_ki_drain: "Piso Mínimo para Formas Fortes (BP ≥ 3x)",
+      batch_lbl_archetype: "Arquétipo de Especialização",
     },
     en: {
       app_title: "KiForge: DMZ Form Studio",
@@ -319,6 +367,54 @@
       lbl_add_aura_hex: "Aura Color (Hex)",
       lbl_add_hair_hex: "Hair Color (Hex)",
       btn_add_confirm_submit: "✨ Create Transformation",
+      settings_title: "⚙️ Select Modpack Folder or JSON File",
+      settings_desc: "Select where your Modpack's config/dragonminez folder is located (CurseForge / client / server) and/or the transformations .json file.",
+      settings_detected_title: "⚡ Detected Folders & Files on your PC (1-Click to Select)",
+      settings_searching: "Searching...",
+      settings_searching_desc: "Searching for modpack folders and .json files...",
+      lbl_modpack_path: "Modpack Folder / DragonMineZ Config (Optional if using JSON only)",
+      ph_modpack_path: "Blank — click Browse Folder or paste the path...",
+      btn_browse_folder: "📂 Browse Folder...",
+      hint_modpack_path: "Tip: You can select the Modpack root (e.g. Dragon_Mine_Z_Client) or directly the config/dragonminez subfolder.",
+      lbl_json_path: "Transformations .JSON File (Optional if using Modpack folder)",
+      ph_json_path: "Blank — click Browse JSON or paste the path...",
+      btn_browse_json: "📄 Browse JSON...",
+      btn_reset_paths: "🧹 Clear Paths (Leave Blank)",
+      btn_save_settings: "Save & Load",
+      batch_studio_title: "⚡ Advanced Batch Balancing Studio",
+      batch_studio_desc: "Balance attributes, apply dynamic rules, and filter transformations by race with individual form checkboxes.",
+      batch_sec1_title: "1. Race Filter & Transformation Selection",
+      batch_sec1_hint: "Uncheck any form you want to leave unchanged",
+      lbl_batch_race: "Race / Scope",
+      opt_batch_scope_current: "Current Sidebar Selection Scope",
+      opt_batch_scope_all: "All Races + Universals",
+      opt_batch_scope_universal: "Universal & Stack Forms Only",
+      lbl_batch_search: "Filter in Forms List",
+      ph_batch_form_search: "Search by name or ID...",
+      btn_select_all: "✓ Select All",
+      btn_deselect_all: "✗ Deselect All",
+      btn_invert_sel: "⇄ Invert",
+      batch_sec2_title: "2. Balancing Rule Selection",
+      lbl_batch_rule: "Rule Type",
+      rule_simple_scale: "1. Direct Multiplicative Scale (Simple Scale)",
+      rule_risk_reward: "2. Risk & Reward (+Stat Bonus, +Ki/Stamina Drain)",
+      rule_cap: "3. Maximum Power Cap (Impossible Cap / Stat Sum Limit)",
+      rule_recalc_tp: "4. Recalculate TP Cost by Combat Power (Progression Economy)",
+      rule_drain_smooth: "5. Ki Drain Normalization (Sustainable Combat)",
+      rule_specialize: "6. Class Specialization (Berserker, Ki Master, Tank, Speedster)",
+      btn_apply_batch: "⚡ Apply Batch Balancing",
+      batch_lbl_target_field: "Target Attribute",
+      batch_lbl_factor: "Multiplier Factor",
+      batch_lbl_status_bonus: "BP Multipliers Bonus",
+      batch_lbl_ki_drain_mult: "Ki Drain Multiplier",
+      batch_lbl_stm_drain_mult: "Stamina Drain Multiplier",
+      batch_lbl_cap_type: "Cap Limit Type",
+      batch_lbl_cap_val: "Maximum Cap Limit",
+      batch_lbl_tp_ratio: "TP per 1.0x Combat Power (BP)",
+      batch_chk_keep_special_tp: "Preserve Free (0) & Wish/Shenron (-1)",
+      batch_lbl_max_ki_drain: "Max Ki Drain Cap (/s)",
+      batch_lbl_min_ki_drain: "Min Ki Drain Floor for Strong Forms (BP ≥ 3x)",
+      batch_lbl_archetype: "Specialization Archetype",
     }
   };
 
@@ -2054,42 +2150,481 @@
       }
     });
 
-    // Batch Modal
-    el("btnOpenBatch").addEventListener("click", () => openModal("batchModal"));
-    el("btnCloseBatch").addEventListener("click", () => closeModal("batchModal"));
-    el("btnConfirmBatch").addEventListener("click", async () => {
-      const scopeVal = el("batchScopeSelect").value;
-      const target_scope = { tipo: scopeVal };
-      if (scopeVal === "current") {
-        if (state.navScope.startsWith("race:")) {
-          target_scope.tipo = state.selectedTree === "all" ? "raca" : "arvore";
-          target_scope.raca = state.navScope.slice(5);
-          target_scope.arvore = state.selectedTree;
-        } else if (state.navScope === "universal") {
-          target_scope.tipo = "universal";
-          target_scope.grupo = state.selectedTree;
-        } else {
-          target_scope.tipo = "tudo";
+    // Batch Balancing Studio Modal
+    function openBatchModal() {
+      const cat = state.catalog;
+      if (!cat) return;
+      openModal("batchModal");
+
+      const rSelect = el("batchRaceSelect");
+      const fList = el("batchFormsList");
+      const countBadge = el("batchSelectedFormsCount");
+      const searchInp = el("batchFormSearch");
+      const ruleSelect = el("batchRuleSelect");
+
+      // Populate Races
+      rSelect.innerHTML = "";
+
+      const optCurrent = document.createElement("option");
+      optCurrent.value = "current";
+      optCurrent.textContent = t("opt_batch_scope_current");
+      rSelect.appendChild(optCurrent);
+
+      const optAll = document.createElement("option");
+      optAll.value = "all";
+      optAll.textContent = t("opt_batch_scope_all");
+      rSelect.appendChild(optAll);
+
+      const optUniv = document.createElement("option");
+      optUniv.value = "universal";
+      optUniv.textContent = t("opt_batch_scope_universal");
+      rSelect.appendChild(optUniv);
+
+      const races = Object.values(cat.racas || {}).sort((a, b) =>
+        String(a.nome_exibicao).localeCompare(String(b.nome_exibicao))
+      );
+      races.forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = `race:${r.id_raca}`;
+        opt.textContent = `${r.nome_exibicao} (${r.total_formas || 0})`;
+        rSelect.appendChild(opt);
+      });
+
+      if (state.navScope && state.navScope.startsWith("race:")) {
+        rSelect.value = state.navScope;
+      } else if (state.navScope === "universal") {
+        rSelect.value = "universal";
+      } else {
+        rSelect.value = "all";
+      }
+
+      function getFormsForScope(scopeVal) {
+        const result = [];
+        if (scopeVal === "current") {
+          if (state.navScope.startsWith("race:")) {
+            const rKey = state.navScope.slice(5);
+            const rObj = (cat.racas || {})[rKey];
+            if (rObj) {
+              Object.values(rObj.arvores_de_transformacao || {}).forEach((t) => {
+                if (state.selectedTree === "all" || state.selectedTree === t.id_arvore) {
+                  (t.formas || []).forEach((f) => result.push({ ...f, racaNome: rObj.nome_exibicao }));
+                }
+              });
+            }
+          } else if (state.navScope === "universal") {
+            Object.entries(cat.formas_universais_e_stack || {}).forEach(([gKey, gObj]) => {
+              if (state.selectedTree === "all" || state.selectedTree === gKey) {
+                (gObj.formas || []).forEach((f) => result.push({ ...f, racaNome: "Universal / Stack" }));
+              }
+            });
+          } else {
+            return getFormsForScope("all");
+          }
+        } else if (scopeVal === "all") {
+          Object.values(cat.racas || {}).forEach((r) => {
+            Object.values(r.arvores_de_transformacao || {}).forEach((t) => {
+              (t.formas || []).forEach((f) => result.push({ ...f, racaNome: r.nome_exibicao }));
+            });
+          });
+          Object.values(cat.formas_universais_e_stack || {}).forEach((g) => {
+            (g.formas || []).forEach((f) => result.push({ ...f, racaNome: "Universal / Stack" }));
+          });
+        } else if (scopeVal === "universal") {
+          Object.values(cat.formas_universais_e_stack || {}).forEach((g) => {
+            (g.formas || []).forEach((f) => result.push({ ...f, racaNome: "Universal / Stack" }));
+          });
+        } else if (scopeVal.startsWith("race:")) {
+          const rKey = scopeVal.slice(5);
+          const rObj = (cat.racas || {})[rKey];
+          if (rObj) {
+            Object.values(rObj.arvores_de_transformacao || {}).forEach((t) => {
+              (t.formas || []).forEach((f) => result.push({ ...f, racaNome: rObj.nome_exibicao }));
+            });
+          }
+        }
+        return result;
+      }
+
+      let activeForms = getFormsForScope(rSelect.value);
+
+      function updateCount() {
+        const allChk = fList.querySelectorAll(".batch-form-chk");
+        const checked = fList.querySelectorAll(".batch-form-chk:checked");
+        const c = checked.length;
+        const total = allChk.length;
+        if (countBadge) {
+          countBadge.textContent = state.language === "en" ? `${c} of ${total} selected` : `${c} de ${total} marcadas`;
+        }
+        const sumEl = el("batchListSummary");
+        if (sumEl) {
+          sumEl.textContent = state.language === "en" ? `${c} selected to balance` : `${c} selecionadas para balancear`;
         }
       }
-      try {
-        const data = await apiPost("/api/batch-scale", {
-          campo: el("batchFieldSelect").value,
-          fator: parseFloat(el("batchFactorInput").value),
-          escopo: target_scope,
+
+      function renderChecklist() {
+        fList.innerHTML = "";
+        const q = (searchInp ? searchInp.value : "").trim().toLowerCase();
+        activeForms.forEach((f) => {
+          const hay = `${f.id} ${f.nome} ${f.racaNome}`.toLowerCase();
+          if (q && !hay.includes(q)) return;
+
+          const row = document.createElement("label");
+          row.className = "batch-form-item";
+
+          const left = document.createElement("div");
+          left.style.display = "flex";
+          left.style.alignItems = "center";
+          left.style.gap = "8px";
+
+          const chk = document.createElement("input");
+          chk.type = "checkbox";
+          chk.className = "batch-form-chk";
+          chk.value = f.id;
+          chk.checked = true; // Por padrão todas marcadas!
+          chk.addEventListener("change", () => {
+            if (chk.checked) row.classList.remove("unchecked");
+            else row.classList.add("unchecked");
+            updateCount();
+          });
+
+          const auraDot = document.createElement("div");
+          auraDot.className = "aura-dot";
+          auraDot.style.background = resolveAuraDotColor(f);
+          auraDot.style.width = "10px";
+          auraDot.style.height = "10px";
+
+          const info = document.createElement("div");
+          info.innerHTML = `<span style="font-weight:700; color:#FFF; font-size:12px;">${escapeHtml(f.nome)}</span> <span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); margin-left:4px;">${escapeHtml(f.id)}</span>`;
+
+          left.appendChild(chk);
+          left.appendChild(auraDot);
+          left.appendChild(info);
+
+          const right = document.createElement("div");
+          right.style.display = "flex";
+          right.style.gap = "6px";
+          right.style.alignItems = "center";
+
+          const tpPill = document.createElement("span");
+          tpPill.className = "badge badge-tp";
+          tpPill.style.fontSize = "10px";
+          tpPill.textContent = f.custo_tp;
+
+          const bpPill = document.createElement("span");
+          bpPill.className = "badge badge-bp";
+          bpPill.style.fontSize = "10px";
+          bpPill.textContent = f.multiplicador_bp;
+
+          right.appendChild(tpPill);
+          right.appendChild(bpPill);
+
+          row.appendChild(left);
+          row.appendChild(right);
+          fList.appendChild(row);
         });
+        updateCount();
+      }
+
+      rSelect.onchange = () => {
+        activeForms = getFormsForScope(rSelect.value);
+        renderChecklist();
+      };
+
+      if (searchInp) {
+        searchInp.value = "";
+        searchInp.oninput = renderChecklist;
+      }
+
+      const btnAll = el("btnBatchSelectAll");
+      if (btnAll) {
+        btnAll.onclick = () => {
+          fList.querySelectorAll(".batch-form-chk").forEach((c) => {
+            c.checked = true;
+            c.closest(".batch-form-item")?.classList.remove("unchecked");
+          });
+          updateCount();
+        };
+      }
+
+      const btnNone = el("btnBatchDeselectAll");
+      if (btnNone) {
+        btnNone.onclick = () => {
+          fList.querySelectorAll(".batch-form-chk").forEach((c) => {
+            c.checked = false;
+            c.closest(".batch-form-item")?.classList.add("unchecked");
+          });
+          updateCount();
+        };
+      }
+
+      const btnInvert = el("btnBatchInvertSel");
+      if (btnInvert) {
+        btnInvert.onclick = () => {
+          fList.querySelectorAll(".batch-form-chk").forEach((c) => {
+            c.checked = !c.checked;
+            if (c.checked) c.closest(".batch-form-item")?.classList.remove("unchecked");
+            else c.closest(".batch-form-item")?.classList.add("unchecked");
+          });
+          updateCount();
+        };
+      }
+
+      renderChecklist();
+      renderBatchRuleParams();
+      ruleSelect.onchange = renderBatchRuleParams;
+
+      // Translate modal elements dynamically
+      document.querySelectorAll("#batchModal [data-i18n]").forEach((elem) => {
+        const k = elem.getAttribute("data-i18n");
+        if (k) elem.textContent = t(k);
+      });
+    }
+
+    function renderBatchRuleParams() {
+      const container = el("batchDynamicParams");
+      const ruleSelect = el("batchRuleSelect");
+      const badge = el("batchRuleBadge");
+      if (!container || !ruleSelect) return;
+      const rule = ruleSelect.value;
+      const isEn = state.language === "en";
+
+      if (badge) {
+        const opt = ruleSelect.selectedOptions[0];
+        badge.textContent = opt ? opt.textContent.split(".")[1]?.trim() || opt.textContent : rule;
+      }
+
+      if (rule === "escala_simples") {
+        container.innerHTML = `
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="batchParamField">${t("batch_lbl_target_field")}</label>
+              <select id="batchParamField" class="select-field">
+                <option value="tp">${isEn ? "TP Cost" : "Custo de TP"}</option>
+                <option value="bp">${isEn ? "All Combat Multipliers (BP)" : "Todos Multiplicadores de BP"}</option>
+                <option value="ofensivo">${isEn ? "Offensive Only (STR + PWR + SKP)" : "Apenas Ofensivos (STR + PWR + SKP)"}</option>
+                <option value="defensivo">${isEn ? "Defensive Only (DEF + VIT)" : "Apenas Defensivos (DEF + VIT)"}</option>
+                <option value="dreno_ki">${isEn ? "Ki Drain (/s)" : "Dreno de Ki (/s)"}</option>
+                <option value="dreno_estamina">${isEn ? "Stamina Drain (/s)" : "Dreno de Estamina (/s)"}</option>
+                <option value="velocidade">${isEn ? "Speed Multipliers (SPD + Atk Spd)" : "Velocidades (SPD + Atk Speed)"}</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="batchParamFactor">${t("batch_lbl_factor")}</label>
+              <input id="batchParamFactor" type="number" step="0.05" min="0.01" value="1.5" class="input-field" />
+            </div>
+          </div>
+          <div class="quick-btns" style="margin-top:4px;">
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="0.5">0.5x (-50%)</button>
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="0.8">0.8x (-20%)</button>
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="1.2">1.2x (+20%)</button>
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="1.5">1.5x (+50%)</button>
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="2.0">2.0x</button>
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="3.0">3.0x</button>
+            <button type="button" class="btn btn-sm btn-batch-preset" data-val="5.0">5.0x</button>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            ℹ️ ${isEn ? "Multiplies chosen attribute by factor. Free (0) and Priceless/Wish (-1) TP forms are preserved intact." : "Multiplica o atributo escolhido pelo fator. Formas gratuitas (0) e Priceless (-1) têm o TP preservado."}
+          </div>
+        `;
+        container.querySelectorAll(".btn-batch-preset").forEach((btn) => {
+          btn.onclick = () => { el("batchParamFactor").value = btn.dataset.val; };
+        });
+
+      } else if (rule === "risco_recompensa") {
+        container.innerHTML = `
+          <div class="grid-3">
+            <div class="field-group">
+              <label for="batchParamBonus">${t("batch_lbl_status_bonus")}</label>
+              <input id="batchParamBonus" type="number" step="0.05" min="1.0" value="1.30" class="input-field" />
+            </div>
+            <div class="field-group">
+              <label for="batchParamKiDrain">${t("batch_lbl_ki_drain_mult")}</label>
+              <input id="batchParamKiDrain" type="number" step="0.05" min="1.0" value="1.50" class="input-field" />
+            </div>
+            <div class="field-group">
+              <label for="batchParamStmDrain">${t("batch_lbl_stm_drain_mult")}</label>
+              <input id="batchParamStmDrain" type="number" step="0.05" min="1.0" value="1.50" class="input-field" />
+            </div>
+          </div>
+          <div class="quick-btns" style="margin-top:4px;">
+            <button type="button" class="btn btn-sm btn-risk-preset" data-bp="1.15" data-drain="1.20">${isEn ? "Light (+15% BP, +20% Drain)" : "Leve (+15% BP, +20% Dreno)"}</button>
+            <button type="button" class="btn btn-sm btn-risk-preset" data-bp="1.30" data-drain="1.50">${isEn ? "Moderate (+30% BP, +50% Drain)" : "Moderado (+30% BP, +50% Dreno)"}</button>
+            <button type="button" class="btn btn-sm btn-risk-preset" data-bp="1.60" data-drain="2.00">${isEn ? "Overdrive (+60% BP, +100% Drain)" : "Overdrive (+60% BP, +100% Dreno)"}</button>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            ⚔️ ${isEn ? "Increases combat multipliers in exchange for higher Ki and Stamina drain per second in battle." : "Aumenta os multiplicadores de combate em troca de maior dreno de Ki e Estamina por segundo em batalha."}
+          </div>
+        `;
+        container.querySelectorAll(".btn-risk-preset").forEach((btn) => {
+          btn.onclick = () => {
+            el("batchParamBonus").value = btn.dataset.bp;
+            el("batchParamKiDrain").value = btn.dataset.drain;
+            el("batchParamStmDrain").value = btn.dataset.drain;
+          };
+        });
+
+      } else if (rule === "teto_maximo") {
+        container.innerHTML = `
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="batchParamCapType">${t("batch_lbl_cap_type")}</label>
+              <select id="batchParamCapType" class="select-field">
+                <option value="soma">${isEn ? "Total Sum of 4 Stats (STR + PWR + DEF + SKP)" : "Soma dos 4 Status Principais (STR + PWR + DEF + SKP)"}</option>
+                <option value="individual">${isEn ? "Individual Maximum Multiplier (Per-Stat Limit)" : "Multiplicador Máximo Individual (Teto por Status)"}</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="batchParamCapVal">${t("batch_lbl_cap_val")}</label>
+              <input id="batchParamCapVal" type="number" step="1.0" min="1.0" value="50.0" class="input-field" />
+            </div>
+          </div>
+          <div class="quick-btns" style="margin-top:4px;">
+            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="30.0">${isEn ? "Competitive (30x Cap)" : "Competitivo (Teto 30x)"}</button>
+            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="50.0">${isEn ? "DMZ Standard (50x Cap)" : "Padrão DMZ (Teto 50x)"}</button>
+            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="80.0">${isEn ? "God Tier (80x Cap)" : "God Tier (Teto 80x)"}</button>
+            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="120.0">${isEn ? "High Fantasy (120x Cap)" : "Alta Fantasia (Teto 120x)"}</button>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            🛡️ ${isEn ? "Forms exceeding the cap are scaled down proportionally, preserving their unique offensive/defensive identity." : "Formas que ultrapassarem o teto são reduzidas proporcionalmente, preservando o estilo de distribuição de status."}
+          </div>
+        `;
+        container.querySelectorAll(".btn-cap-preset").forEach((btn) => {
+          btn.onclick = () => { el("batchParamCapVal").value = btn.dataset.cap; };
+        });
+
+      } else if (rule === "recalcular_tp") {
+        container.innerHTML = `
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="batchParamTpRatio">${t("batch_lbl_tp_ratio")}</label>
+              <input id="batchParamTpRatio" type="number" step="2500" min="1000" value="25000" class="input-field" />
+            </div>
+            <div class="field-group" style="display:flex; align-items:center; margin-top:18px;">
+              <label class="toggle-row" style="margin:0;">
+                <input id="batchParamKeepSpecialTp" type="checkbox" checked />
+                <span style="font-size:11.5px;">${t("batch_chk_keep_special_tp")}</span>
+              </label>
+            </div>
+          </div>
+          <div class="quick-btns" style="margin-top:4px;">
+            <button type="button" class="btn btn-sm btn-tp-preset" data-ratio="10000">${isEn ? "Casual (10k TP / BP)" : "Casual (10k TP / BP)"}</button>
+            <button type="button" class="btn btn-sm btn-tp-preset" data-ratio="25000">${isEn ? "DMZ Standard (25k TP / BP)" : "Padrão DMZ (25k TP / BP)"}</button>
+            <button type="button" class="btn btn-sm btn-tp-preset" data-ratio="50000">${isEn ? "Hardcore Grinding (50k TP / BP)" : "Hardcore (50k TP / BP)"}</button>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            💰 ${isEn ? "Automatically computes fair TP costs proportional to the transformation's total combat battle power." : "Calcula automaticamente custos de TP justos e proporcionais ao poder total de combate da transformação."}
+          </div>
+        `;
+        container.querySelectorAll(".btn-tp-preset").forEach((btn) => {
+          btn.onclick = () => { el("batchParamTpRatio").value = btn.dataset.ratio; };
+        });
+
+      } else if (rule === "normalizar_drenos") {
+        container.innerHTML = `
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="batchParamDrainCap">${t("batch_lbl_max_ki_drain")}</label>
+              <input id="batchParamDrainCap" type="number" step="0.05" min="0.05" value="0.60" class="input-field" />
+            </div>
+            <div class="field-group">
+              <label for="batchParamDrainFloor">${t("batch_lbl_min_ki_drain")}</label>
+              <input id="batchParamDrainFloor" type="number" step="0.01" min="0.0" value="0.05" class="input-field" />
+            </div>
+          </div>
+          <div class="quick-btns" style="margin-top:4px;">
+            <button type="button" class="btn btn-sm btn-drain-preset" data-cap="0.35">${isEn ? "Fluid Combat (Max 0.35/s)" : "Combate Fluido (Máx 0.35/s)"}</button>
+            <button type="button" class="btn btn-sm btn-drain-preset" data-cap="0.60">${isEn ? "DMZ Balanced (Max 0.60/s)" : "Padrão DMZ (Máx 0.60/s)"}</button>
+            <button type="button" class="btn btn-sm btn-drain-preset" data-cap="1.20">${isEn ? "High Drain Challenge (Max 1.20/s)" : "Desafio Severo (Máx 1.20/s)"}</button>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            ⚡ ${isEn ? "Tames absurd addon energy drains while ensuring god-tier forms have a sustainable upkeep cost." : "Apara drenos absurdos de addons e garante que formas divinas tenham um custo de energia sustentável."}
+          </div>
+        `;
+        container.querySelectorAll(".btn-drain-preset").forEach((btn) => {
+          btn.onclick = () => { el("batchParamDrainCap").value = btn.dataset.cap; };
+        });
+
+      } else if (rule === "especializacao") {
+        container.innerHTML = `
+          <div class="field-group">
+            <label for="batchParamArchetype">${t("batch_lbl_archetype")}</label>
+            <select id="batchParamArchetype" class="select-field">
+              <option value="berserker">${isEn ? "Berserker (+40% STR, +20% PWR, -20% DEF, -10% SPD)" : "Berserker (+40% Força, +20% Ki, -20% Defesa, -10% SPD)"}</option>
+              <option value="ki_blaster">${isEn ? "Ki Blaster / Mage (+50% PWR, +25% SKP, -20% STR, +20% Ki Drain)" : "Ki Blaster / Mago (+50% Poder Ki, +25% SKP, -20% Força, +20% Dreno Ki)"}</option>
+              <option value="tanque">${isEn ? "Immortal Tank (+60% DEF, +40% VIT, -25% SPD, -15% STR)" : "Tanque Imortal (+60% Defesa, +40% Vitalidade, -25% SPD, -15% Força)"}</option>
+              <option value="speedster">${isEn ? "Speedster / Evasion (+50% SPD, +40% Attack Speed, -20% DEF)" : "Velocista / Esquiva (+50% Velocidade, +40% Velocidade de Ataque, -20% DEF)"}</option>
+            </select>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+            🎯 ${isEn ? "Shifts battle stats to fulfill specific combat roles (Heavy Melee, Ranged Blaster, Tank or Fast Evasion)." : "Redireciona os atributos para cumprir funções específicas de combate (Corpo a Corpo, Mago de Ki, Tanque ou Velocista)."}
+          </div>
+        `;
+      }
+    }
+
+    el("btnOpenBatch").addEventListener("click", openBatchModal);
+    el("btnCloseBatch").addEventListener("click", () => closeModal("batchModal"));
+    const hClose = el("btnHeaderCloseBatch");
+    if (hClose) hClose.addEventListener("click", () => closeModal("batchModal"));
+
+    el("btnConfirmBatch").addEventListener("click", async () => {
+      const chks = document.querySelectorAll(".batch-form-chk:checked");
+      if (chks.length === 0) {
+        showToast(state.language === "en" ? "Select at least 1 transformation to balance!" : "Selecione ao menos 1 transformação para balancear!", true);
+        return;
+      }
+      const selectedIds = Array.from(chks).map((c) => c.value);
+      const scopeVal = el("batchRaceSelect").value;
+      const target_scope = { tipo: scopeVal };
+      if (scopeVal.startsWith("race:")) {
+        target_scope.tipo = "raca";
+        target_scope.raca = scopeVal.slice(5);
+      } else if (scopeVal === "universal") {
+        target_scope.tipo = "universal";
+      } else {
+        target_scope.tipo = "tudo";
+      }
+
+      const rule = el("batchRuleSelect").value;
+      const payload = {
+        regra: rule,
+        escopo_alvo: target_scope,
+        formas_selecionadas: selectedIds,
+      };
+
+      if (rule === "escala_simples") {
+        payload.campo = el("batchParamField") ? el("batchParamField").value : "tp";
+        payload.fator = parseFloat(el("batchParamFactor") ? el("batchParamFactor").value : "1.5") || 1.0;
+      } else if (rule === "risco_recompensa") {
+        payload.fator_bp = parseFloat(el("batchParamBonus") ? el("batchParamBonus").value : "1.30") || 1.30;
+        payload.fator_dreno_ki = parseFloat(el("batchParamKiDrain") ? el("batchParamKiDrain").value : "1.50") || 1.50;
+        payload.fator_dreno_estamina = parseFloat(el("batchParamStmDrain") ? el("batchParamStmDrain").value : "1.50") || 1.50;
+      } else if (rule === "teto_maximo") {
+        payload.tipo_teto = el("batchParamCapType") ? el("batchParamCapType").value : "soma";
+        payload.limite_maximo = parseFloat(el("batchParamCapVal") ? el("batchParamCapVal").value : "50.0") || 50.0;
+      } else if (rule === "recalcular_tp") {
+        payload.ratio_tp_por_bp = parseFloat(el("batchParamTpRatio") ? el("batchParamTpRatio").value : "25000") || 25000;
+        payload.preservar_especiais = el("batchParamKeepSpecialTp") ? el("batchParamKeepSpecialTp").checked : true;
+      } else if (rule === "normalizar_drenos") {
+        payload.teto_dreno_ki = parseFloat(el("batchParamDrainCap") ? el("batchParamDrainCap").value : "0.60") || 0.60;
+        payload.piso_dreno_ki = parseFloat(el("batchParamDrainFloor") ? el("batchParamDrainFloor").value : "0.05") || 0.05;
+      } else if (rule === "especializacao") {
+        payload.papel = el("batchParamArchetype") ? el("batchParamArchetype").value : "berserker";
+      }
+
+      try {
+        const data = await apiPost("/api/batch-balance", payload);
         closeModal("batchModal");
         applyServerState(data);
-        showToast(state.language === "en" ? "Batch scale applied!" : "Escala em lote aplicada!");
+        const count = selectedIds.length;
+        showToast(
+          state.language === "en"
+            ? `${count} transformations balanced successfully!`
+            : `${count} transformações balanceadas com sucesso!`
+        );
       } catch (err) {
         showToast(err.message, true);
       }
-    });
-
-    document.querySelectorAll("[data-batch-factor]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        el("batchFactorInput").value = btn.getAttribute("data-batch-factor");
-      });
     });
 
     // Color pickers & Live Aura Visualizer

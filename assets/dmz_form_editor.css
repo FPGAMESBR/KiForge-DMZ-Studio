@@ -579,7 +579,19 @@ table.forms-table {
   gap: 8px;
 }
 
+#inspectorContent,
+.inspector-content-box {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .inspector-header {
+  flex-shrink: 0;
   padding: 14px 16px;
   background: #131C2E;
   border-bottom: 1px solid var(--border-default);
@@ -608,8 +620,10 @@ table.forms-table {
 }
 
 .inspector-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto !important;
   overflow-x: hidden;
   padding: 12px 14px 24px;
   display: flex;
@@ -723,8 +737,79 @@ table.forms-table {
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);
 }
 .modal-card.modal-wide {
-  width: 720px;
+  width: 780px;
   max-width: 95vw;
+}
+
+.modal-card.modal-batch-studio {
+  width: 840px;
+  max-width: 96vw;
+  max-height: 88vh;
+  gap: 12px;
+}
+
+.batch-section {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.batch-section-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.batch-form-list {
+  max-height: 180px;
+  overflow-y: auto;
+  background: rgba(9, 13, 22, 0.75);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.batch-form-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid transparent;
+  transition: all 0.1s ease;
+  user-select: none;
+  cursor: pointer;
+}
+.batch-form-item:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.batch-form-item.unchecked {
+  opacity: 0.45;
+}
+
+.batch-param-card {
+  background: rgba(9, 13, 22, 0.6);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Toast */

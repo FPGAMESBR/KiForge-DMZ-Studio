@@ -720,26 +720,250 @@ def apply_form_update(
 def _scale_single_entry(
     entry: dict[str, Any], field_group: str, factor: float
 ) -> dict[str, Any]:
+    return _apply_rule_to_entry(
+        entry,
+        "escala_simples",
+        {"campo": field_group, "fator": factor},
+    )
+
+
+def _apply_rule_to_entry(
+    entry: dict[str, Any],
+    regra: str,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
     cloned = copy.deepcopy(entry)
-    if field_group == "tp":
+    mults = dict(cloned.get("multiplicadores_detalhados", {}))
+    base_val = float(
+        mults.get("forca_str", cloned.get("multiplicador_numerico_base", 1.0))
+    )
+    for k in (
+        "forca_str",
+        "poder_ki_pwr",
+        "defesa_def",
+        "golpe_skp",
+        "estamina_stm",
+        "vitalidade_vit",
+        "energia_ene",
+        "velocidade_spd",
+        "velocidade_ataque",
+    ):
+        mults.setdefault(
+            k,
+            base_val
+            if k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp")
+            else 1.0,
+        )
+
+    drenos = dict(cloned.get("drenos", {}))
+    drenos.setdefault("energia_ki", 0.0)
+    drenos.setdefault("estamina", 0.0)
+    drenos.setdefault("vida", 0.0)
+
+    if regra in ("escala_simples", "scale"):
+        campo = str(payload.get("campo", "tp"))
+        fator = float(payload.get("fator", 1.0))
+        if fator <= 0:
+            raise ValueError("O fator de multiplicação deve ser maior que zero.")
+        if campo == "tp":
+            tp_num = cloned["custo_tp_numerico"]
+            if tp_num > 0:
+                scaled = max(1, int(round(tp_num * fator)))
+                cloned["custo_tp_numerico"] = scaled
+                cloned["custo_tp"] = format_tp_display(scaled)
+        elif campo == "bp":
+            for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"):
+                mults[k] = round(float(mults[k]) * fator, 3)
+        elif campo == "ofensivo":
+            for k in ("forca_str", "poder_ki_pwr", "golpe_skp"):
+                mults[k] = round(float(mults[k]) * fator, 3)
+        elif campo == "defensivo":
+            for k in ("defesa_def", "vitalidade_vit"):
+                mults[k] = round(float(mults[k]) * fator, 3)
+        elif campo == "dreno_ki":
+            drenos["energia_ki"] = round(
+                float(drenos.get("energia_ki", 0.0)) * fator, 4
+            )
+        elif campo == "dreno_estamina":
+            drenos["estamina"] = round(
+                float(drenos.get("estamina", 0.0)) * fator, 4
+            )
+        elif campo == "velocidade":
+            for k in ("velocidade_spd", "velocidade_ataque"):
+                mults[k] = round(float(mults[k]) * fator, 3)
+
+    elif regra == "risco_recompensa":
+        fator_bp = float(payload.get("fator_bp", 1.30))
+        fator_dreno_ki = float(payload.get("fator_dreno_ki", 1.50))
+        fator_dreno_stm = float(payload.get("fator_dreno_estamina", 1.50))
+        for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"):
+            mults[k] = round(float(mults[k]) * fator_bp, 3)
+        cur_ki = float(drenos.get("energia_ki", 0.0))
+        if cur_ki > 0:
+            drenos["energia_ki"] = round(cur_ki * fator_dreno_ki, 4)
+        elif fator_dreno_ki > 1.0 and mults["forca_str"] >= 2.0:
+            drenos["energia_ki"] = 0.08
+        cur_stm = float(drenos.get("estamina", 0.0))
+        if cur_stm > 0:
+            drenos["estamina"] = round(cur_stm * fator_dreno_stm, 4)
+
+    elif regra == "teto_maximo":
+        tipo_teto = str(payload.get("tipo_teto", "soma"))
+        limite = float(payload.get("limite_maximo", 50.0))
+        if tipo_teto == "soma":
+            soma_atual = sum(
+                float(mults[k])
+                for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp")
+            )
+            if soma_atual > limite and soma_atual > 0:
+                ratio = limite / soma_atual
+                for k in (
+                    "forca_str",
+                    "poder_ki_pwr",
+                    "defesa_def",
+                    "golpe_skp",
+                ):
+                    mults[k] = round(float(mults[k]) * ratio, 3)
+        elif tipo_teto == "individual":
+            for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp"):
+                if float(mults[k]) > limite:
+                    mults[k] = round(limite, 3)
+
+    elif regra == "recalcular_tp":
+        ratio = float(payload.get("ratio_tp_por_bp", 25000.0))
+        preservar = bool(payload.get("preservar_especiais", True))
         tp_num = cloned["custo_tp_numerico"]
-        if tp_num > 0:
-            scaled = max(1, int(round(tp_num * factor)))
-            cloned["custo_tp_numerico"] = scaled
-            cloned["custo_tp"] = format_tp_display(scaled)
-    elif field_group == "bp":
-        mults = dict(cloned["multiplicadores_detalhados"])
-        for k in (
-            "forca_str",
-            "poder_ki_pwr",
-            "defesa_def",
-            "golpe_skp",
-        ):
-            mults[k] = round(float(mults[k]) * factor, 3)
-        cloned["multiplicadores_detalhados"] = mults
-        cloned["multiplicador_numerico_base"] = mults["forca_str"]
-        cloned["multiplicador_bp"] = format_bp_string(mults)
+        if not (preservar and tp_num <= 0):
+            soma_bp = sum(
+                float(mults[k])
+                for k in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp")
+            )
+            calc_tp = max(1000, int(round((soma_bp / 4.0) * ratio)))
+            cloned["custo_tp_numerico"] = calc_tp
+            cloned["custo_tp"] = format_tp_display(calc_tp)
+
+    elif regra == "normalizar_drenos":
+        teto = float(payload.get("teto_dreno_ki", 0.60))
+        piso = float(payload.get("piso_dreno_ki", 0.05))
+        cur_ki = float(drenos.get("energia_ki", 0.0))
+        if cur_ki > teto:
+            drenos["energia_ki"] = teto
+        elif cur_ki < piso and mults["forca_str"] >= 3.0:
+            drenos["energia_ki"] = piso
+
+    elif regra == "especializacao":
+        papel = str(payload.get("papel", "berserker"))
+        if papel == "berserker":
+            mults["forca_str"] = round(mults["forca_str"] * 1.4, 3)
+            mults["poder_ki_pwr"] = round(mults["poder_ki_pwr"] * 1.2, 3)
+            mults["defesa_def"] = round(mults["defesa_def"] * 0.8, 3)
+            mults["velocidade_spd"] = round(mults["velocidade_spd"] * 0.9, 3)
+        elif papel == "ki_blaster":
+            mults["poder_ki_pwr"] = round(mults["poder_ki_pwr"] * 1.5, 3)
+            mults["golpe_skp"] = round(mults["golpe_skp"] * 1.25, 3)
+            mults["forca_str"] = round(mults["forca_str"] * 0.8, 3)
+            drenos["energia_ki"] = round(
+                max(0.1, float(drenos.get("energia_ki", 0.0)) * 1.2), 4
+            )
+        elif papel == "tanque":
+            mults["defesa_def"] = round(mults["defesa_def"] * 1.6, 3)
+            mults["vitalidade_vit"] = round(mults["vitalidade_vit"] * 1.4, 3)
+            mults["velocidade_spd"] = round(mults["velocidade_spd"] * 0.75, 3)
+            mults["forca_str"] = round(mults["forca_str"] * 0.85, 3)
+        elif papel == "speedster":
+            mults["velocidade_spd"] = round(mults["velocidade_spd"] * 1.5, 3)
+            mults["velocidade_ataque"] = round(mults["velocidade_ataque"] * 1.4, 3)
+            mults["defesa_def"] = round(mults["defesa_def"] * 0.8, 3)
+
+    cloned["multiplicadores_detalhados"] = mults
+    cloned["multiplicador_numerico_base"] = mults["forca_str"]
+    cloned["multiplicador_bp"] = format_bp_string(mults)
+    cloned["drenos"] = drenos
     return cloned
+
+
+def apply_batch_balance(
+    catalog: dict[str, Any],
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Immutably apply advanced batch balancing rules across a scope and optional selected form IDs."""
+    if not isinstance(payload, dict):
+        raise ValueError("Payload inválido para balanceamento em lote.")
+
+    new_cat = copy.deepcopy(catalog)
+    regra = str(payload.get("regra", "escala_simples"))
+    target_scope = payload.get("escopo_alvo", payload.get("escopo", {"tipo": "tudo"}))
+    scope_type = target_scope.get("tipo", "tudo")
+    target_race = target_scope.get("raca")
+    target_tree = target_scope.get("arvore")
+    target_group = target_scope.get("grupo")
+
+    selected_ids = payload.get("formas_selecionadas")
+    selected_set = set(selected_ids) if selected_ids is not None else None
+
+    updated_tp_map: dict[tuple[str, int], int] = {}
+
+    if scope_type in ("tudo", "raca", "arvore"):
+        for r_key, r_obj in new_cat.get("racas", {}).items():
+            if scope_type in ("raca", "arvore") and r_key != target_race:
+                continue
+            for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+                if scope_type == "arvore" and t_key != target_tree:
+                    continue
+                new_forms = []
+                for f in t_obj.get("formas", []):
+                    if selected_set is not None and f.get("id") not in selected_set:
+                        new_forms.append(f)
+                    else:
+                        scaled = _apply_rule_to_entry(f, regra, payload)
+                        new_forms.append(scaled)
+                        lvl = scaled.get("nivel_habilidade", 0)
+                        st = scaled.get("tipo_habilidade", "")
+                        if lvl > 0 and st:
+                            updated_tp_map[(st, lvl)] = scaled["custo_tp_numerico"]
+                t_obj["formas"] = new_forms
+
+    if scope_type in ("tudo", "universal"):
+        for g_key, g_obj in new_cat.get("formas_universais_e_stack", {}).items():
+            if scope_type == "universal" and target_group and g_key != target_group:
+                continue
+            new_forms = []
+            for f in g_obj.get("formas", []):
+                if selected_set is not None and f.get("id") not in selected_set:
+                    new_forms.append(f)
+                else:
+                    scaled = _apply_rule_to_entry(f, regra, payload)
+                    new_forms.append(scaled)
+                    lvl = scaled.get("nivel_habilidade", 0)
+                    st = scaled.get("tipo_habilidade", "")
+                    if lvl > 0 and st:
+                        updated_tp_map[(st, lvl)] = scaled["custo_tp_numerico"]
+            g_obj["formas"] = new_forms
+
+    if updated_tp_map:
+        for r_obj in new_cat.get("racas", {}).values():
+            for t_obj in r_obj.get("arvores_de_transformacao", {}).values():
+                for f in t_obj.get("formas", []):
+                    pair = (
+                        f.get("tipo_habilidade", ""),
+                        f.get("nivel_habilidade", 0),
+                    )
+                    if pair in updated_tp_map:
+                        tp_val = updated_tp_map[pair]
+                        f["custo_tp_numerico"] = tp_val
+                        f["custo_tp"] = format_tp_display(tp_val)
+        for g_obj in new_cat.get("formas_universais_e_stack", {}).values():
+            for f in g_obj.get("formas", []):
+                pair = (
+                    f.get("tipo_habilidade", ""),
+                    f.get("nivel_habilidade", 0),
+                )
+                if pair in updated_tp_map:
+                    tp_val = updated_tp_map[pair]
+                    f["custo_tp_numerico"] = tp_val
+                    f["custo_tp"] = format_tp_display(tp_val)
+
+    return new_cat
 
 
 def apply_batch_scale(
@@ -749,39 +973,15 @@ def apply_batch_scale(
     factor: float,
 ) -> dict[str, Any]:
     """Immutably scale TP or BP multipliers across a scope (tudo, raca, arvore, universal)."""
-    if factor <= 0:
-        raise ValueError("O fator de multiplicação deve ser maior que zero.")
-    if field_group not in ("tp", "bp"):
-        raise ValueError(f"Grupo de campo inválido: {field_group}")
-
-    new_cat = copy.deepcopy(catalog)
-    scope_type = target_scope.get("tipo", "tudo")
-    target_race = target_scope.get("raca")
-    target_tree = target_scope.get("arvore")
-    target_group = target_scope.get("grupo")
-
-    if scope_type in ("tudo", "raca", "arvore"):
-        for r_key, r_obj in new_cat.get("racas", {}).items():
-            if scope_type in ("raca", "arvore") and r_key != target_race:
-                continue
-            for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
-                if scope_type == "arvore" and t_key != target_tree:
-                    continue
-                t_obj["formas"] = [
-                    _scale_single_entry(f, field_group, factor)
-                    for f in t_obj.get("formas", [])
-                ]
-
-    if scope_type in ("tudo", "universal"):
-        for g_key, g_obj in new_cat.get("formas_universais_e_stack", {}).items():
-            if scope_type == "universal" and target_group and g_key != target_group:
-                continue
-            g_obj["formas"] = [
-                _scale_single_entry(f, field_group, factor)
-                for f in g_obj.get("formas", [])
-            ]
-
-    return new_cat
+    return apply_batch_balance(
+        catalog,
+        {
+            "regra": "escala_simples",
+            "campo": field_group,
+            "fator": factor,
+            "escopo_alvo": target_scope,
+        },
+    )
 
 
 def _extract_fprops_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1020,6 +1220,7 @@ __all__ = [
     "RACE_FRIENDLY_NAMES_BILINGUAL",
     "SecurityPathError",
     "add_form",
+    "apply_batch_balance",
     "apply_batch_scale",
     "apply_form_update",
     "default_allowed_roots",

@@ -105,7 +105,7 @@
         <p data-i18n="inspector_empty_desc">Clique em qualquer linha da tabela ao centro para inspecionar e editar Custo de TP, Multiplicadores de BP, Drenos, Maestria e Requisitos.</p>
       </div>
 
-      <div id="inspectorContent" style="display:none; height:100%; flex-direction:column;">
+      <div id="inspectorContent" class="inspector-content-box" style="display:none;">
         <div class="inspector-header">
           <div class="inspector-title-row">
             <div>
@@ -755,97 +755,141 @@
   <!-- Settings / Folder Picker Modal -->
   <div id="settingsModal" class="modal-backdrop">
     <div class="modal-card modal-wide">
-      <h3>⚙️ Selecionar Pasta do Modpack ou Arquivo JSON</h3>
-      <p style="color:var(--text-secondary); font-size:12px;">
+      <h3 data-i18n="settings_title">⚙️ Selecionar Pasta do Modpack ou Arquivo JSON</h3>
+      <p style="color:var(--text-secondary); font-size:12px;" data-i18n="settings_desc">
         Selecione onde está a pasta <code>config/dragonminez</code> do seu Modpack (CurseForge / cliente / servidor) e/ou o arquivo <code>.json</code> de transformações.
       </p>
 
       <!-- Auto-detected quick shortcuts box -->
       <div id="detectedLocationsBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px 14px; margin: 4px 0 10px 0;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; letter-spacing: 0.5px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="settings_detected_title">
             ⚡ Pastas e Arquivos Detectados no seu PC (1 Clique para Selecionar)
           </span>
-          <span id="detectedCountLabel" class="badge badge-addon" style="font-size:10px;">Buscando...</span>
+          <span id="detectedCountLabel" class="badge badge-addon" style="font-size:10px;" data-i18n="settings_searching">Buscando...</span>
         </div>
         <div id="detectedChipsContainer" style="display:flex; flex-direction:column; gap:6px;">
-          <div style="font-size:11.5px; color:var(--text-muted);">Procurando pastas de modpack e arquivos .json...</div>
+          <div style="font-size:11.5px; color:var(--text-muted);" data-i18n="settings_searching_desc">Procurando pastas de modpack e arquivos .json...</div>
         </div>
       </div>
 
       <div class="field-group">
-        <label for="inpModpackPath">Pasta do Modpack / Config DragonMineZ (Opcional se usar apenas JSON)</label>
+        <label for="inpModpackPath" data-i18n="lbl_modpack_path">Pasta do Modpack / Config DragonMineZ (Opcional se usar apenas JSON)</label>
         <div class="filter-row">
-          <input id="inpModpackPath" type="text" class="input-field" style="flex:1;" placeholder="Em branco — clique em Procurar Pasta ou cole o caminho..." />
-          <button id="btnBrowseFolder" type="button" class="btn btn-cyan">📂 Procurar Pasta...</button>
+          <input id="inpModpackPath" type="text" class="input-field" style="flex:1;" placeholder="Em branco — clique em Procurar Pasta ou cole o caminho..." data-i18n-placeholder="ph_modpack_path" />
+          <button id="btnBrowseFolder" type="button" class="btn btn-cyan" data-i18n="btn_browse_folder">📂 Procurar Pasta...</button>
         </div>
-        <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">
+        <div style="font-size:11px; color:var(--text-muted); margin-top:3px;" data-i18n="hint_modpack_path">
           Dica: Você pode selecionar a pasta do Modpack (ex: <code>Dragon_Mine_Z_Client</code>) ou direto a subpasta <code>config/dragonminez</code>.
         </div>
       </div>
 
       <div class="field-group">
-        <label for="inpJsonPath">Arquivo .JSON de Transformações (Opcional se usar a pasta do Modpack)</label>
+        <label for="inpJsonPath" data-i18n="lbl_json_path">Arquivo .JSON de Transformações (Opcional se usar a pasta do Modpack)</label>
         <div class="filter-row">
-          <input id="inpJsonPath" type="text" class="input-field" style="flex:1;" placeholder="Em branco — clique em Procurar JSON ou cole o caminho..." />
-          <button id="btnBrowseJson" type="button" class="btn btn-cyan">📄 Procurar JSON...</button>
+          <input id="inpJsonPath" type="text" class="input-field" style="flex:1;" placeholder="Em branco — clique em Procurar JSON ou cole o caminho..." data-i18n-placeholder="ph_json_path" />
+          <button id="btnBrowseJson" type="button" class="btn btn-cyan" data-i18n="btn_browse_json">📄 Procurar JSON...</button>
         </div>
       </div>
 
       <div class="quick-btns">
-        <button id="btnResetDefaultPath" type="button" class="btn btn-sm">🧹 Limpar Caminhos (Deixar em Branco)</button>
+        <button id="btnResetDefaultPath" type="button" class="btn btn-sm" data-i18n="btn_reset_paths">🧹 Limpar Caminhos (Deixar em Branco)</button>
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
         <button id="btnCloseSettings" type="button" class="btn" data-i18n="btn_close">Fechar</button>
-        <button id="btnSaveSettings" type="button" class="btn btn-primary">Salvar e Carregar</button>
+        <button id="btnSaveSettings" type="button" class="btn btn-primary" data-i18n="btn_save_settings">Salvar e Carregar</button>
       </div>
     </div>
   </div>
 
-  <!-- Batch Scale Modal -->
+  <!-- Batch Balancing Studio Modal -->
   <div id="batchModal" class="modal-backdrop">
-    <div class="modal-card">
-      <h3>⚡ Escala de Balanceamento em Lote</h3>
-      <p style="color:var(--text-secondary); font-size:12px;">
-        Multiplica automaticamente valores em massa. Ao escalar <strong>Custo TP</strong>, transformações gratuitas (<code>0</code>) e Priceless/Shenron (<code>-1</code>) são preservadas intactas.
-      </p>
-
-      <div class="field-group">
-        <label for="batchScopeSelect">Escopo de Aplicação</label>
-        <select id="batchScopeSelect" class="select-field">
-          <option value="current">Escopo Atual Selecionado na Lateral</option>
-          <option value="all">Todas as Raças + Formas Universais</option>
-          <option value="universal">Apenas Formas Universais / Stack</option>
-        </select>
+    <div class="modal-card modal-batch-studio">
+      <!-- Header -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border-default); padding-bottom:10px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0; color:#A78BFA;" data-i18n="batch_studio_title">⚡ Balanceamento em Lote Avançado</h3>
+            <span id="batchSelectedFormsCount" class="badge badge-bp" style="font-size:10px;">0 selecionadas</span>
+          </div>
+          <p style="color:var(--text-secondary); font-size:12px; margin:4px 0 0 0;" data-i18n="batch_studio_desc">
+            Balanceie atributos, aplique regras dinâmicas e filtre transformações por raça e seleção individual.
+          </p>
+        </div>
+        <button id="btnHeaderCloseBatch" type="button" class="btn btn-sm" style="border:none; background:transparent; font-size:16px; color:var(--text-muted); cursor:pointer;">✕</button>
       </div>
 
-      <div class="grid-2">
+      <!-- Seção 1: Filtro de Raça & Seleção de Transformações -->
+      <div class="batch-section">
+        <div class="batch-section-title">
+          <span data-i18n="batch_sec1_title">1. Filtro de Raça &amp; Seleção de Transformações</span>
+          <span style="font-size:10.5px; color:var(--text-muted); font-weight:normal;" data-i18n="batch_sec1_hint">Desmarque as formas que não deseja alterar</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:6px;">
+          <div class="field-group">
+            <label for="batchRaceSelect" data-i18n="lbl_batch_race">Raça / Escopo</label>
+            <select id="batchRaceSelect" class="select-field">
+              <option value="current" data-i18n="opt_batch_scope_current">Escopo Atual Selecionado na Lateral</option>
+              <option value="all" data-i18n="opt_batch_scope_all">Todas as Raças + Universais</option>
+              <option value="universal" data-i18n="opt_batch_scope_universal">Apenas Formas Universais &amp; Stack</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="batchFormSearch" data-i18n="lbl_batch_search">Filtrar na Lista de Formas</label>
+            <input id="batchFormSearch" type="text" class="input-field" placeholder="Buscar por nome ou ID..." data-i18n-placeholder="ph_batch_form_search" />
+          </div>
+        </div>
+
+        <!-- Checklist toolbar & listbox -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding:0 2px;">
+          <div style="font-size:11px; color:var(--text-muted);">
+            <span id="batchListSummary">Carregando transformações...</span>
+          </div>
+          <div style="display:flex; gap:5px;">
+            <button id="btnBatchSelectAll" type="button" class="btn btn-sm" style="font-size:11px; padding:2px 8px;" data-i18n="btn_select_all">✓ Marcar Todas</button>
+            <button id="btnBatchDeselectAll" type="button" class="btn btn-sm" style="font-size:11px; padding:2px 8px;" data-i18n="btn_deselect_all">✗ Desmarcar Todas</button>
+            <button id="btnBatchInvertSel" type="button" class="btn btn-sm" style="font-size:11px; padding:2px 8px;" data-i18n="btn_invert_sel">⇄ Inverter</button>
+          </div>
+        </div>
+
+        <div id="batchFormsList" class="batch-form-list">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Seção 2: Regra de Balanceamento -->
+      <div class="batch-section">
+        <div class="batch-section-title">
+          <span data-i18n="batch_sec2_title">2. Escolha da Regra de Balanceamento</span>
+          <span id="batchRuleBadge" class="badge badge-addon" style="font-size:10px;">Escala Simples</span>
+        </div>
+
         <div class="field-group">
-          <label for="batchFieldSelect">Atributo Alvo</label>
-          <select id="batchFieldSelect" class="select-field">
-            <option value="tp">Custo de TP</option>
-            <option value="bp">Multiplicadores Combate (BP)</option>
+          <label for="batchRuleSelect" data-i18n="lbl_batch_rule">Tipo de Regra</label>
+          <select id="batchRuleSelect" class="select-field">
+            <option value="escala_simples" data-i18n="rule_simple_scale">1. Escala Multiplicativa Direta (Simple Scale)</option>
+            <option value="risco_recompensa" data-i18n="rule_risk_reward">2. Risco &amp; Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)</option>
+            <option value="teto_maximo" data-i18n="rule_cap">3. Teto Máximo de Poder (Impossible Cap / Limite de Soma)</option>
+            <option value="recalcular_tp" data-i18n="rule_recalc_tp">4. Recalcular Custo de TP por Poder (Progression Economy)</option>
+            <option value="normalizar_drenos" data-i18n="rule_drain_smooth">5. Normalização de Drenos de Ki (Sustainable Combat)</option>
+            <option value="especializacao" data-i18n="rule_specialize">6. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)</option>
           </select>
         </div>
-        <div class="field-group">
-          <label for="batchFactorInput">Fator Multiplicador (ex: 2.0, 5.0, 0.5)</label>
-          <input id="batchFactorInput" type="number" step="0.1" min="0.05" value="2.0" class="input-field" />
+
+        <!-- Dynamic Rule Parameters Box -->
+        <div id="batchDynamicParams" class="batch-param-card">
+          <!-- Injected dynamically based on selected rule -->
         </div>
       </div>
 
-      <div class="quick-btns">
-        <button type="button" class="btn btn-sm" data-batch-factor="0.5">0.5x (-50%)</button>
-        <button type="button" class="btn btn-sm" data-batch-factor="1.5">1.5x (+50%)</button>
-        <button type="button" class="btn btn-sm" data-batch-factor="2">2.0x</button>
-        <button type="button" class="btn btn-sm" data-batch-factor="3">3.0x</button>
-        <button type="button" class="btn btn-sm" data-batch-factor="5">5.0x</button>
-        <button type="button" class="btn btn-sm" data-batch-factor="10">10.0x</button>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+      <!-- Footer Actions -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-default); padding-top:10px; margin-top:4px;">
         <button id="btnCloseBatch" type="button" class="btn" data-i18n="btn_cancel">Cancelar</button>
-        <button id="btnConfirmBatch" type="button" class="btn btn-primary">Aplicar Escala</button>
+        <button id="btnConfirmBatch" type="button" class="btn btn-primary" style="padding:8px 22px; font-weight:700;">
+          <span data-i18n="btn_apply_batch">⚡ Aplicar Balanceamento em Lote</span>
+        </button>
       </div>
     </div>
   </div>
