@@ -352,13 +352,48 @@
                 </div>
               </div>
               <div class="field-group">
-                <label for="req_prev_form" data-i18n="lbl_prev_form">ID da Forma Prévia Obrigatória</label>
-                <input id="req_prev_form" type="text" class="input-field" placeholder="ex: supersaiyan1" />
+                <label for="req_prev_form_select" data-i18n="lbl_prev_form">Forma Prévia Obrigatória (Requisito)</label>
+                <select id="req_prev_form_select" class="select-field" style="margin-bottom: 6px;">
+                  <option value="">— Nenhuma forma prévia exigida —</option>
+                </select>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono);">ID:</span>
+                  <input id="req_prev_form" type="text" class="input-field" placeholder="ex: supersaiyan.supersaiyan1" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono);" />
+                </div>
               </div>
             </div>
             <div class="field-group">
-              <label for="req_incompatible" data-i18n="lbl_incompatible">Formas Incompatíveis (separadas por vírgula)</label>
-              <input id="req_incompatible" type="text" class="input-field" placeholder="ex: ultimate.ultimate, evil.form" />
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label for="req_incompatible_select" data-i18n="lbl_incompatible" style="margin-bottom:0;">Formas Incompatíveis (Bloqueio Mútuo)</label>
+                <span id="incompatibleCountBadge" class="badge" style="background:rgba(244,63,94,0.15); color:#FDA4AF; border:1px solid rgba(244,63,94,0.3); font-size:10px;">0 incompatíveis</span>
+              </div>
+              
+              <!-- Container de Chips/Tags Ativas -->
+              <div id="incompatibleTagsContainer" class="incompatible-tags-box" style="display:flex; flex-wrap:wrap; gap:6px; min-height:36px; padding:8px; background:rgba(15,23,42,0.65); border:1px solid var(--border-default); border-radius:var(--radius-md); margin-bottom:8px; align-items:center;">
+                <!-- Tags dinâmicas -->
+              </div>
+
+              <!-- Seletor Dropdown para Adicionar -->
+              <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                <select id="req_incompatible_select" class="select-field" style="flex:1;">
+                  <option value="">➕ Selecione uma forma para adicionar ao bloqueio mútuo...</option>
+                </select>
+              </div>
+
+              <!-- Atalhos rápidos das formas mais comuns -->
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+                <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;" data-i18n="lbl_quick_shortcuts">Atalhos Comuns:</span>
+                <button type="button" class="btn-incompat-quick" data-form="ultimate.ultimate">+ Místico / Ultimate</button>
+                <button type="button" class="btn-incompat-quick" data-form="kaioken.kaioken">+ Kaioken</button>
+                <button type="button" class="btn-incompat-quick" data-form="ultrainstinct.mastered">+ Instinto Superior</button>
+                <button type="button" class="btn-incompat-quick" data-form="ultraego.ultraego">+ Ultra Ego</button>
+              </div>
+
+              <!-- Campo Manual de IDs em Linha (Sincronizado) -->
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono);">IDs:</span>
+                <input id="req_incompatible" type="text" class="input-field" placeholder="ex: ultimate.ultimate, evil.form" style="font-size:11px; padding:4px 8px; font-family:var(--font-mono);" />
+              </div>
             </div>
           </div>
 
@@ -423,89 +458,200 @@
 
   <!-- Add Transformation Modal -->
   <div id="addFormModal" class="modal-backdrop">
-    <div class="modal-card modal-wide">
-      <h3 data-i18n="modal_add_title">➕ Adicionar Nova Transformação</h3>
-      <p style="color:var(--text-secondary); font-size:12px;" data-i18n="modal_add_desc">
-        Preencha os atributos para criar uma transformação balanceada diretamente no catálogo e nos arquivos do jogo.
-      </p>
+    <div class="modal-card modal-add-form">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 4px;">
+        <div>
+          <h3 data-i18n="modal_add_title" style="margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+            <span>➕</span> <span style="background: linear-gradient(135deg, #34D399, #059669); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Adicionar Nova Transformação</span>
+          </h3>
+          <p style="color:var(--text-secondary); font-size:12px; margin:0;" data-i18n="modal_add_desc">
+            Crie uma transformação balanceada com prévia de aura em tempo real e vínculos diretos com o modpack.
+          </p>
+        </div>
+        <button id="btnCloseAddFormX" type="button" class="btn" style="padding:4px 8px; font-size:12px; border-radius:50%;">✕</button>
+      </div>
 
-      <div class="grid-3">
-        <div class="field-group">
-          <label for="add_escopo">Escopo</label>
-          <select id="add_escopo" class="select-field">
-            <option value="raca">Específica de Raça</option>
-            <option value="universal">Universal / Stack</option>
-          </select>
+      <!-- Seção 1: Identificação & Localização -->
+      <div class="add-form-section">
+        <div class="add-form-section-title">📁 1. Identificação &amp; Localização na Árvore</div>
+        <div class="grid-3" style="margin-bottom:10px;">
+          <div class="field-group">
+            <label for="add_escopo">Escopo</label>
+            <select id="add_escopo" class="select-field">
+              <option value="raca">Específica de Raça</option>
+              <option value="universal">Universal / Stack</option>
+            </select>
+          </div>
+          <div class="field-group" id="add_race_group">
+            <label for="add_raca">Raça</label>
+            <select id="add_raca" class="select-field"></select>
+          </div>
+          <div class="field-group" id="add_tree_group">
+            <label for="add_arvore">Árvore / Grupo</label>
+            <select id="add_arvore" class="select-field"></select>
+          </div>
         </div>
-        <div class="field-group" id="add_race_group">
-          <label for="add_raca">Raça</label>
-          <select id="add_raca" class="select-field"></select>
-        </div>
-        <div class="field-group" id="add_tree_group">
-          <label for="add_arvore">Árvore / Grupo</label>
-          <select id="add_arvore" class="select-field"></select>
+
+        <div class="grid-3">
+          <div class="field-group">
+            <label for="add_id">ID da Forma (slug_sem_espaco)</label>
+            <input id="add_id" type="text" class="input-field" placeholder="ex: ssj_primal" style="font-family:var(--font-mono); font-weight:600;" />
+          </div>
+          <div class="field-group">
+            <label for="add_nome">Nome de Exibição</label>
+            <input id="add_nome" type="text" class="input-field" placeholder="ex: Super Saiyajin Primal" />
+          </div>
+          <div class="field-group">
+            <label for="add_addon">Addon / Pacote de Origem</label>
+            <input id="add_addon" type="text" class="input-field" placeholder="Dragon Mine Z (Core)" />
+          </div>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="field-group">
-          <label for="add_id">ID da Forma (minúsculo, sem espaços)</label>
-          <input id="add_id" type="text" class="input-field" placeholder="ex: ssj_primal" />
+      <!-- Seção 2: Economia de TP & Requisitos Narrativos -->
+      <div class="add-form-section">
+        <div class="add-form-section-title">💰 2. Economia de TP &amp; Requisitos de Desbloqueio</div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div class="field-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label for="add_tp" style="margin-bottom:0;">Custo de TP</label>
+              <span id="addTpBadgePreview" class="badge badge-tp" style="font-size:10px;">500.000 TP</span>
+            </div>
+            <input id="add_tp" type="number" step="1000" value="500000" class="input-field" style="margin-bottom:6px;" />
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-preset-add-tp" data-tp="0">Grátis (0)</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="-1">Priceless (-1)</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="50000">50k</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="100000">100k</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="500000">500k</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="1000000">1M</button>
+              <button type="button" class="btn btn-preset-add-tp" data-tp="2500000">2.5M</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="add_lvl">Nível Slot Habilidade (Slot Level)</label>
+            <input id="add_lvl" type="number" step="1" min="1" max="10" value="1" class="input-field" />
+            <div style="margin-top:8px;">
+              <label for="add_mestre_select">Mestre que Ensina (Opcional)</label>
+              <select id="add_mestre_select" class="select-field">
+                <option value="">— Nenhum mestre exigido —</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="field-group">
-          <label for="add_nome">Nome de Exibição</label>
-          <input id="add_nome" type="text" class="input-field" placeholder="ex: Super Saiyan Primal" />
+
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="add_saga_select">Saga Obrigatória para Desbloqueio</label>
+            <select id="add_saga_select" class="select-field">
+              <option value="">— Nenhuma saga exigida —</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="add_prev_form_select">Forma Prévia Obrigatória (Requisito)</label>
+            <select id="add_prev_form_select" class="select-field">
+              <option value="">— Nenhuma forma prévia exigida —</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div class="grid-3">
-        <div class="field-group">
-          <label for="add_tp">Custo TP (-1 = Priceless, 0 = Inato)</label>
-          <input id="add_tp" type="number" step="1000" value="500000" class="input-field" />
+      <!-- Seção 3: Multiplicadores de Combate (BP) -->
+      <div class="add-form-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div class="add-form-section-title" style="margin-bottom:0;">⚔️ 3. Multiplicadores de Status (Battle Power)</div>
+          <span id="addBpPreview" class="badge badge-bp" style="font-size:11px;">2.50x (STR) / 2.50x (PWR)</span>
         </div>
-        <div class="field-group">
-          <label for="add_lvl">Nível Slot Habilidade</label>
-          <input id="add_lvl" type="number" step="1" min="1" value="1" class="input-field" />
+        <div class="grid-4" style="margin-bottom:8px;">
+          <div class="field-group">
+            <label for="add_mult_str">Força (STR)</label>
+            <input id="add_mult_str" type="number" step="0.1" value="2.5" class="input-field" />
+          </div>
+          <div class="field-group">
+            <label for="add_mult_pwr">Poder Ki (PWR)</label>
+            <input id="add_mult_pwr" type="number" step="0.1" value="2.5" class="input-field" />
+          </div>
+          <div class="field-group">
+            <label for="add_mult_def">Defesa (DEF)</label>
+            <input id="add_mult_def" type="number" step="0.1" value="2.5" class="input-field" />
+          </div>
+          <div class="field-group">
+            <label for="add_mult_skp">Golpe Especial (SKP)</label>
+            <input id="add_mult_skp" type="number" step="0.1" value="2.5" class="input-field" />
+          </div>
         </div>
-        <div class="field-group">
-          <label for="add_addon">Addon de Origem</label>
-          <input id="add_addon" type="text" class="input-field" placeholder="Dragon Mine Z (Core)" />
-        </div>
-      </div>
-
-      <div class="grid-4">
-        <div class="field-group">
-          <label for="add_mult_str">Força (STR)</label>
-          <input id="add_mult_str" type="number" step="0.1" value="2.5" class="input-field" />
-        </div>
-        <div class="field-group">
-          <label for="add_mult_pwr">Poder Ki (PWR)</label>
-          <input id="add_mult_pwr" type="number" step="0.1" value="2.5" class="input-field" />
-        </div>
-        <div class="field-group">
-          <label for="add_mult_def">Defesa (DEF)</label>
-          <input id="add_mult_def" type="number" step="0.1" value="2.5" class="input-field" />
-        </div>
-        <div class="field-group">
-          <label for="add_mult_skp">Golpe (SKP)</label>
-          <input id="add_mult_skp" type="number" step="0.1" value="2.5" class="input-field" />
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="field-group">
-          <label for="add_cor_aura">Cor da Aura (Hex)</label>
-          <input id="add_cor_aura" type="text" class="input-field" placeholder="#FFD700" value="#FFD700" />
-        </div>
-        <div class="field-group">
-          <label for="add_cor_cabelo">Cor do Cabelo (Hex)</label>
-          <input id="add_cor_cabelo" type="text" class="input-field" placeholder="#FFE89E" value="#FFE89E" />
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">Multiplicar Todos:</span>
+          <button type="button" class="btn btn-preset-add-bp" data-bpmult="0.8">0.8x</button>
+          <button type="button" class="btn btn-preset-add-bp" data-bpmult="1.2">1.2x</button>
+          <button type="button" class="btn btn-preset-add-bp" data-bpmult="1.5">1.5x</button>
+          <button type="button" class="btn btn-preset-add-bp" data-bpmult="2.0">2.0x</button>
+          <button type="button" class="btn btn-preset-add-bp" data-bpmult="3.0">3.0x</button>
         </div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+      <!-- Seção 4: Efeitos Visuais & Shader (Live Visualizer) -->
+      <div class="add-form-section">
+        <div class="add-form-section-title">✨ 4. Efeitos Visuais &amp; Aura da Transformação</div>
+        
+        <!-- Live Visualizer Orb Box -->
+        <div class="aura-live-box" style="margin-bottom: 10px; padding: 10px 14px; background: rgba(15,23,42,0.65); border: 1px solid var(--border-default); border-radius: var(--radius-md); display:flex; align-items:center; gap:14px;">
+          <div class="aura-live-orb-container" style="position:relative; width:44px; height:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <div id="addAuraFlameGlow" class="aura-flame-glow" style="position:absolute; width:40px; height:40px; border-radius:50%; background: #FFD700; filter: blur(7px); opacity:0.6; transition: all 0.3s ease;"></div>
+            <div id="addAuraFlameOrb" class="aura-flame-orb" style="position:relative; width:30px; height:30px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #ffffff 0%, #FFD700 60%, rgba(0,0,0,0.7) 100%); border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 0 12px #FFD700; transition: all 0.3s ease;"></div>
+            <div id="addHairFlameDot" class="hair-flame-dot" style="position:absolute; bottom:0; right:0; width:13px; height:13px; border-radius:50%; background:#FFE89E; border:2px solid #0B0F19; box-shadow:0 0 4px rgba(0,0,0,0.8); transition: all 0.3s ease;" title="Cor do Cabelo"></div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:11.5px; font-weight:700; color:#FFFFFF;">Visualização em Tempo Real da Forma</div>
+            <div style="display:flex; gap:6px; margin-top:4px; flex-wrap:wrap;">
+              <span id="addAuraHexBadge" class="badge" style="background:rgba(255,215,0,0.15); border:1px solid #FFD700; color:#FFD700; font-family:var(--font-mono); font-size:10px;">Aura: #FFD700</span>
+              <span id="addHairHexBadge" class="badge" style="background:rgba(255,232,158,0.15); border:1px solid #FFE89E; color:#FFE89E; font-family:var(--font-mono); font-size:10px;">Cabelo: #FFE89E</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paleta Rápida Dragon Ball -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px;">Paleta Rápida Dragon Ball:</div>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#FFD700" data-hair="#FFE89E" style="background:#EAB308; color:#000;">SSJ</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#00D2FF" data-hair="#00F0FF" style="background:#0284C7; color:#fff;">Blue</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#FF3D6E" data-hair="#E0004C" style="background:#E11D48; color:#fff;">Rosé</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#FF1A1A" data-hair="#CC0000" style="background:#DC2626; color:#fff;">God</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#E2E8F0" data-hair="#FFFFFF" style="background:#F8FAFC; color:#000;">Instinct</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#A855F7" data-hair="#7E22CE" style="background:#9333EA; color:#fff;">Ego</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#10B981" data-hair="#059669" style="background:#10B981; color:#000;">Ikari</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#C084FC" data-hair="#A855F7" style="background:#7C3AED; color:#fff;">Beast</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#F97316" data-hair="#EA580C" style="background:#EA580C; color:#fff;">Orange</button>
+            <button type="button" class="btn btn-preset-color btn-add-preset-color" data-aura="#334155" data-hair="#0F172A" style="background:#1E293B; color:#fff; border:1px solid #475569;">Black</button>
+          </div>
+        </div>
+
+        <!-- Inputs de Cor Hex + Color Pickers Nativos -->
+        <div class="grid-2">
+          <div class="field-group">
+            <label for="add_cor_aura">Cor da Aura (Hex)</label>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input id="add_cor_aura" type="text" class="input-field" placeholder="#FFD700" value="#FFD700" style="font-family:var(--font-mono);" />
+              <input id="add_cor_aura_picker" type="color" value="#FFD700" class="color-picker-input" title="Escolher cor da aura" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="add_cor_cabelo">Cor do Cabelo (Hex)</label>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input id="add_cor_cabelo" type="text" class="input-field" placeholder="#FFE89E" value="#FFE89E" style="font-family:var(--font-mono);" />
+              <input id="add_cor_cabelo_picker" type="color" value="#FFE89E" class="color-picker-input" title="Escolher cor do cabelo" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rodapé com Ações -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:12px; border-top:1px solid var(--border-default);">
         <button id="btnCancelAddForm" type="button" class="btn" data-i18n="btn_cancel">Cancelar</button>
-        <button id="btnConfirmAddForm" type="button" class="btn btn-emerald" data-i18n="btn_confirm_add">Criar Transformação</button>
+        <button id="btnConfirmAddForm" type="button" class="btn btn-emerald" style="padding:10px 24px; font-weight:700; font-size:13px;" data-i18n="btn_confirm_add">
+          ✨ Criar Transformação
+        </button>
       </div>
     </div>
   </div>

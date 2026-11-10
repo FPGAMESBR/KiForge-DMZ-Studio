@@ -92,8 +92,9 @@
       lbl_min_dmz: "Nível Mínimo do Personagem (requiredDMZLevel)",
       lbl_min_skill_req: "Nível Requisito na Árvore (levelRequisite)",
       lbl_saga_req: "Saga Obrigatória para Desbloqueio",
-      lbl_prev_form: "ID da Forma Prévia Obrigatória",
-      lbl_incompatible: "Formas Incompatíveis (separadas por vírgula)",
+      lbl_prev_form: "Forma Prévia Obrigatória (Requisito)",
+      lbl_incompatible: "Formas Incompatíveis (Bloqueio Mútuo)",
+      lbl_quick_shortcuts: "Atalhos Comuns:",
       card_visual_title: "6. Efeitos Visuais & Shader",
       lbl_aura_hex: "Cor da Aura (Hex)",
       lbl_hair_hex: "Cor do Cabelo (Hex)",
@@ -222,8 +223,9 @@
       lbl_min_dmz: "Min Character Level (requiredDMZLevel)",
       lbl_min_skill_req: "Tree Requisite Level (levelRequisite)",
       lbl_saga_req: "Required Saga to Unlock",
-      lbl_prev_form: "Required Prior Form ID",
-      lbl_incompatible: "Incompatible Forms (comma-separated)",
+      lbl_prev_form: "Required Prior Form (Requisite)",
+      lbl_incompatible: "Incompatible Forms (Mutual Block)",
+      lbl_quick_shortcuts: "Common Shortcuts:",
       card_visual_title: "6. Visual Effects & Shaders",
       lbl_aura_hex: "Aura Color (Hex)",
       lbl_hair_hex: "Hair Color (Hex)",
@@ -857,7 +859,12 @@
     el("req_saga").value = rq.saga || "";
     populateSagasSelect(rq.saga || "");
     el("req_prev_form").value = rq.forma_previa || "";
-    el("req_incompatible").value = (rq.incompativel_com || []).join(", ");
+    populatePrevFormSelect(rq.forma_previa || "");
+
+    const incompats = rq.incompativel_com || [];
+    el("req_incompatible").value = incompats.join(", ");
+    renderIncompatibleTags(incompats);
+    populateIncompatibleSelect();
 
     const vis = f.visual || {};
     el("vis_aura").value = vis.cor_aura || "";
@@ -1009,6 +1016,306 @@
     }
   }
 
+  function getAllCatalogForms(excludeId = null) {
+    const list = [];
+    const cat = state.catalog || {};
+
+    // 1. Race forms
+    Object.entries(cat.racas || {}).forEach(([rKey, rObj]) => {
+      const rNome = rObj.nome_exibicao || rKey;
+      Object.entries(rObj.arvores_de_transformacao || {}).forEach(([tKey, tObj]) => {
+        (tObj.formas || []).forEach((form) => {
+          if (excludeId && (form.id === excludeId || `${tKey}.${form.id}` === excludeId)) return;
+          list.push({
+            id: form.id,
+            nome: form.nome || form.id,
+            raca: rKey,
+            racaNome: rNome,
+            arvore: tKey,
+            escopo: "raca",
+            qualifiedId: `${tKey}.${form.id}`,
+            addon: form.addon_origem || "",
+          });
+        });
+      });
+    });
+
+    // 2. Universal forms
+    Object.entries(cat.formas_universais_e_stack || {}).forEach(([gKey, gObj]) => {
+      (gObj.formas || []).forEach((form) => {
+        if (excludeId && (form.id === excludeId || `${gKey}.${form.id}` === excludeId)) return;
+        list.push({
+          id: form.id,
+          nome: form.nome || form.id,
+          raca: "universal",
+          racaNome: "Universal / Stack",
+          arvore: gKey,
+          escopo: "universal",
+          qualifiedId: `${gKey}.${form.id}`,
+          addon: form.addon_origem || "",
+        });
+      });
+    });
+
+    return list;
+  }
+
+  function populatePrevFormSelect(selectedVal) {
+    const sel = el("req_prev_form_select");
+    if (!sel) return;
+    const curRow = findSelectedRow();
+    const curTree = curRow ? curRow.arvore : "";
+    const curRace = curRow ? curRow.raca : "";
+    const curId = curRow ? curRow.form.id : "";
+
+    sel.innerHTML = `<option value="">${state.language === "en" ? "— No prior form required —" : "— Nenhuma forma prévia exigida —"}</option>`;
+
+    const allForms = getAllCatalogForms(curId);
+    const cleanSel = (selectedVal || "").trim();
+    let foundExact = false;
+
+    const sameTree = [];
+    const sameRaceOtherTrees = [];
+    const universalForms = [];
+    const otherForms = [];
+
+    allForms.forEach((f) => {
+      if (curRow && curRow.escopo === "raca") {
+        if (f.raca === curRace && f.arvore === curTree) sameTree.push(f);
+        else if (f.raca === curRace) sameRaceOtherTrees.push(f);
+        else if (f.escopo === "universal") universalForms.push(f);
+        else otherForms.push(f);
+      } else {
+        if (f.escopo === "universal" && f.arvore === curTree) sameTree.push(f);
+        else if (f.escopo === "universal") universalForms.push(f);
+        else otherForms.push(f);
+      }
+    });
+
+    const addGroup = (label, list) => {
+      if (!list || list.length === 0) return;
+      const grp = document.createElement("optgroup");
+      grp.label = label;
+      list.forEach((f) => {
+        const opt = document.createElement("option");
+        opt.value = f.qualifiedId;
+        opt.textContent = `${f.nome} (${f.qualifiedId})`;
+        if (cleanSel && (f.qualifiedId === cleanSel || f.id === cleanSel)) {
+          opt.selected = true;
+          foundExact = true;
+        }
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+    };
+
+    const isEn = state.language === "en";
+    addGroup(isEn ? `⚡ Same Tree (${curTree})` : `⚡ Mesma Árvore (${curTree})`, sameTree);
+    addGroup(isEn ? `🧬 Other Trees of Race (${curRow ? curRow.racaNome : ""})` : `🧬 Outras Árvores da Raça (${curRow ? curRow.racaNome : ""})`, sameRaceOtherTrees);
+    addGroup(isEn ? "🌌 Universal & Stack Forms" : "🌌 Formas Universais & Stack", universalForms);
+    addGroup(isEn ? "🌐 Other Races" : "🌐 Outras Raças", otherForms);
+
+    if (cleanSel && !foundExact) {
+      const customOpt = document.createElement("option");
+      customOpt.value = cleanSel;
+      customOpt.textContent = `Personalizada: ${cleanSel}`;
+      customOpt.selected = true;
+      sel.appendChild(customOpt);
+    }
+
+    if (!cleanSel) {
+      sel.value = "";
+    }
+  }
+
+  function getIncompatibleList() {
+    const raw = (el("req_incompatible") ? el("req_incompatible").value : "") || "";
+    return raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function setIncompatibleList(list) {
+    const unique = Array.from(new Set(list));
+    if (el("req_incompatible")) {
+      el("req_incompatible").value = unique.join(", ");
+    }
+    renderIncompatibleTags(unique);
+  }
+
+  function renderIncompatibleTags(list) {
+    const container = el("incompatibleTagsContainer");
+    const countBadge = el("incompatibleCountBadge");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const items = list || [];
+    if (countBadge) {
+      countBadge.textContent = state.language === "en"
+        ? `${items.length} incompatible`
+        : `${items.length} incompatíveis`;
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `<span style="font-size:11px; color:var(--text-muted); font-style:italic;">${state.language === "en" ? "No mutual block configured (stacks freely)." : "Nenhum bloqueio mútuo configurado (pode acumular livremente)."}</span>`;
+      return;
+    }
+
+    const allForms = getAllCatalogForms();
+    const formMap = new Map();
+    allForms.forEach((f) => {
+      formMap.set(f.qualifiedId, f.nome);
+      formMap.set(f.id, f.nome);
+    });
+
+    items.forEach((id) => {
+      const friendlyName = formMap.get(id) || id;
+      const tag = document.createElement("span");
+      tag.className = "incompat-tag";
+      tag.innerHTML = `
+        <span class="incompat-tag-text">🚫 <strong>${escapeHtml(friendlyName)}</strong> <span style="font-family:var(--font-mono); font-size:9.5px; opacity:0.8;">(${escapeHtml(id)})</span></span>
+        <button type="button" class="incompat-tag-remove" data-id="${escapeHtml(id)}" title="Remover incompatibilidade">✕</button>
+      `;
+      container.appendChild(tag);
+    });
+
+    container.querySelectorAll(".incompat-tag-remove").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idToRemove = btn.getAttribute("data-id");
+        removeIncompatibleForm(idToRemove);
+      });
+    });
+  }
+
+  function populateIncompatibleSelect() {
+    const sel = el("req_incompatible_select");
+    if (!sel) return;
+    const curRow = findSelectedRow();
+    const curTree = curRow ? curRow.arvore : "";
+    const curRace = curRow ? curRow.raca : "";
+    const curId = curRow ? curRow.form.id : "";
+
+    sel.innerHTML = `<option value="">${state.language === "en" ? "➕ Select a form to add to mutual block..." : "➕ Selecione uma forma para adicionar ao bloqueio mútuo..."}</option>`;
+
+    const allForms = getAllCatalogForms(curId);
+    const sameTree = [];
+    const sameRaceOtherTrees = [];
+    const universalForms = [];
+    const otherForms = [];
+
+    allForms.forEach((f) => {
+      if (curRow && curRow.escopo === "raca") {
+        if (f.raca === curRace && f.arvore === curTree) sameTree.push(f);
+        else if (f.raca === curRace) sameRaceOtherTrees.push(f);
+        else if (f.escopo === "universal") universalForms.push(f);
+        else otherForms.push(f);
+      } else {
+        if (f.escopo === "universal" && f.arvore === curTree) sameTree.push(f);
+        else if (f.escopo === "universal") universalForms.push(f);
+        else otherForms.push(f);
+      }
+    });
+
+    const isEn = state.language === "en";
+    const addGroup = (label, list) => {
+      if (!list || list.length === 0) return;
+      const grp = document.createElement("optgroup");
+      grp.label = label;
+      list.forEach((f) => {
+        const opt = document.createElement("option");
+        opt.value = f.qualifiedId;
+        opt.textContent = `${f.nome} (${f.qualifiedId})`;
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+    };
+
+    addGroup(isEn ? "🌌 Universal & Stack Forms (Most Common)" : "🌌 Formas Universais & Stack (Mais Comuns)", universalForms);
+    addGroup(isEn ? `⚡ Same Tree (${curTree})` : `⚡ Mesma Árvore (${curTree})`, sameTree);
+    addGroup(isEn ? `🧬 Other Trees of Race (${curRow ? curRow.racaNome : ""})` : `🧬 Outras Árvores da Raça (${curRow ? curRow.racaNome : ""})`, sameRaceOtherTrees);
+    addGroup(isEn ? "🌐 Other Races" : "🌐 Outras Raças", otherForms);
+  }
+
+  function addIncompatibleForm(formId) {
+    if (!formId) return;
+    const cur = getIncompatibleList();
+    if (!cur.includes(formId)) {
+      cur.push(formId);
+      setIncompatibleList(cur);
+      showToast(state.language === "en" ? `Added ${formId} to incompatible forms!` : `Adicionada incompatibilidade com ${formId}!`);
+    } else {
+      showToast(state.language === "en" ? "Form is already in incompatible list." : "Essa forma já está na lista de incompatíveis.", true);
+    }
+    if (el("req_incompatible_select")) el("req_incompatible_select").value = "";
+  }
+
+  function removeIncompatibleForm(formId) {
+    if (!formId) return;
+    const cur = getIncompatibleList().filter((x) => x !== formId);
+    setIncompatibleList(cur);
+  }
+
+  function updateAddFormAuraPreview() {
+    const auraInp = el("add_cor_aura");
+    const hairInp = el("add_cor_cabelo");
+    let auraHex = (auraInp && auraInp.value.trim()) || "#FFD700";
+    let hairHex = (hairInp && hairInp.value.trim()) || "#FFE89E";
+
+    if (auraHex && !auraHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(auraHex)) auraHex = "#" + auraHex;
+    if (hairHex && !hairHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(hairHex)) hairHex = "#" + hairHex;
+
+    const glow = el("addAuraFlameGlow");
+    const orb = el("addAuraFlameOrb");
+    const hairDot = el("addHairFlameDot");
+    const badgeAura = el("addAuraHexBadge");
+    const badgeHair = el("addHairHexBadge");
+
+    if (glow) glow.style.background = auraHex;
+    if (orb) {
+      orb.style.background = `radial-gradient(circle at 35% 30%, #ffffff 0%, ${auraHex} 60%, rgba(0,0,0,0.7) 100%)`;
+      orb.style.boxShadow = `0 0 12px ${auraHex}`;
+    }
+    if (hairDot) hairDot.style.background = hairHex;
+    if (badgeAura) {
+      badgeAura.textContent = `Aura: ${auraHex}`;
+      badgeAura.style.color = auraHex;
+      badgeAura.style.borderColor = auraHex;
+      badgeAura.style.background = `${auraHex}22`;
+    }
+    if (badgeHair) {
+      badgeHair.textContent = `Cabelo: ${hairHex}`;
+      badgeHair.style.borderColor = hairHex;
+    }
+    if (el("add_cor_aura_picker") && auraHex.length === 7) el("add_cor_aura_picker").value = auraHex;
+    if (el("add_cor_cabelo_picker") && hairHex.length === 7) el("add_cor_cabelo_picker").value = hairHex;
+  }
+
+  function updateAddFormBpPreview() {
+    const str = parseFloat(el("add_mult_str").value) || 1.0;
+    const pwr = parseFloat(el("add_mult_pwr").value) || 1.0;
+    const prev = el("addBpPreview");
+    if (prev) {
+      prev.textContent = str === pwr ? `${str.toFixed(2)}x` : `${str.toFixed(2)}x (STR) / ${pwr.toFixed(2)}x (PWR)`;
+    }
+  }
+
+  function updateAddFormTpPreview() {
+    const tpVal = parseInt(el("add_tp").value, 10);
+    const badge = el("addTpBadgePreview");
+    if (!badge) return;
+    if (tpVal < 0) {
+      badge.textContent = state.language === "en" ? "Priceless / Wish" : "Priceless / Desejo";
+      badge.className = "badge badge-priceless";
+    } else if (tpVal === 0) {
+      badge.textContent = state.language === "en" ? "Free (0 TP)" : "Gratuito (0 TP)";
+      badge.className = "badge badge-free";
+    } else {
+      badge.textContent = `${formatNumberPt(tpVal || 0)} TP`;
+      badge.className = "badge badge-tp";
+    }
+  }
+
   function buildFormUpdatePayload() {
     const sel = findSelectedRow();
     if (!sel) return null;
@@ -1151,12 +1458,67 @@
     rSelect.onchange = updateTreeSelect;
     updateTreeSelect();
 
+    // Populate Sagas Select
+    const sagaSel = el("add_saga_select");
+    if (sagaSel) {
+      sagaSel.innerHTML = `<option value="">${state.language === "en" ? "— No saga required —" : "— Nenhuma saga exigida —"}</option>`;
+      const sagas = (cat && cat.opcoes_sagas) || [];
+      sagas.forEach((saga) => {
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = saga.nome;
+        (saga.quests || []).forEach((q) => {
+          const opt = document.createElement("option");
+          opt.value = q.valor;
+          const qNum = q.numero > 0 ? `[#${q.numero}] ` : "";
+          opt.textContent = `${qNum}${q.titulo} (${q.valor})`;
+          optgroup.appendChild(opt);
+        });
+        if (optgroup.children.length > 0) sagaSel.appendChild(optgroup);
+      });
+    }
+
+    // Populate Master Select
+    const mSel = el("add_mestre_select");
+    if (mSel) {
+      mSel.innerHTML = `<option value="">${state.language === "en" ? "— No master required —" : "— Nenhum mestre exigido —"}</option>`;
+      const masters = (cat && cat.opcoes_mestres) || [];
+      masters.forEach((m) => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = `${m.nome} (${m.id})`;
+        mSel.appendChild(opt);
+      });
+    }
+
+    // Populate Prior Form Select
+    const prevSel = el("add_prev_form_select");
+    if (prevSel) {
+      prevSel.innerHTML = `<option value="">${state.language === "en" ? "— No prior form required —" : "— Nenhuma forma prévia exigida —"}</option>`;
+      const allForms = getAllCatalogForms();
+      allForms.forEach((f) => {
+        const opt = document.createElement("option");
+        opt.value = f.qualifiedId;
+        opt.textContent = `${f.nome} (${f.qualifiedId})`;
+        prevSel.appendChild(opt);
+      });
+    }
+
     // Defaults
     el("add_id").value = "";
     el("add_nome").value = "";
     el("add_tp").value = "500000";
     el("add_lvl").value = "1";
     el("add_addon").value = "Dragon Mine Z (Core)";
+    el("add_mult_str").value = "2.5";
+    el("add_mult_pwr").value = "2.5";
+    el("add_mult_def").value = "2.5";
+    el("add_mult_skp").value = "2.5";
+    el("add_cor_aura").value = "#FFD700";
+    el("add_cor_cabelo").value = "#FFE89E";
+
+    updateAddFormAuraPreview();
+    updateAddFormBpPreview();
+    updateAddFormTpPreview();
 
     openModal("addFormModal");
   }
@@ -1173,6 +1535,12 @@
       return;
     }
 
+    const chosenMasterId = el("add_mestre_select") ? el("add_mestre_select").value.trim() : "";
+    const mOpt = el("add_mestre_select") && el("add_mestre_select").selectedOptions[0];
+    const chosenMasterName = (mOpt && chosenMasterId) ? mOpt.textContent.split("(")[0].trim() : "";
+    const chosenSaga = el("add_saga_select") ? el("add_saga_select").value.trim() : "";
+    const chosenPrevForm = el("add_prev_form_select") ? el("add_prev_form_select").value.trim() : "";
+
     const payload = {
       escopo,
       raca,
@@ -1183,11 +1551,21 @@
       custo_tp_numerico: parseInt(el("add_tp").value, 10) || 0,
       nivel_habilidade: parseInt(el("add_lvl").value, 10) || 1,
       addon_origem: el("add_addon").value.trim() || "Dragon Mine Z (Core)",
+      comprar_no_mestre: Boolean(chosenMasterId),
+      mestre: chosenMasterId,
+      mestre_nome: chosenMasterName,
       multiplicadores_detalhados: {
         forca_str: parseFloat(el("add_mult_str").value) || 2.5,
         poder_ki_pwr: parseFloat(el("add_mult_pwr").value) || 2.5,
         defesa_def: parseFloat(el("add_mult_def").value) || 2.5,
         golpe_skp: parseFloat(el("add_mult_skp").value) || 2.5,
+      },
+      requisitos: {
+        nivel_dmz_minimo: 1,
+        nivel_requisito: 0,
+        saga: chosenSaga || null,
+        forma_previa: chosenPrevForm || null,
+        incompativel_com: [],
       },
       visual: {
         cor_aura: el("add_cor_aura").value.trim(),
@@ -1637,6 +2015,117 @@
         populateSagasSelect(e.target.value);
       });
     }
+
+    // Prior form selection sync
+    const reqPrevSelect = el("req_prev_form_select");
+    const reqPrevInp = el("req_prev_form");
+    if (reqPrevSelect && reqPrevInp) {
+      reqPrevSelect.addEventListener("change", (e) => {
+        reqPrevInp.value = e.target.value;
+      });
+      reqPrevInp.addEventListener("input", (e) => {
+        populatePrevFormSelect(e.target.value);
+      });
+    }
+
+    // Incompatible forms selector, tags & shortcuts
+    const reqIncompatSelect = el("req_incompatible_select");
+    if (reqIncompatSelect) {
+      reqIncompatSelect.addEventListener("change", (e) => {
+        if (e.target.value) {
+          addIncompatibleForm(e.target.value);
+        }
+      });
+    }
+
+    const reqIncompatInp = el("req_incompatible");
+    if (reqIncompatInp) {
+      reqIncompatInp.addEventListener("input", (e) => {
+        const list = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+        renderIncompatibleTags(list);
+      });
+    }
+
+    document.querySelectorAll(".btn-incompat-quick").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const formId = btn.getAttribute("data-form");
+        if (formId) addIncompatibleForm(formId);
+      });
+    });
+
+    // Close button for Add Form Modal
+    const btnCloseAddFormX = el("btnCloseAddFormX");
+    if (btnCloseAddFormX) {
+      btnCloseAddFormX.addEventListener("click", () => closeModal("addFormModal"));
+    }
+
+    // Live Visualizer inside Add Form Modal
+    const addAuraInp = el("add_cor_aura");
+    const addHairInp = el("add_cor_cabelo");
+    const addAuraPicker = el("add_cor_aura_picker");
+    const addHairPicker = el("add_cor_cabelo_picker");
+
+    if (addAuraInp) addAuraInp.addEventListener("input", updateAddFormAuraPreview);
+    if (addHairInp) addHairInp.addEventListener("input", updateAddFormAuraPreview);
+
+    if (addAuraPicker && addAuraInp) {
+      addAuraPicker.addEventListener("input", (e) => {
+        addAuraInp.value = e.target.value.toUpperCase();
+        updateAddFormAuraPreview();
+      });
+    }
+    if (addHairPicker && addHairInp) {
+      addHairPicker.addEventListener("input", (e) => {
+        addHairInp.value = e.target.value.toUpperCase();
+        updateAddFormAuraPreview();
+      });
+    }
+
+    document.querySelectorAll(".btn-add-preset-color").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const aura = btn.getAttribute("data-aura");
+        const hair = btn.getAttribute("data-hair");
+        if (aura && addAuraInp) addAuraInp.value = aura;
+        if (hair && addHairInp) addHairInp.value = hair;
+        updateAddFormAuraPreview();
+      });
+    });
+
+    // Add Form TP presets and live preview
+    const addTpInp = el("add_tp");
+    if (addTpInp) {
+      addTpInp.addEventListener("input", updateAddFormTpPreview);
+    }
+    document.querySelectorAll(".btn-preset-add-tp").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-tp");
+        if (addTpInp && val !== null) {
+          addTpInp.value = val;
+          updateAddFormTpPreview();
+        }
+      });
+    });
+
+    // Add Form BP multipliers & preview
+    ["add_mult_str", "add_mult_pwr", "add_mult_def", "add_mult_skp"].forEach((id) => {
+      const input = el(id);
+      if (input) input.addEventListener("input", updateAddFormBpPreview);
+    });
+
+    document.querySelectorAll(".btn-preset-add-bp").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const factor = parseFloat(btn.getAttribute("data-bpmult"));
+        if (!factor) return;
+        ["add_mult_str", "add_mult_pwr", "add_mult_def", "add_mult_skp"].forEach((id) => {
+          const inp = el(id);
+          if (inp) {
+            const v = parseFloat(inp.value) || 1.0;
+            inp.value = (Math.round(v * factor * 100) / 100).toFixed(2);
+          }
+        });
+        updateAddFormBpPreview();
+      });
+    });
 
     // Master purchase & selection sync
     const chkBuyMaster = el("chkBuyMaster");

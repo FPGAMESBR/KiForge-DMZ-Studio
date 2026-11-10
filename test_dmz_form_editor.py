@@ -1236,6 +1236,78 @@ def test_master_lore_inference_and_addons_cache(tmp_path: Path) -> None:
     assert addons2[0]["filename"] == "dmz-addon.jar"
 
 
+def test_prior_and_incompatible_selectors_and_new_form_modal() -> None:
+    """Verify HTML structure and backend handling for prior form selector, incompatible tags, and revamped new form modal."""
+    from dmz_form_editor_core import add_form
+
+    assets_dir = Path(__file__).parent / "assets"
+    html_content = (assets_dir / "dmz_form_editor.html").read_text(encoding="utf-8")
+
+    # Selectors in Inspector Card 5
+    assert 'id="req_prev_form_select"' in html_content
+    assert 'id="req_incompatible_select"' in html_content
+    assert 'id="incompatibleTagsContainer"' in html_content
+    assert "btn-incompat-quick" in html_content
+
+    # Revamped New Form Modal
+    assert "modal-card modal-add-form" in html_content
+    assert 'id="add_saga_select"' in html_content
+    assert 'id="add_mestre_select"' in html_content
+    assert 'id="add_prev_form_select"' in html_content
+    assert 'id="addAuraFlameOrb"' in html_content
+    assert "btn-add-preset-color" in html_content
+    assert "btn-preset-add-tp" in html_content
+    assert "btn-preset-add-bp" in html_content
+
+    # Backend add_form with requirements and lore master
+    base_cat = {
+        "racas": {},
+        "formas_universais_e_stack": {},
+        "total_racas": 0,
+        "total_transformacoes": 0,
+    }
+    payload = {
+        "escopo": "raca",
+        "raca": "saiyan",
+        "arvore": "supersaiyan",
+        "id": "ssj_primal",
+        "nome": "Super Saiyajin Primal",
+        "custo_tp_numerico": 750000,
+        "nivel_habilidade": 2,
+        "addon_origem": "DMZ Primal Addon",
+        "comprar_no_mestre": True,
+        "mestre": "whis",
+        "mestre_nome": "Whis (Anjo)",
+        "multiplicadores_detalhados": {
+            "forca_str": 4.5,
+            "poder_ki_pwr": 4.5,
+            "defesa_def": 4.0,
+            "golpe_skp": 4.5,
+        },
+        "requisitos": {
+            "nivel_dmz_minimo": 10,
+            "nivel_requisito": 1,
+            "saga": "cell_saga:perfect_cell",
+            "forma_previa": "supersaiyan.supersaiyan2",
+            "incompativel_com": ["ultimate.ultimate"],
+        },
+        "visual": {
+            "cor_aura": "#00D2FF",
+            "cor_cabelo": "#00F0FF",
+        },
+    }
+    updated_cat = add_form(base_cat, payload)
+    f = updated_cat["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyan"]["formas"][0]
+    assert f["id"] == "ssj_primal"
+    assert f["custo_tp"] == 750000
+    assert f["comprar_no_mestre"] is True
+    assert f["mestre"] == "whis"
+    assert f["requisitos"]["saga"] == "cell_saga:perfect_cell"
+    assert f["requisitos"]["forma_previa"] == "supersaiyan.supersaiyan2"
+    assert f["visual"]["cor_aura"] == "#00D2FF"
+
+
+
 
 
 
