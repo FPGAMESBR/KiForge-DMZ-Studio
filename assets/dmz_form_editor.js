@@ -3,3037 +3,1305 @@
 
   const csrfToken = document.body.dataset.csrfToken || "";
 
+  // =========================================================================
+  // DICIONÁRIO BILINGUE (PT-BR / EN-US)
+  // =========================================================================
   const I18N = {
     pt: {
       app_title: "KiForge: DMZ Form Studio",
-      app_subtitle: "Editor e Balanceador de Transformações de Dragon Mine Z",
       modpack_connected: "Modpack Conectado",
-      json_mode: "Arquivo JSON",
-      select_path: "Selecione Arquivo / Pasta",
       unsaved_changes: "Alterações não salvas",
       btn_config_folder: "⚙️ Pasta Config",
       btn_undo: "↶ Desfazer",
       btn_redo: "↷ Refazer",
       btn_batch: "⚡ Escala em Lote",
       btn_reload: "↻ Ler Modpack",
-      btn_save_json: "💾 Salvar JSON",
-      btn_apply: "🚀 Salvar + Aplicar no Modpack",
-      btn_add_form: "+ Nova Forma",
+      btn_apply: "💾 SALVAR NO MODPACK",
+      btn_health_check: "🛡️ Health Check",
+      btn_diff: "🔍 Revisar Diff",
+      btn_backups: "📂 Abrir Backups",
       btn_addons: "🧩 Addons & Mods",
-      btn_delete_form: "🗑️ Excluir",
-      confirm_form: "✓ Confirmar Forma",
-      filter_sidebar: "Filtrar raça na lateral...",
-      all_races_label: "Todas as Raças",
-      universal_forms_label: "Formas Universais & Stack",
-      search_placeholder: "Buscar por nome, ID, árvore, tipo, saga ou addon...",
-      filter_all: "Filtro: Todas as Formas",
-      filter_tp_paid: "Com Custo TP (> 0)",
-      filter_priceless: "Priceless / Desejo (-1)",
-      filter_free: "Gratuitas / Inatas (0)",
-      filter_saga: "Com Saga Obrigatória",
-      filter_master: "Compra em Mestre",
-      sort_default: "Ordem: Padrão da Árvore",
-      sort_tp_desc: "Maior Custo TP",
-      sort_tp_asc: "Menor Custo TP",
-      sort_bp_desc: "Maior Multiplicador BP",
-      sort_bp_asc: "Menor Multiplicador BP",
-      sort_name_asc: "Nome (A → Z)",
-      th_transformation: "Transformação",
-      th_race_tree: "Raça / Árvore",
-      th_tp_cost: "Custo TP",
-      th_multipliers: "Mult. Status (BP)",
-      th_drains: "Drenos (/s)",
-      th_reqs: "Requisitos & Flags",
-      inspector_empty_title: "Selecione uma Transformação",
-      inspector_empty_desc: "Clique em qualquer linha da tabela ao centro para inspecionar e editar Custo de TP, Multiplicadores de BP, Drenos, Maestria e Requisitos.",
-      card_tp_title: "1. Custo de TP & Desbloqueio",
+      lbl_select_race: "Raça Selecionada:",
+      filter_tree_search: "🔍 Filtrar transformações...",
+      opt_all_addons: "Todos Mods",
+      race_tree_title: "ÁRVORE DA RAÇA",
+      btn_wizard_add: "✨ + Nova Forma (Wizard)",
+      btn_reorder_order: "⇅ Reorganizar Ordem",
+      btn_import_mold: "📥 Importar Molde (JSON)",
+      btn_export_mold: "📤 Exportar Molde (JSON)",
+      staging_drawer_title: "GAVETA DE IMPORTADOS",
+      staging_empty: "Nenhum item na gaveta. Importe moldes JSON externos para armazená-los aqui antes de alocar.",
+      viewport_hint: "Gire com botão esquerdo · Zoom com scroll · Mova com botão direito",
+      lbl_status_multipliers: "STATUS MULTIPLICADORES (BP)",
+      sim_autonomy_idle: "Autonomia Estimada: ~∞ (Dreno Inativo)",
+      btn_clone_stage: "+ Clonar Estágio",
+      btn_delete_stage: "🗑️ Excluir",
+      btn_reorder_stages: "⇅ Ordem",
+      btn_auto_scale: "⚡ Auto-Balancear",
+      tab_multipliers: "📊 Multiplicadores & Dreno",
+      tab_visual: "🎨 Visual & FX Studio",
+      tab_sagas: "📜 Sagas & Requisitos",
+      sec_economy: "1. Economia de TP & Desbloqueio",
       lbl_tp_cost: "Custo de TP (-1 = Priceless, 0 = Inato)",
       lbl_skill_slot: "Nível na Habilidade (Slot)",
-      btn_free: "Gratuito (0)",
-      btn_priceless: "Priceless (-1)",
-      chk_buy_master: "Exigir Compra em Mestre (buyFromMaster)",
-      master_box_title: "🥋 Mestre que Ensina / Vende",
-      master_hint: "Disponível para aprender interagindo com o mestre no jogo.",
-      card_bp_title: "2. Multiplicadores de Status (BP)",
-      lbl_str: "Força Física (STR)",
-      desc_str: "Dano de socos e combos corpo a corpo",
-      lbl_pwr: "Poder de Ki (PWR)",
-      desc_pwr: "Dano de rajadas, beams e skills de ki",
-      lbl_def: "Resistência / Defesa (DEF)",
-      desc_def: "Mitigação direta de danos sofridos",
-      lbl_skp: "Poder de Golpe Especial (SKP)",
-      desc_skp: "Dano de técnicas de finalização",
-      lbl_spd: "Velocidade de Movimento (SPD)",
-      desc_spd: "Rapidez ao andar, correr e voar",
-      lbl_atk_spd: "Velocidade de Ataque",
-      desc_atk_spd: "Frequência e recuperação de golpes",
-      lbl_stm: "Multiplicador de Estamina (STM)",
-      desc_stm: "Teto de estamina acumulada",
-      lbl_vit: "Multiplicador de Vitalidade (VIT)",
-      desc_vit: "Vida total máxima do guerreiro",
-      lbl_ene: "Multiplicador de Energia (ENE)",
-      desc_ene: "Teto de ki máximo acumulado",
-      card_drains_title: "3. Drenos (/s) & Empilhamento (Stack)",
-      lbl_drain_ki: "Dreno de Ki (/s)",
-      lbl_drain_stm: "Dreno de Estamina (/s)",
-      lbl_drain_hp: "Dreno de Vida (/s)",
-      lbl_drain_hit: "Mult. Dreno Estamina por Golpe",
-      chk_stackable: "Permitir Empilhar com Kaioken/Buffs (formStackable)",
-      lbl_stack_mult: "Multiplicador de Dreno ao Empilhar",
-      card_mastery_title: "4. Maestria da Forma",
-      lbl_max_mastery: "Maestria Máxima",
-      lbl_instant_transf: "Nível de Maestria para Transf. Instantânea",
-      lbl_mastery_hit_dealt: "Ganho por Golpe Dado",
-      lbl_mastery_hit_rcv: "Ganho por Dano Recebido",
-      lbl_mastery_passive: "Ganho Passivo a cada 5s",
-      lbl_max_cost_mult: "Mult. Custo Ki com Maestria Máx",
-      lbl_max_stats_mult: "Mult. Status com Maestria Máx",
-      card_reqs_title: "5. Requisitos & Vínculo Narrativo",
-      lbl_min_dmz: "Nível Mínimo do Personagem (requiredDMZLevel)",
-      lbl_min_skill_req: "Nível Requisito na Árvore (levelRequisite)",
+      sec_multipliers: "2. Multiplicadores de Status (BP)",
+      lbl_str: "Força (STR)",
+      lbl_def: "Defesa (DEF)",
+      lbl_spd: "Velocidade (SPD)",
+      lbl_pwr: "Poder Ki (PWR)",
+      lbl_skp: "Golpe Especial (SKP)",
+      lbl_ene: "Energia Máx (ENE)",
+      lbl_scale_all: "Escalar Todos:",
+      sec_drains: "3. Drenos por Segundo & Combate",
+      lbl_drain_ki: "Dreno Ki (/s)",
+      lbl_drain_stm: "Dreno Stamina (/s)",
+      lbl_drain_hp: "Dreno Vida (/s)",
+      lbl_mastery_rate: "Taxa Ganho de Maestria (/min)",
+      lbl_mastery_reduction: "Redução Dreno na Maestria (%)",
+      sec_hair_model: "1. Modelo de Cabelo & Corpo",
+      lbl_hair_model: "Estilo do Cabelo",
+      lbl_hair_scale: "Escala do Cabelo",
+      lbl_hair_color: "Cor do Cabelo (Hex)",
+      lbl_eye_color: "Cor dos Olhos (Hex)",
+      quick_palettes: "Paleta Rápida de Formas:",
+      sec_ki_cloak: "2. Manto de Ki (Estilo Kurama / Cloak)",
+      lbl_cloak_style: "Estilo do Manto",
+      lbl_cloak_opacity: "Opacidade:",
+      lbl_cloak_inner: "Cor Interna (Hex)",
+      lbl_cloak_border: "Cor da Borda (Hex)",
+      sec_sparks_aura: "3. Raios Elétricos (Sparks) & Aura Externa",
+      lbl_enable_sparks: "Raios Elétricos (Sparks)",
+      lbl_sparks_intensity: "Intensidade dos Raios",
+      lbl_aura_type: "Tipo de Aura Externa",
+      lbl_aura_color: "Cor da Aura (Hex)",
+      sec_sagas: "1. Vínculo com Sagas do DMZ",
       lbl_saga_req: "Saga Obrigatória para Desbloqueio",
-      lbl_prev_form: "Forma Prévia Obrigatória (Requisito)",
-      lbl_incompatible: "Formas Incompatíveis (Bloqueio Mútuo)",
-      lbl_quick_shortcuts: "Atalhos Comuns:",
-      card_visual_title: "6. Efeitos Visuais & Shader",
-      lbl_aura_hex: "Cor da Aura (Hex)",
-      lbl_hair_hex: "Cor do Cabelo (Hex)",
-      addon_all: "Todos os Addons",
-      addon_core: "Dragon Mine Z (Core)",
-      modal_add_title: "➕ Adicionar Nova Transformação",
-      modal_add_desc: "Preencha os atributos para criar uma transformação balanceada diretamente no catálogo e nos arquivos do jogo.",
-      modal_del_title: "🗑️ Confirmar Remoção de Transformação",
-      modal_del_note: "Você pode desfazer essa remoção a qualquer momento pressionando Ctrl+Z.",
-      modal_addons_title: "🧩 Gerenciador de Addons & Mods do DMZ",
-      modal_addons_desc: "Ative ou desative mods e pacotes de formas do modpack de forma 100% segura e compatível com CurseForge.",
-      addon_th_status: "Status",
-      addon_th_name: "Nome do Mod",
-      addon_th_version: "Versão",
-      addon_th_author: "Autor",
-      addon_th_file: "Arquivo .jar",
-      addon_th_size: "Tamanho",
-      addon_enabled: "Ativo",
-      addon_disabled: "Desativado",
-      btn_close: "Fechar",
-      btn_cancel: "Cancelar",
-      btn_confirm_add: "Criar Transformação",
-      btn_confirm_del: "Confirmar Remoção",
-      shortcuts_hint: "Dica: use ↑ / ↓ para navegar · Ctrl+Z desfaz · Ctrl+S salva",
-      lbl_training_master: "Mestre que Ensina / Vende",
-      lbl_master_desc: "Disponível para aprender interagindo com o mestre no jogo.",
-      aura_live_title: "Visualização em Tempo Real",
-      lbl_aura_presets: "Paleta Rápida Dragon Ball:",
-      btn_open_mods: "📁 Abrir Pasta Mods",
-      btn_reload_mods: "🔄 Recarregar",
-      addons_loading_title: "Escaneando pasta de mods do Modpack...",
-      addons_loading_sub: "Lendo arquivos .jar, metadados e compatibilidade de transformações",
-      tab_all: "Todos",
-      tab_active: "Ativos",
-      tab_disabled: "Desativados",
-      addons_safe_hint: "Desativar renomeia para .jar.disabled de forma 100% segura sem apagar nada.",
-      opt_no_saga: "— Nenhuma saga exigida —",
-      opt_no_master: "— Nenhum mestre vinculado —",
-      opt_custom_master: "Personalizado / Outro...",
-      add_sec1_title: "📁 1. Identificação & Localização na Árvore",
-      lbl_add_scope: "Escopo",
-      opt_add_scope_race: "Específica de Raça",
-      opt_add_scope_universal: "Universal / Stack",
-      lbl_add_race: "Raça",
-      lbl_add_tree: "Árvore / Grupo",
-      lbl_add_id: "ID Técnico da Forma",
-      badge_user_created: "Você Cria",
-      hint_add_id: "⚙️ Identificador único salvo no modpack (slug minúsculo).",
-      lbl_add_nome: "Nome de Exibição",
-      hint_add_nome: "🎮 Nome que os jogadores verão na HUD e habilidades.",
-      lbl_add_addon: "Addon / Pacote de Origem",
-      hint_add_addon: "Origem da forma para filtros.",
-      add_sec2_title: "💰 2. Economia de TP & Requisitos de Desbloqueio",
-      lbl_add_tp: "Custo de TP",
-      lbl_add_lvl: "Nível Slot Habilidade (Slot Level)",
-      lbl_add_master: "Mestre que Ensina (Opcional)",
-      lbl_add_saga: "Saga Obrigatória para Desbloqueio",
-      lbl_add_prev: "Forma Prévia Obrigatória (Requisito)",
-      add_sec3_title: "⚔️ 3. Multiplicadores de Status (Battle Power)",
-      lbl_add_mult_all: "Multiplicar Todos:",
-      add_sec4_title: "✨ 4. Efeitos Visuais & Aura da Transformação",
-      add_aura_preview_title: "Visualização em Tempo Real da Forma",
-      add_aura_paleta_title: "Paleta Rápida Dragon Ball:",
-      lbl_add_aura_hex: "Cor da Aura (Hex)",
-      lbl_add_hair_hex: "Cor do Cabelo (Hex)",
-      btn_add_confirm_submit: "✨ Criar Transformação",
+      lbl_prev_form: "Forma Pré-requisito (ID Obrigatório Anterior)",
+      sec_flags: "2. Flags Especiais & Restrições",
+      chk_is_divine: "Forma de Ki Divino (Requer treinamento com Whis / Beerus)",
+      chk_prevent_kaioken: "Não acumula com Kaioken (Impossível Stack)",
+      chk_requires_mastery: "Exige 100% de Maestria na forma anterior",
+      chk_bypass_god: "Permite ativar sem nível de Ki Divino desbloqueado",
+      wizard_title: "✨ Assistente de Criação: Nova Forma DMZ",
+      wizard_sub: "Crie transformações completas com grupos, sub-formas, multiplicadores e efeitos visuais sem corromper o modpack.",
+      lbl_wiz_race: "Raça de Destino",
+      lbl_wiz_group: "Nome do Grupo / Arquivo .json",
+      lbl_wiz_stage_name: "Nome do 1º Estágio",
+      lbl_wiz_stage_id: "ID Interno do Estágio",
+      lbl_wiz_preset: "Preset de Poder Inicial",
+      lbl_wiz_hair_color: "Cor do Cabelo",
+      lbl_wiz_aura_color: "Cor da Aura",
+      btn_wiz_create: "✨ Criar Forma e Abrir no Editor",
+      reorder_title: "⇅ Reorganizar Ordem das Transformações",
+      chk_sequential_levels: "Atualizar unlockOnSkillLevel sequencialmente (1, 2, 3...)",
+      hint_sequential_levels: "Desmarque caso queira manter saltos manuais de nível (ex: nível 1, 5, 10).",
+      btn_save_order: "✓ Salvar Nova Ordem",
+      diff_title: "🔍 Revisar Alterações (Diff Antes de Salvar)",
+      diff_sub: "Comparação detalhada entre o modpack original e as edições realizadas na sessão atual.",
+      diff_clean: "Nenhuma alteração detectada. Seu estado de trabalho está sincronizado com o modpack.",
+      export_title: "📤 Exportar Molde de Transformações",
+      lbl_export_scope: "Escopo da Exportação",
+      btn_do_export: "Exportar JSON",
+      import_title: "📥 Importar Molde de Transformações",
+      lbl_select_mold_file: "Selecione o arquivo .json do Molde",
+      chk_import_staging: "Enviar para a Gaveta de Importados (Seguro - Fora da Árvore)",
+      btn_do_import: "Importar Molde",
+      allocate_title: "📦 Alocar Forma na Árvore da Raça",
+      lbl_alloc_race: "Raça de Destino",
+      lbl_alloc_conflict: "Modo de Resolução de Conflito",
+      btn_do_allocate: "Alocar na Árvore",
+      health_title: "Relatório de Integridade das Transformações & Sagas",
+      autoscale_title: "⚡ Auto-Balancear Escala dos Estágios",
+      lbl_scale_bp_percent: "Acréscimo de BP (%) por estágio",
+      lbl_scale_drain_percent: "Acréscimo de Dreno (%) por estágio",
       settings_title: "⚙️ Selecionar Pasta do Modpack ou Arquivo JSON",
-      settings_desc: "Selecione onde está a pasta config/dragonminez do seu Modpack (CurseForge / cliente / servidor) e/ou o arquivo .json de transformações.",
-      settings_detected_title: "⚡ Pastas e Arquivos Detectados no seu PC (1 Clique para Selecionar)",
-      settings_searching: "Buscando...",
-      settings_searching_desc: "Procurando pastas de modpack e arquivos .json...",
-      lbl_modpack_path: "Pasta do Modpack / Config DragonMineZ (Opcional se usar apenas JSON)",
-      ph_modpack_path: "Em branco — clique em Procurar Pasta ou cole o caminho...",
+      settings_desc: "Selecione onde está a pasta config/dragonminez do seu Modpack e/ou o arquivo .json de transformações.",
+      lbl_modpack_path: "Pasta do Modpack / Config DragonMineZ",
       btn_browse_folder: "📂 Procurar Pasta...",
-      hint_modpack_path: "Dica: Você pode selecionar a pasta do Modpack (ex: Dragon_Mine_Z_Client) ou direto a subpasta config/dragonminez.",
-      lbl_json_path: "Arquivo .JSON de Transformações (Opcional se usar a pasta do Modpack)",
-      ph_json_path: "Em branco — clique em Procurar JSON ou cole o caminho...",
+      lbl_json_path: "Arquivo .JSON de Molde (Opcional)",
       btn_browse_json: "📄 Procurar JSON...",
-      btn_reset_paths: "🧹 Limpar Caminhos (Deixar em Branco)",
       btn_save_settings: "Salvar e Carregar",
+      modal_addons_title: "🧩 Gerenciador de Addons & Mods do DMZ",
+      btn_open_mods: "📁 Pasta Mods",
+      btn_reload_mods: "🔄 Recarregar",
       batch_studio_title: "⚡ Balanceamento em Lote Avançado",
-      batch_studio_desc: "Balanceie atributos, aplique regras dinâmicas e filtre transformações por raça e seleção individual.",
-      batch_sec1_title: "1. Filtro de Raça & Seleção de Transformações",
-      batch_sec1_hint: "Desmarque as formas que não deseja alterar",
       lbl_batch_race: "Raça / Escopo",
-      opt_batch_scope_current: "Escopo Atual Selecionado na Lateral",
-      opt_batch_scope_all: "Todas as Raças + Universais",
-      opt_batch_scope_universal: "Apenas Formas Universais & Stack",
-      lbl_batch_search: "Filtrar na Lista de Formas",
-      ph_batch_form_search: "Buscar por nome ou ID...",
-      btn_select_all: "✓ Marcar Todas",
-      btn_deselect_all: "✗ Desmarcar Todas",
-      btn_invert_sel: "⇄ Inverter",
-      batch_sec2_title: "2. Escolha da Regra de Balanceamento",
-      lbl_batch_rule: "Tipo de Regra",
-      rule_hierarchical_tier: "⭐ 1. Teto Hierárquico por Tiers (Preservar Progressão Lore) [Recomendado]",
-      rule_simple_scale: "2. Escala Multiplicativa Direta (Simple Scale)",
-      rule_risk_reward: "3. Risco & Recompensa (+Bônus de Status, +Dreno de Ki/Stamina)",
-      rule_cap: "4. Teto Rígido Individual ou de Soma (Impossible Cap)",
-      rule_recalc_tp: "5. Recalcular Custo de TP por Poder (Progression Economy)",
-      rule_drain_smooth: "6. Normalização de Drenos de Ki (Sustainable Combat)",
-      rule_specialize: "7. Especialização de Classe (Berserker, Ki Master, Tanque, Speedster)",
-      btn_apply_batch: "⚡ Aplicar Balanceamento em Lote",
-      batch_lbl_target_field: "Atributo Alvo",
-      batch_lbl_factor: "Fator Multiplicador",
-      batch_lbl_status_bonus: "Bônus nos Multiplicadores de BP",
-      batch_lbl_ki_drain_mult: "Multiplicador no Dreno de Ki",
-      batch_lbl_stm_drain_mult: "Multiplicador no Dreno de Estamina",
-      batch_lbl_cap_type: "Tipo de Teto Máximo",
-      batch_lbl_cap_val: "Limite Máximo (Cap)",
-      batch_lbl_tp_ratio: "TP por 1.0x de Poder (BP)",
-      batch_chk_keep_special_tp: "Preservar Gratuitas (0) e Desejo/Shenron (-1)",
-      batch_lbl_max_ki_drain: "Teto Máximo de Dreno de Ki (/s)",
-      batch_lbl_min_ki_drain: "Piso Mínimo para Formas Fortes (BP ≥ 3x)",
-      batch_lbl_archetype: "Arquétipo de Especialização",
-      batch_lbl_tier_cap: "Teto Máximo Tier 10 (Soma BP)",
-      batch_lbl_tier_floor: "Piso Mínimo Tier 1 (Soma BP)",
-      batch_lbl_tier_curve: "Curva de Progressão",
-      batch_lbl_tier_filter: "Filtrar por Tier",
-      opt_tier_all: "Todos os Tiers (T1 a T10)",
-      opt_tier_early: "Tiers 1-3: Iniciais & Inatos (<= 30x)",
-      opt_tier_mid: "Tiers 4-6: Místicos & Divinos (30x a 75x)",
-      opt_tier_high: "Tiers 7-8: Divinos Avançados (75x a 120x)",
-      opt_tier_endgame: "Tiers 9-10: Instinto & Endgame (> 120x)",
+      btn_apply_batch: "⚡ Aplicar em Lote",
+      btn_cancel: "Cancelar",
+      btn_close: "Fechar"
     },
     en: {
       app_title: "KiForge: DMZ Form Studio",
-      app_subtitle: "Official Dragon Mine Z Transformation & Form Balancer",
       modpack_connected: "Modpack Connected",
-      json_mode: "JSON File",
-      select_path: "Select File / Folder",
       unsaved_changes: "Unsaved Changes",
       btn_config_folder: "⚙️ Config Folder",
       btn_undo: "↶ Undo",
       btn_redo: "↷ Redo",
       btn_batch: "⚡ Batch Scale",
-      btn_reload: "↻ Read Modpack",
-      btn_save_json: "💾 Save JSON",
-      btn_apply: "🚀 Save + Apply to Modpack",
-      btn_add_form: "+ New Form",
+      btn_reload: "↻ Reload Modpack",
+      btn_apply: "💾 SAVE TO MODPACK",
+      btn_health_check: "🛡️ Health Check",
+      btn_diff: "🔍 Review Diff",
+      btn_backups: "📂 Open Backups",
       btn_addons: "🧩 Addons & Mods",
-      btn_delete_form: "🗑️ Delete",
-      confirm_form: "✓ Confirm Form",
-      filter_sidebar: "Filter race in sidebar...",
-      all_races_label: "All Races",
-      universal_forms_label: "Universal & Stack Forms",
-      search_placeholder: "Search by name, ID, tree, type, saga, or addon...",
-      filter_all: "Filter: All Forms",
-      filter_tp_paid: "With TP Cost (> 0)",
-      filter_priceless: "Priceless / Wish (-1)",
-      filter_free: "Free / Innate (0)",
-      filter_saga: "With Required Saga",
-      filter_master: "Master Purchase",
-      sort_default: "Order: Tree Default",
-      sort_tp_desc: "Highest TP Cost",
-      sort_tp_asc: "Lowest TP Cost",
-      sort_bp_desc: "Highest BP Multiplier",
-      sort_bp_asc: "Lowest BP Multiplier",
-      sort_name_asc: "Name (A → Z)",
-      th_transformation: "Transformation",
-      th_race_tree: "Race / Tree",
-      th_tp_cost: "TP Cost",
-      th_multipliers: "Combat Mults (BP)",
-      th_drains: "Drains (/s)",
-      th_reqs: "Requirements & Flags",
-      inspector_empty_title: "Select a Transformation",
-      inspector_empty_desc: "Click any row in the center table to inspect and edit TP Costs, BP Multipliers, Drains, Mastery, and Requirements.",
-      card_tp_title: "1. TP Cost & Unlock",
-      lbl_tp_cost: "TP Cost (-1 = Priceless, 0 = Free)",
-      lbl_skill_slot: "Skill Slot Level",
-      btn_free: "Free (0)",
-      btn_priceless: "Priceless (-1)",
-      chk_buy_master: "Require Master Purchase (buyFromMaster)",
-      master_box_title: "🥋 Training Master",
-      master_hint: "Available to learn by interacting with the master in-game.",
-      card_bp_title: "2. Combat Multipliers (BP)",
-      lbl_str: "Physical Strength (STR)",
-      desc_str: "Melee punches and combo attack damage",
+      lbl_select_race: "Selected Race:",
+      filter_tree_search: "🔍 Filter transformations...",
+      opt_all_addons: "All Mods",
+      race_tree_title: "RACE TREE",
+      btn_wizard_add: "✨ + New Form (Wizard)",
+      btn_reorder_order: "⇅ Reorder Tree",
+      btn_import_mold: "📥 Import Mold (JSON)",
+      btn_export_mold: "📤 Export Mold (JSON)",
+      staging_drawer_title: "STAGING DOCK (UNALLOCATED)",
+      staging_empty: "No items in staging dock. Import external JSON molds to store them here before allocating to a race tree.",
+      viewport_hint: "Rotate with Left Click · Zoom with Scroll · Pan with Right Click",
+      lbl_status_multipliers: "STATUS MULTIPLIERS (BP)",
+      sim_autonomy_idle: "Estimated Autonomy: ~∞ (Drain Inactive)",
+      btn_clone_stage: "+ Clone Stage",
+      btn_delete_stage: "🗑️ Delete",
+      btn_reorder_stages: "⇅ Order",
+      btn_auto_scale: "⚡ Auto-Balance",
+      tab_multipliers: "📊 Multipliers & Drain",
+      tab_visual: "🎨 Visual & FX Studio",
+      tab_sagas: "📜 Sagas & Requirements",
+      sec_economy: "1. TP Economy & Unlock",
+      lbl_tp_cost: "TP Cost (-1 = Priceless, 0 = Innate)",
+      lbl_skill_slot: "Skill Level (Slot)",
+      sec_multipliers: "2. Status Multipliers (BP)",
+      lbl_str: "Strength (STR)",
+      lbl_def: "Defense (DEF)",
+      lbl_spd: "Speed (SPD)",
       lbl_pwr: "Ki Power (PWR)",
-      desc_pwr: "Damage of blasts, beams, and ki skills",
-      lbl_def: "Defense / Resilience (DEF)",
-      desc_def: "Direct damage mitigation",
-      lbl_skp: "Special Strike Power (SKP)",
-      desc_skp: "Damage multiplier for special strike moves",
-      lbl_spd: "Movement Speed (SPD)",
-      desc_spd: "Walking, running, and flight speed",
-      lbl_atk_spd: "Attack Speed",
-      desc_atk_spd: "Swing frequency and recovery time",
-      lbl_stm: "Stamina Multiplier (STM)",
-      desc_stm: "Maximum accumulated stamina pool",
-      lbl_vit: "Vitality Multiplier (VIT)",
-      desc_vit: "Total maximum warrior health points",
-      lbl_ene: "Energy Multiplier (ENE)",
-      desc_ene: "Maximum accumulated ki energy pool",
-      card_drains_title: "3. Drains (/s) & Stacking",
+      lbl_skp: "Skill Power (SKP)",
+      lbl_ene: "Max Energy (ENE)",
+      lbl_scale_all: "Scale All:",
+      sec_drains: "3. Drains per Second & Combat",
       lbl_drain_ki: "Ki Drain (/s)",
       lbl_drain_stm: "Stamina Drain (/s)",
       lbl_drain_hp: "Health Drain (/s)",
-      lbl_drain_hit: "Stamina Drain Mult per Hit",
-      chk_stackable: "Allow Stacking with Kaioken/Buffs (formStackable)",
-      lbl_stack_mult: "Stacking Drain Multiplier",
-      card_mastery_title: "4. Form Mastery",
-      lbl_max_mastery: "Maximum Mastery",
-      lbl_instant_transf: "Mastery Level for Instant Transformation",
-      lbl_mastery_hit_dealt: "Gain per Hit Dealt",
-      lbl_mastery_hit_rcv: "Gain per Damage Received",
-      lbl_mastery_passive: "Passive Gain Every 5s",
-      lbl_max_cost_mult: "Ki Cost Mult at Max Mastery",
-      lbl_max_stats_mult: "Stats Mult at Max Mastery",
-      card_reqs_title: "5. Requirements & Story Progression",
-      lbl_min_dmz: "Min Character Level (requiredDMZLevel)",
-      lbl_min_skill_req: "Tree Requisite Level (levelRequisite)",
-      lbl_saga_req: "Required Saga to Unlock",
-      lbl_prev_form: "Required Prior Form (Requisite)",
-      lbl_incompatible: "Incompatible Forms (Mutual Block)",
-      lbl_quick_shortcuts: "Common Shortcuts:",
-      card_visual_title: "6. Visual Effects & Shaders",
-      lbl_aura_hex: "Aura Color (Hex)",
-      lbl_hair_hex: "Hair Color (Hex)",
-      addon_all: "All Addons",
-      addon_core: "Dragon Mine Z (Core)",
-      modal_add_title: "➕ Add New Transformation",
-      modal_add_desc: "Fill in the attributes to create a custom-balanced transformation directly in the catalog and game configs.",
-      modal_del_title: "🗑️ Confirm Transformation Removal",
-      modal_del_note: "You can undo this deletion at any time by pressing Ctrl+Z.",
-      modal_addons_title: "🧩 DMZ Addons & Mods Manager",
-      modal_addons_desc: "Safely enable or disable mods and form packs with full CurseForge compatibility.",
-      addon_th_status: "Status",
-      addon_th_name: "Mod Name",
-      addon_th_version: "Version",
-      addon_th_author: "Author",
-      addon_th_file: ".jar File",
-      addon_th_size: "Size",
-      addon_enabled: "Enabled",
-      addon_disabled: "Disabled",
-      btn_close: "Close",
-      btn_cancel: "Cancel",
-      btn_confirm_add: "Create Transformation",
-      btn_confirm_del: "Confirm Deletion",
-      shortcuts_hint: "Tip: use ↑ / ↓ to navigate · Ctrl+Z undos · Ctrl+S saves",
-      lbl_training_master: "Training Master / Vendor",
-      lbl_master_desc: "Available to learn by interacting with this master in-game.",
-      aura_live_title: "Real-Time Visualizer",
-      lbl_aura_presets: "Dragon Ball Quick Palette:",
-      btn_open_mods: "📁 Open Mods Folder",
-      btn_reload_mods: "🔄 Reload",
-      addons_loading_title: "Scanning Modpack mods directory...",
-      addons_loading_sub: "Inspecting .jar files, toml metadata and form integrations",
-      tab_all: "All",
-      tab_active: "Enabled",
-      tab_disabled: "Disabled",
-      addons_safe_hint: "Disabling safely renames to .jar.disabled without deleting anything.",
-      opt_no_saga: "— No saga required —",
-      opt_no_master: "— No master bound —",
-      opt_custom_master: "Custom / Other...",
-      add_sec1_title: "📁 1. Identification & Tree Placement",
-      lbl_add_scope: "Scope",
-      opt_add_scope_race: "Race-Specific",
-      opt_add_scope_universal: "Universal / Stack",
-      lbl_add_race: "Race",
-      lbl_add_tree: "Tree / Group",
-      lbl_add_id: "Technical Form ID",
-      badge_user_created: "You Create",
-      hint_add_id: "⚙️ Unique technical slug saved in modpack (lowercase).",
-      lbl_add_nome: "Display Name",
-      hint_add_nome: "🎮 Visible in-game name shown in HUD & skill tree.",
-      lbl_add_addon: "Origin Addon / Pack",
-      hint_add_addon: "Origin package used for catalog filtering.",
-      add_sec2_title: "💰 2. TP Economy & Unlock Requirements",
-      lbl_add_tp: "TP Cost",
-      lbl_add_lvl: "Skill Slot Level (Slot Level)",
-      lbl_add_master: "Teaching Master (Optional)",
-      lbl_add_saga: "Required Saga to Unlock",
-      lbl_add_prev: "Required Prior Form (Requisite)",
-      add_sec3_title: "⚔️ 3. Combat Multipliers (Battle Power)",
-      lbl_add_mult_all: "Multiply All:",
-      add_sec4_title: "✨ 4. Visual Effects & Transformation Aura",
-      add_aura_preview_title: "Real-Time Form Visualizer",
-      add_aura_paleta_title: "Quick Dragon Ball Palette:",
-      lbl_add_aura_hex: "Aura Color (Hex)",
-      lbl_add_hair_hex: "Hair Color (Hex)",
-      btn_add_confirm_submit: "✨ Create Transformation",
+      lbl_mastery_rate: "Mastery Gain Rate (/min)",
+      lbl_mastery_reduction: "Drain Reduction at Max (%)",
+      sec_hair_model: "1. Hair Model & Body",
+      lbl_hair_model: "Hair Style",
+      lbl_hair_scale: "Hair Scale",
+      lbl_hair_color: "Hair Color (Hex)",
+      lbl_eye_color: "Eye Color (Hex)",
+      quick_palettes: "Quick Form Palettes:",
+      sec_ki_cloak: "2. Ki Cloak (Kurama Style / Cloak)",
+      lbl_cloak_style: "Cloak Style",
+      lbl_cloak_opacity: "Opacity:",
+      lbl_cloak_inner: "Inner Color (Hex)",
+      lbl_cloak_border: "Border Color (Hex)",
+      sec_sparks_aura: "3. Electric Sparks & External Aura",
+      lbl_enable_sparks: "Electric Sparks",
+      lbl_sparks_intensity: "Sparks Intensity",
+      lbl_aura_type: "External Aura Type",
+      lbl_aura_color: "Aura Color (Hex)",
+      sec_sagas: "1. DMZ Sagas Requirement",
+      lbl_saga_req: "Required Saga for Unlock",
+      lbl_prev_form: "Prerequisite Form (Required Previous ID)",
+      sec_flags: "2. Special Flags & Restrictions",
+      chk_is_divine: "Divine Ki Form (Requires training with Whis / Beerus)",
+      chk_prevent_kaioken: "Cannot stack with Kaioken (No Stack)",
+      chk_requires_mastery: "Requires 100% Mastery in previous form",
+      chk_bypass_god: "Allows activation without God Ki unlocked",
+      wizard_title: "✨ Creation Wizard: New DMZ Form",
+      wizard_sub: "Create complete transformations with groups, sub-forms, multipliers and visual effects without corrupting the modpack.",
+      lbl_wiz_race: "Target Race",
+      lbl_wiz_group: "Group Name / .json File",
+      lbl_wiz_stage_name: "1st Stage Name",
+      lbl_wiz_stage_id: "Stage Internal ID",
+      lbl_wiz_preset: "Initial Power Preset",
+      lbl_wiz_hair_color: "Hair Color",
+      lbl_wiz_aura_color: "Aura Color",
+      btn_wiz_create: "✨ Create Form and Open in Editor",
+      reorder_title: "⇅ Reorder Transformation Hierarchy",
+      chk_sequential_levels: "Update unlockOnSkillLevel sequentially (1, 2, 3...)",
+      hint_sequential_levels: "Uncheck if you want to keep manual level jumps (e.g. level 1, 5, 10).",
+      btn_save_order: "✓ Save New Order",
+      diff_title: "🔍 Review Changes (Diff Before Save)",
+      diff_sub: "Detailed comparison between original modpack and edits made in the current session.",
+      diff_clean: "No changes detected. Your working state is in sync with the modpack.",
+      export_title: "📤 Export Transformation Mold",
+      lbl_export_scope: "Export Scope",
+      btn_do_export: "Export JSON",
+      import_title: "📥 Import Transformation Mold",
+      lbl_select_mold_file: "Select Mold .json File",
+      chk_import_staging: "Send to Staging Dock (Safe - Outside Tree)",
+      btn_do_import: "Import Mold",
+      allocate_title: "📦 Allocate Form into Race Tree",
+      lbl_alloc_race: "Target Race",
+      lbl_alloc_conflict: "Conflict Resolution Mode",
+      btn_do_allocate: "Allocate to Tree",
+      health_title: "Transformations & Sagas Integrity Report",
+      autoscale_title: "⚡ Auto-Balance Stage Scale",
+      lbl_scale_bp_percent: "BP Increase (%) per stage",
+      lbl_scale_drain_percent: "Drain Increase (%) per stage",
       settings_title: "⚙️ Select Modpack Folder or JSON File",
-      settings_desc: "Select where your Modpack's config/dragonminez folder is located (CurseForge / client / server) and/or the transformations .json file.",
-      settings_detected_title: "⚡ Detected Folders & Files on your PC (1-Click to Select)",
-      settings_searching: "Searching...",
-      settings_searching_desc: "Searching for modpack folders and .json files...",
-      lbl_modpack_path: "Modpack Folder / DragonMineZ Config (Optional if using JSON only)",
-      ph_modpack_path: "Blank — click Browse Folder or paste the path...",
+      settings_desc: "Select where config/dragonminez is located in your Modpack and/or your mold .json file.",
+      lbl_modpack_path: "Modpack Folder / Config DragonMineZ",
       btn_browse_folder: "📂 Browse Folder...",
-      hint_modpack_path: "Tip: You can select the Modpack root (e.g. Dragon_Mine_Z_Client) or directly the config/dragonminez subfolder.",
-      lbl_json_path: "Transformations .JSON File (Optional if using Modpack folder)",
-      ph_json_path: "Blank — click Browse JSON or paste the path...",
+      lbl_json_path: "Mold .JSON File (Optional)",
       btn_browse_json: "📄 Browse JSON...",
-      btn_reset_paths: "🧹 Clear Paths (Leave Blank)",
-      btn_save_settings: "Save & Load",
-      batch_studio_title: "⚡ Advanced Batch Balancing Studio",
-      batch_studio_desc: "Balance attributes, apply dynamic rules, and filter transformations by race with individual form checkboxes.",
-      batch_sec1_title: "1. Race Filter & Transformation Selection",
-      batch_sec1_hint: "Uncheck any form you want to leave unchanged",
+      btn_save_settings: "Save and Load",
+      modal_addons_title: "🧩 DMZ Addons & Mods Manager",
+      btn_open_mods: "📁 Mods Folder",
+      btn_reload_mods: "🔄 Reload",
+      batch_studio_title: "⚡ Advanced Batch Balancing",
       lbl_batch_race: "Race / Scope",
-      opt_batch_scope_current: "Current Sidebar Selection Scope",
-      opt_batch_scope_all: "All Races + Universals",
-      opt_batch_scope_universal: "Universal & Stack Forms Only",
-      lbl_batch_search: "Filter in Forms List",
-      ph_batch_form_search: "Search by name or ID...",
-      btn_select_all: "✓ Select All",
-      btn_deselect_all: "✗ Deselect All",
-      btn_invert_sel: "⇄ Invert",
-      batch_sec2_title: "2. Balancing Rule Selection",
-      lbl_batch_rule: "Rule Type",
-      rule_hierarchical_tier: "⭐ 1. Hierarchical Power Tier Cap (Preserve Lore Progression) [Recommended]",
-      rule_simple_scale: "2. Direct Multiplicative Scale (Simple Scale)",
-      rule_risk_reward: "3. Risk & Reward (+Stat Bonus, +Ki/Stamina Drain)",
-      rule_cap: "4. Rigid Individual or Sum Cap (Impossible Cap)",
-      rule_recalc_tp: "5. Recalculate TP Cost by Combat Power (Progression Economy)",
-      rule_drain_smooth: "6. Ki Drain Normalization (Sustainable Combat)",
-      rule_specialize: "7. Class Specialization (Berserker, Ki Master, Tank, Speedster)",
-      btn_apply_batch: "⚡ Apply Batch Balancing",
-      batch_lbl_target_field: "Target Attribute",
-      batch_lbl_factor: "Multiplier Factor",
-      batch_lbl_status_bonus: "BP Multipliers Bonus",
-      batch_lbl_ki_drain_mult: "Ki Drain Multiplier",
-      batch_lbl_stm_drain_mult: "Stamina Drain Multiplier",
-      batch_lbl_cap_type: "Cap Limit Type",
-      batch_lbl_cap_val: "Maximum Cap Limit",
-      batch_lbl_tp_ratio: "TP per 1.0x Combat Power (BP)",
-      batch_chk_keep_special_tp: "Preserve Free (0) & Wish/Shenron (-1)",
-      batch_lbl_max_ki_drain: "Max Ki Drain Cap (/s)",
-      batch_lbl_min_ki_drain: "Min Ki Drain Floor for Strong Forms (BP ≥ 3x)",
-      batch_lbl_archetype: "Specialization Archetype",
-      batch_lbl_tier_cap: "Tier 10 Max Cap (BP Sum)",
-      batch_lbl_tier_floor: "Tier 1 Floor (BP Sum)",
-      batch_lbl_tier_curve: "Progression Curve",
-      batch_lbl_tier_filter: "Filter by Power Tier",
-      opt_tier_all: "All Tiers (T1 to T10)",
-      opt_tier_early: "Tiers 1-3: Early & Innate (<= 30x)",
-      opt_tier_mid: "Tiers 4-6: Mystic & Divine (30x to 75x)",
-      opt_tier_high: "Tiers 7-8: Advanced Divine (75x to 120x)",
-      opt_tier_endgame: "Tiers 9-10: Instinct & Endgame (> 120x)",
+      btn_apply_batch: "⚡ Apply in Batch",
+      btn_cancel: "Cancel",
+      btn_close: "Close"
     }
   };
 
+  let currentLang = "pt";
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    const dict = I18N[lang] || I18N.pt;
+    document.querySelectorAll("[data-i18n]").forEach((elem) => {
+      const key = elem.getAttribute("data-i18n");
+      if (dict[key]) elem.textContent = dict[key];
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((elem) => {
+      const key = elem.getAttribute("data-i18n-placeholder");
+      if (dict[key]) elem.placeholder = dict[key];
+    });
+    const btn = document.getElementById("btnLangToggle");
+    if (btn) btn.textContent = lang === "pt" ? "🌐 EN" : "🌐 PT";
+  }
+
+  // Disables race selector when scope is universal
+  function updateRaceSelectorState(scope) {
+    const rSelect = document.getElementById("raceSelect");
+    if (rSelect) {
+      if (scope === "universal") {
+        rSelect.disabled = true;
+      } else {
+        rSelect.disabled = false;
+      }
+    }
+  }
+
+  // =========================================================================
+  // API HELPER & TOASTS
+  // =========================================================================
+  async function fetchJson(url, options = {}) {
+    options.headers = options.headers || {};
+    if (csrfToken) options.headers["X-CSRF-Token"] = csrfToken;
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+    return res.json();
+  }
+
+  function showToast(message, type = "info") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(8px)";
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  // =========================================================================
+  // ESTADO GLOBAL DO STUDIO
+  // =========================================================================
   const state = {
     catalog: null,
-    source: "modpack",
-    language: localStorage.getItem("kiforge_lang") || "pt",
-    dirty: false,
-    canUndo: false,
-    canRedo: false,
-    modpackAvailable: true,
-    navScope: "all_races",
-    selectedTree: "all",
-    addonFilter: "all",
-    raceFilterText: "",
-    searchText: "",
-    quickFilter: "all",
-    sortBy: "default",
-    flatRows: [],
-    selectedKey: null,
-    inspectorDirty: false,
-    addonsList: [],
+    selectedRace: "saiyan",
+    selectedGroupKey: null,
+    selectedStageId: null,
+    staging: [],
+    isDirty: false,
+    expandedGroups: new Set(),
+    simulation: {
+      running: false,
+      intervalId: null,
+      maxHp: 100,
+      currentHp: 100,
+      maxKi: 10000,
+      currentKi: 10000,
+      maxStm: 5000,
+      currentStm: 5000,
+      kiDrain: 0,
+      stmDrain: 0,
+      hpDrain: 0
+    }
   };
 
-  const el = (id) => document.getElementById(id);
+  // =========================================================================
+  // THREE.JS 3D PEDESTAL VIEWPORT
+  // =========================================================================
+  let scene, camera, renderer, controls;
+  let characterRig = {}, hairMeshGroup, cloakMeshGroup, sparksGroup, auraMesh;
 
-  function t(key) {
-    const lang = state.language === "en" ? "en" : "pt";
-    return I18N[lang][key] || I18N["pt"][key] || key;
-  }
+  function initThreeViewport() {
+    const container = document.getElementById("threeCanvasContainer");
+    if (!container || !window.THREE) return;
 
-  function setLanguage(newLang) {
-    state.language = newLang === "en" ? "en" : "pt";
-    localStorage.setItem("kiforge_lang", state.language);
-    
-    // Notify server asynchronously
-    apiPost("/api/language", { language: state.language }).catch(() => {});
+    const width = container.clientWidth || 360;
+    const height = container.clientHeight || 280;
 
-    // Update Language Toggle Button text
-    const btn = el("btnLangToggle");
-    if (btn) {
-      btn.textContent = state.language === "en" ? "🌐 EN" : "🌐 PT";
-      btn.title = state.language === "en" ? "Language: English (Click for PT)" : "Idioma: Português (Clique para EN)";
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(0, 1.6, 4.2);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.innerHTML = "";
+    container.appendChild(renderer.domElement);
+
+    if (window.THREE.OrbitControls) {
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.target.set(0, 1.1, 0);
+      controls.minDistance = 2.0;
+      controls.maxDistance = 7.0;
+      controls.maxPolarAngle = Math.PI / 2 + 0.1;
     }
 
-    // Update static data-i18n elements
-    document.querySelectorAll("[data-i18n]").forEach((elem) => {
-      const k = elem.getAttribute("data-i18n");
-      if (k) elem.textContent = t(k);
-    });
+    // Iluminação
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    scene.add(ambientLight);
 
-    document.querySelectorAll("[data-i18n-placeholder]").forEach((elem) => {
-      const k = elem.getAttribute("data-i18n-placeholder");
-      if (k) elem.placeholder = t(k);
-    });
+    const keyLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+    keyLight.position.set(2, 4, 3);
+    scene.add(keyLight);
 
-    const sh = el("shortcutsHint");
-    if (sh) sh.textContent = t("shortcuts_hint");
+    const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.7);
+    rimLight.position.set(-2, 2, -2);
+    scene.add(rimLight);
 
-    renderHeader();
-    renderSidebar();
-    renderTreeChips();
-    rebuildAndRenderTable();
-    refreshInspectorFromSelection();
-  }
+    // Grid no Chão (Pedestal)
+    const grid = new THREE.GridHelper(4, 16, 0x06b6d4, 0x1e293b);
+    grid.position.y = 0;
+    scene.add(grid);
 
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+    buildMinecraftCharacterRig();
+    buildAuraAndEffects();
 
-  function resolveAuraDotColor(f) {
-    if (!f) return "#64748B";
-    const raw = f.visual && f.visual.cor_aura;
-    if (raw) {
-      let str = String(raw).trim();
-      if (!str.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(str)) {
-        str = "#" + str;
+    // Loop de Animação
+    function animate() {
+      requestAnimationFrame(animate);
+      if (controls) controls.update();
+
+      // Animação sutil de respiração do rig
+      const time = performance.now() * 0.002;
+      if (characterRig.torso) {
+        characterRig.torso.position.y = 0.95 + Math.sin(time * 2) * 0.015;
       }
-      if (/^#[0-9a-fA-F]{3,8}$/.test(str)) {
-        const lower = str.toLowerCase();
-        if (lower !== "#000000" && lower !== "#14141a") {
-          return str;
+
+      // Animação de pulso do Manto de Ki
+      if (cloakMeshGroup && cloakMeshGroup.visible) {
+        const pulse = 1.0 + Math.sin(time * 6) * 0.03;
+        cloakMeshGroup.scale.set(pulse, pulse, pulse);
+      }
+
+      // Animação dos Raios Elétricos (Sparks)
+      if (sparksGroup && sparksGroup.visible) {
+        if (Math.random() < 0.35) {
+          updateSparksGeometry();
         }
       }
+
+      // Rotação da Aura
+      if (auraMesh && auraMesh.visible) {
+        auraMesh.rotation.y += 0.02;
+      }
+
+      renderer.render(scene, camera);
     }
-    const token = `${f.id || ""} ${f.nome || ""} ${f.arvore || ""} ${f.grupo || ""}`.toLowerCase();
-    if (token.includes("kaioken")) return "#EF4444";
-    if (token.includes("rose")) return "#F43F5E";
-    if (token.includes("blue")) return "#0EA5E9";
-    if (token.includes("ego") || token.includes("hakaishin")) return "#A855F7";
-    if (token.includes("instinct") || token.includes("silver") || token.includes("true")) return "#E2E8F0";
-    if (token.includes("god") || token.includes("divine")) return "#FB923C";
-    if (token.includes("golden") || token.includes("gold") || token.includes("super")) return "#EAB308";
-    if (token.includes("orange")) return "#F97316";
-    if (token.includes("black")) return "#4338CA";
-    if (token.includes("ultimate") || token.includes("mystic")) return "#F8FAFC";
-    if (token.includes("visored") || token.includes("hollow")) return "#DC2626";
-    if (token.includes("demon") || token.includes("evil") || token.includes("malice")) return "#8B5CF6";
-    if (token.includes("beast")) return "#C084FC";
-    if (token.includes("ikari")) return "#22C55E";
-    return "#64748B";
-  }
+    animate();
 
-  function resolveHairColor(f) {
-    if (!f || !f.visual || !f.visual.cor_cabelo) return "";
-    let str = String(f.visual.cor_cabelo).trim();
-    if (!str.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(str)) {
-      str = "#" + str;
-    }
-    if (/^#[0-9a-fA-F]{3,8}$/.test(str)) {
-      return str;
-    }
-    return "";
-  }
-
-  const formatNumberPt = (num) => Number(num).toLocaleString(state.language === "en" ? "en-US" : "pt-BR");
-
-  function showToast(msg, isError = false) {
-    const item = document.createElement("div");
-    item.className = isError ? "toast error" : "toast";
-    item.textContent = msg;
-    el("toastContainer").appendChild(item);
-    setTimeout(() => item.remove(), 4200);
-  }
-
-  async function apiGet(path) {
-    const res = await fetch(path, { headers: { Accept: "application/json" } });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `Erro HTTP ${res.status}`);
-    return data;
-  }
-
-  async function apiPost(path, bodyObj = {}) {
-    const res = await fetch(path, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-DMZ-Token": csrfToken },
-      body: JSON.stringify(bodyObj),
+    window.addEventListener("resize", () => {
+      if (!container || !renderer || !camera) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
     });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `Erro HTTP ${res.status}`);
-    return data;
   }
 
-  function applyServerState(data) {
-    state.catalog = data.catalog;
-    if (data.source) state.source = data.source;
-    if (data.language && !localStorage.getItem("kiforge_lang")) {
-      state.language = data.language;
-    }
-    state.needsSetup = Boolean(data.needs_setup);
-    state.dirty = Boolean(data.dirty);
-    state.canUndo = Boolean(data.can_undo);
-    state.canRedo = Boolean(data.can_redo);
-    if (typeof data.modpack_available === "boolean") state.modpackAvailable = data.modpack_available;
-    if ("dmz_config_dir" in data) state.dmzConfigDir = data.dmz_config_dir || "";
-    if ("desktop_json" in data) state.desktopJson = data.desktop_json || "";
-    if ("default_dmz_config_dir" in data) state.defaultDmzConfigDir = data.default_dmz_config_dir || "";
-    state.inspectorDirty = false;
+  // Constrói o Rig Humanóide estilo Minecraft Steve
+  function buildMinecraftCharacterRig() {
+    const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.7 });
+    const clothesMaterial = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.6 }); // Gi Laranja
+    const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.6 }); // Calça Azul
 
-    populateAddonFilterOptions();
-    renderHeader();
-    renderSidebar();
-    renderTreeChips();
-    rebuildAndRenderTable();
-    refreshInspectorFromSelection();
+    // Tronco (Torso)
+    const torsoGeo = new THREE.BoxGeometry(0.5, 0.75, 0.25);
+    const torso = new THREE.Mesh(torsoGeo, clothesMaterial);
+    torso.position.set(0, 0.95, 0);
+    scene.add(torso);
+    characterRig.torso = torso;
+
+    // Cabeça (Head)
+    const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    const head = new THREE.Mesh(headGeo, skinMaterial);
+    head.position.set(0, 0.625, 0);
+    torso.add(head);
+    characterRig.head = head;
+
+    // Braços (Arms)
+    const armGeo = new THREE.BoxGeometry(0.25, 0.75, 0.25);
+    const leftArm = new THREE.Mesh(armGeo, skinMaterial);
+    leftArm.position.set(0.375, 0, 0);
+    torso.add(leftArm);
+    characterRig.leftArm = leftArm;
+
+    const rightArm = new THREE.Mesh(armGeo, skinMaterial);
+    rightArm.position.set(-0.375, 0, 0);
+    torso.add(rightArm);
+    characterRig.rightArm = rightArm;
+
+    // Pernas (Legs)
+    const legGeo = new THREE.BoxGeometry(0.25, 0.75, 0.25);
+    const leftLeg = new THREE.Mesh(legGeo, pantsMaterial);
+    leftLeg.position.set(0.125, 0.375, 0);
+    scene.add(leftLeg);
+    characterRig.leftLeg = leftLeg;
+
+    const rightLeg = new THREE.Mesh(legGeo, pantsMaterial);
+    rightLeg.position.set(-0.125, 0.375, 0);
+    scene.add(rightLeg);
+    characterRig.rightLeg = rightLeg;
+
+    // Grupo de Cabelo (preso à cabeça)
+    hairMeshGroup = new THREE.Group();
+    head.add(hairMeshGroup);
+
+    // Grupo do Manto de Ki (Kurama Cloak)
+    cloakMeshGroup = new THREE.Group();
+    cloakMeshGroup.visible = false;
+    torso.add(cloakMeshGroup);
+
+    buildCloakShell();
+    updateHairModel("ssj2", "#FFE690", 1.05);
   }
 
-  function populateAddonFilterOptions() {
-    const select = el("addonFilterSelect");
-    if (!select || !state.catalog) return;
-    const curVal = select.value;
-    const addons = new Set();
-    
-    // Scan all forms in catalog to gather addons
-    Object.values(state.catalog.racas || {}).forEach((r) => {
-      Object.values(r.arvores_de_transformacao || {}).forEach((t) => {
-        (t.formas || []).forEach((f) => {
-          if (f.addon_origem) addons.add(f.addon_origem);
-        });
-      });
-    });
-    Object.values(state.catalog.formas_universais_e_stack || {}).forEach((g) => {
-      (g.formas || []).forEach((f) => {
-        if (f.addon_origem) addons.add(f.addon_origem);
-      });
+  // Gera o Manto de Ki Translúcido colado ao corpo
+  function buildCloakShell() {
+    const cloakMat = new THREE.MeshStandardMaterial({
+      color: 0xff3300,
+      emissive: 0xff6600,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.75,
+      roughness: 0.3
     });
 
-    select.innerHTML = `<option value="all">${t("addon_all")}</option>`;
-    Array.from(addons).sort().forEach((addName) => {
-      const opt = document.createElement("option");
-      opt.value = addName;
-      opt.textContent = addName;
-      select.appendChild(opt);
-    });
-    if (Array.from(addons).includes(curVal)) {
-      select.value = curVal;
-    }
+    const bodyShell = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.82, 0.32), cloakMat);
+    cloakMeshGroup.add(bodyShell);
+
+    const headShell = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.56, 0.56), cloakMat);
+    headShell.position.set(0, 0.625, 0);
+    cloakMeshGroup.add(headShell);
   }
 
-  function renderHeader() {
-    const cat = state.catalog;
-    if (!cat) return;
+  // Gera Geometrias Procedurais de Cabelo Dragon Ball
+  function updateHairModel(style, hexColor, scale = 1.05) {
+    if (!hairMeshGroup) return;
+    hairMeshGroup.clear();
 
-    const pill = el("statusSourcePill");
-    if (state.source === "modpack") {
-      pill.className = "status-pill modpack";
-      pill.textContent = t("modpack_connected");
-    } else if (state.source === "json") {
-      pill.className = "status-pill json";
-      pill.textContent = t("json_mode");
+    const colorVal = parseInt(hexColor.replace("#", ""), 16) || 0xffe690;
+    const hairMat = new THREE.MeshStandardMaterial({
+      color: colorVal,
+      roughness: 0.4,
+      emissive: colorVal,
+      emissiveIntensity: 0.25
+    });
+
+    if (style === "bald") return;
+
+    if (style === "ssj1" || style === "ssj2") {
+      const spikeGeo = new THREE.ConeGeometry(0.12 * scale, 0.45 * scale, 4);
+      // Espigões voltados para cima
+      const s1 = new THREE.Mesh(spikeGeo, hairMat);
+      s1.position.set(0, 0.4, -0.05);
+      s1.rotation.x = -0.3;
+      hairMeshGroup.add(s1);
+
+      const s2 = new THREE.Mesh(spikeGeo, hairMat);
+      s2.position.set(0.18, 0.35, 0.05);
+      s2.rotation.z = -0.4;
+      hairMeshGroup.add(s2);
+
+      const s3 = new THREE.Mesh(spikeGeo, hairMat);
+      s3.position.set(-0.18, 0.35, 0.05);
+      s3.rotation.z = 0.4;
+      hairMeshGroup.add(s3);
+
+      if (style === "ssj2") {
+        // Mecha pontuda na testa característica de SSJ2
+        const bang = new THREE.Mesh(new THREE.ConeGeometry(0.08 * scale, 0.35 * scale, 4), hairMat);
+        bang.position.set(-0.08, 0.1, 0.28);
+        bang.rotation.x = 2.4;
+        hairMeshGroup.add(bang);
+      }
+    } else if (style === "ssj3") {
+      // Juba Longa até as costas
+      for (let i = 0; i < 7; i++) {
+        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.8 * scale, 4), hairMat);
+        spike.position.set((i % 3 - 1) * 0.15, 0.3 - (i * 0.1), -0.28);
+        spike.rotation.x = -0.6;
+        hairMeshGroup.add(spike);
+      }
+    } else if (style === "beast") {
+      // Espigão Gigante do Beast
+      const giant = new THREE.Mesh(new THREE.ConeGeometry(0.18 * scale, 0.95 * scale, 4), hairMat);
+      giant.position.set(0, 0.65, -0.1);
+      giant.rotation.x = -0.25;
+      hairMeshGroup.add(giant);
     } else {
-      pill.className = "status-pill dirty";
-      pill.textContent = t("select_path");
+      // Base / Cabelo Padrão
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.2, 0.54), hairMat);
+      cap.position.set(0, 0.26, 0);
+      hairMeshGroup.add(cap);
     }
+  }
 
-    let univCount = 0;
-    Object.values(cat.formas_universais_e_stack || {}).forEach((g) => {
-      univCount += (g.formas || []).length;
+  // Efeitos de Raios (Sparks) e Aura
+  function buildAuraAndEffects() {
+    // Raios Elétricos
+    sparksGroup = new THREE.Group();
+    scene.add(sparksGroup);
+
+    // Cilindro da Aura
+    const auraGeo = new THREE.CylinderGeometry(0.7, 0.9, 1.8, 16, 1, true);
+    const auraMat = new THREE.MeshBasicMaterial({
+      color: 0xffcc00,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide
     });
+    auraMesh = new THREE.Mesh(auraGeo, auraMat);
+    auraMesh.position.set(0, 0.9, 0);
+    scene.add(auraMesh);
+  }
 
-    const isEn = state.language === "en";
-    el("statusCounts").textContent = isEn
-      ? `${cat.total_racas || 0} races · ${cat.total_transformacoes || 0} race forms · ${univCount} universal`
-      : `${cat.total_racas || 0} raças · ${cat.total_transformacoes || 0} formas de raça · ${univCount} universais`;
+  function updateSparksGeometry() {
+    if (!sparksGroup) return;
+    sparksGroup.clear();
 
-    const pInfo = el("statusPathInfo");
-    if (pInfo) {
-      if (state.dmzConfigDir) {
-        const parts = state.dmzConfigDir.replace(/\\/g, "/").split("/");
-        pInfo.textContent = parts.slice(-3).join("/");
-        pInfo.title = state.dmzConfigDir;
-      } else if (state.desktopJson) {
-        pInfo.textContent = state.desktopJson.replace(/\\/g, "/").split("/").pop();
-        pInfo.title = state.desktopJson;
-      } else {
-        pInfo.textContent = "";
+    const colorHex = document.getElementById("inpSparksColor")?.value || "#44AAFF";
+    const colorVal = parseInt(colorHex.replace("#", ""), 16) || 0x44aaff;
+    const lineMat = new THREE.LineBasicMaterial({ color: colorVal, linewidth: 2 });
+
+    for (let i = 0; i < 4; i++) {
+      const points = [];
+      let startX = (Math.random() - 0.5) * 0.8;
+      let startY = 0.5 + Math.random() * 1.2;
+      let startZ = (Math.random() - 0.5) * 0.8;
+      points.push(new THREE.Vector3(startX, startY, startZ));
+
+      for (let j = 0; j < 3; j++) {
+        startX += (Math.random() - 0.5) * 0.3;
+        startY += (Math.random() - 0.5) * 0.3;
+        startZ += (Math.random() - 0.5) * 0.3;
+        points.push(new THREE.Vector3(startX, startY, startZ));
       }
-    }
 
-    const dirtyPill = el("statusDirtyPill");
-    dirtyPill.style.display = state.dirty ? "inline-block" : "none";
-    dirtyPill.textContent = t("unsaved_changes");
-
-    el("btnUndo").disabled = !state.canUndo;
-    el("btnRedo").disabled = !state.canRedo;
-    el("btnApplyModpack").disabled = !state.modpackAvailable;
-
-    el("btnUndo").title = state.canUndo
-      ? (isEn ? "Undo last change (Ctrl+Z)" : "Desfazer última alteração (Ctrl+Z)")
-      : (isEn ? "Undo (Ctrl+Z) - Available after making changes" : "Desfazer (Ctrl+Z) - Disponível após modificar uma forma");
-    el("btnRedo").title = state.canRedo
-      ? (isEn ? "Redo last change (Ctrl+Y)" : "Refazer alteração (Ctrl+Y)")
-      : (isEn ? "Redo (Ctrl+Y)" : "Refazer (Ctrl+Y)");
-
-    const langBtn = el("btnLangToggle");
-    if (langBtn) {
-      langBtn.textContent = state.language === "en" ? "🌐 EN" : "🌐 PT";
+      const geo = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(geo, lineMat);
+      sparksGroup.add(line);
     }
   }
 
-  function renderSidebar() {
-    const nav = el("navList");
-    nav.innerHTML = "";
-    const cat = state.catalog;
-    if (!cat) return;
+  // =========================================================================
+  // SIMULAÇÃO DE DRENO EM TEMPO REAL (BOTÃO DE PLAY VERDE)
+  // =========================================================================
+  function initSimulationController() {
+    const playBtn = document.getElementById("btnPlaySimulation");
+    if (!playBtn) return;
 
-    const addNavItem = (scopeKey, label, count) => {
-      const item = document.createElement("div");
-      item.className = "nav-item" + (state.navScope === scopeKey ? " active" : "");
-      item.innerHTML = `<span>${escapeHtml(label)}</span><span class="count">${count}</span>`;
-      item.addEventListener("click", () => {
-        state.navScope = scopeKey;
-        state.selectedTree = "all";
-        renderSidebar();
-        renderTreeChips();
-        rebuildAndRenderTable();
-      });
-      nav.appendChild(item);
-    };
-
-    let univCount = 0;
-    Object.values(cat.formas_universais_e_stack || {}).forEach((g) => {
-      univCount += (g.formas || []).length;
-    });
-
-    addNavItem("all_races", t("all_races_label"), cat.total_transformacoes || 0);
-    addNavItem("universal", t("universal_forms_label"), univCount);
-
-    const secRacas = document.createElement("div");
-    secRacas.className = "nav-section-label";
-    secRacas.textContent = state.language === "en" ? "Playable Races" : "Raças Jogáveis";
-    nav.appendChild(secRacas);
-
-    const q = state.raceFilterText.trim().toLowerCase();
-    const races = Object.values(cat.racas || {}).sort((a, b) =>
-      String(a.nome_exibicao).localeCompare(String(b.nome_exibicao))
-    );
-
-    races.forEach((r) => {
-      const hay = `${r.id_raca} ${r.nome_exibicao}`.toLowerCase();
-      if (q && !hay.includes(q)) return;
-      addNavItem(`race:${r.id_raca}`, r.nome_exibicao, r.total_formas || 0);
+    playBtn.addEventListener("click", () => {
+      toggleSimulation();
     });
   }
 
-  function renderTreeChips() {
-    const bar = el("treeChipBar");
-    bar.innerHTML = "";
-    const cat = state.catalog;
-    if (!cat) return;
+  function toggleSimulation() {
+    const sim = state.simulation;
+    const playBtn = document.getElementById("btnPlaySimulation");
+    const playIcon = document.getElementById("simPlayIcon");
 
-    const trees = [];
-    if (state.navScope === "universal") {
-      Object.keys(cat.formas_universais_e_stack || {}).forEach((g) => trees.push(g));
-    } else if (state.navScope.startsWith("race:")) {
-      const rKey = state.navScope.slice(5);
-      const rObj = (cat.racas || {})[rKey];
-      if (rObj) {
-        Object.keys(rObj.arvores_de_transformacao || {}).forEach((t) => trees.push(t));
-      }
-    }
-
-    if (trees.length === 0) return;
-
-    const makeChip = (val, label) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "chip" + (state.selectedTree === val ? " active" : "");
-      btn.textContent = label;
-      btn.addEventListener("click", () => {
-        state.selectedTree = val;
-        renderTreeChips();
-        rebuildAndRenderTable();
-      });
-      bar.appendChild(btn);
-    };
-
-    makeChip("all", state.language === "en" ? "All Trees" : "Todas as Árvores");
-    trees.forEach((tree) => makeChip(tree, tree));
-  }
-
-  function collectFilteredRows() {
-    const cat = state.catalog;
-    if (!cat) return [];
-    const rows = [];
-
-    if (state.navScope === "universal") {
-      Object.entries(cat.formas_universais_e_stack || {}).forEach(([gKey, gObj]) => {
-        if (state.selectedTree !== "all" && state.selectedTree !== gKey) return;
-        (gObj.formas || []).forEach((form) => {
-          rows.push({
-            key: `universal:${gKey}:${form.id}`,
-            escopo: "universal",
-            raca: "",
-            racaNome: state.language === "en" ? "Universal / Stack" : "Universal / Stack",
-            arvore: gKey,
-            form,
-          });
-        });
-      });
+    if (sim.running) {
+      // Pausar
+      sim.running = false;
+      clearInterval(sim.intervalId);
+      if (playBtn) playBtn.classList.remove("active");
+      if (playIcon) playIcon.textContent = "▶";
+      updateAutonomyDisplay();
     } else {
-      const targetRace = state.navScope.startsWith("race:")
-        ? state.navScope.slice(5)
-        : null;
-      Object.entries(cat.racas || {}).forEach(([rKey, rObj]) => {
-        if (targetRace && rKey !== targetRace) return;
-        Object.entries(rObj.arvores_de_transformacao || {}).forEach(([tKey, tObj]) => {
-          if (targetRace && state.selectedTree !== "all" && state.selectedTree !== tKey) {
-            return;
-          }
-          (tObj.formas || []).forEach((form) => {
-            rows.push({
-              key: `raca:${rKey}:${tKey}:${form.id}`,
-              escopo: "raca",
-              raca: rKey,
-              racaNome: rObj.nome_exibicao || rKey,
-              arvore: tKey,
-              form,
-            });
-          });
-        });
-      });
+      // Iniciar Simulação
+      sim.running = true;
+      if (playBtn) playBtn.classList.add("active");
+      if (playIcon) playIcon.textContent = "⏸";
+
+      // Pega os drenos configurados no formulário
+      sim.kiDrain = parseFloat(document.getElementById("inpDrainKi")?.value) || 0;
+      sim.stmDrain = parseFloat(document.getElementById("inpDrainStm")?.value) || 0;
+      sim.hpDrain = parseFloat(document.getElementById("inpDrainHp")?.value) || 0;
+
+      // Executa tick a cada 100ms
+      sim.intervalId = setInterval(() => {
+        // Reduz Ki e Stamina proporcional ao tick de 0.1s
+        sim.currentKi = Math.max(0, sim.currentKi - (sim.kiDrain * 0.1));
+        sim.currentStm = Math.max(0, sim.currentStm - (sim.stmDrain * 0.1));
+        if (sim.hpDrain > 0) {
+          sim.currentHp = Math.max(0, sim.currentHp - (sim.hpDrain * 0.1));
+        }
+
+        updateBarsDisplay();
+        updateAutonomyDisplay();
+
+        // Se Ki ou Stamina esgotarem, pausa automaticamente
+        if (sim.currentKi <= 0 || sim.currentStm <= 0) {
+          toggleSimulation();
+          showToast(currentLang === "pt" ? "⚠️ Ki/Stamina esgotados! Forma cancelada por exaustão." : "⚠️ Ki/Stamina depleted! Form cancelled due to exhaustion.", "error");
+        }
+      }, 100);
+    }
+  }
+
+  function updateBarsDisplay() {
+    const sim = state.simulation;
+    const kiPct = Math.max(0, Math.min(100, (sim.currentKi / sim.maxKi) * 100));
+    const stmPct = Math.max(0, Math.min(100, (sim.currentStm / sim.maxStm) * 100));
+    const hpPct = Math.max(0, Math.min(100, (sim.currentHp / sim.maxHp) * 100));
+
+    const barKi = document.getElementById("barKiFill");
+    const barStm = document.getElementById("barStmFill");
+    const barHp = document.getElementById("barHpFill");
+
+    if (barKi) barKi.style.width = `${kiPct}%`;
+    if (barStm) barStm.style.width = `${stmPct}%`;
+    if (barHp) barHp.style.width = `${hpPct}%`;
+
+    const textKi = document.getElementById("barKiText");
+    const textStm = document.getElementById("barStmText");
+    const textHp = document.getElementById("barHpText");
+
+    if (textKi) textKi.textContent = `${Math.round(sim.currentKi)} / ${sim.maxKi}`;
+    if (textStm) textStm.textContent = `${Math.round(sim.currentStm)} / ${sim.maxStm}`;
+    if (textHp) textHp.textContent = `${Math.round(hpPct)}%`;
+  }
+
+  function updateAutonomyDisplay() {
+    const sim = state.simulation;
+    const autonomyElem = document.getElementById("simAutonomyText");
+    const ratesElem = document.getElementById("simDrainRates");
+
+    if (ratesElem) {
+      ratesElem.textContent = `Ki: -${sim.kiDrain}/s · STM: -${sim.stmDrain}/s`;
     }
 
-    const q = state.searchText.trim().toLowerCase();
-    const qf = state.quickFilter;
-    const af = state.addonFilter;
-
-    const filtered = rows.filter((item) => {
-      const f = item.form;
-      const tp = f.custo_tp_numerico;
-      if (qf === "tp_paid" && !(tp > 0)) return false;
-      if (qf === "priceless" && !(tp < 0)) return false;
-      if (qf === "free" && tp !== 0) return false;
-      if (qf === "has_saga" && !(f.requisitos && f.requisitos.saga)) return false;
-      if (qf === "master_only" && !f.comprar_no_mestre) return false;
-
-      if (af !== "all") {
-        if ((f.addon_origem || "") !== af) return false;
+    if (!sim.running || (sim.kiDrain <= 0 && sim.stmDrain <= 0)) {
+      if (autonomyElem) {
+        autonomyElem.textContent = currentLang === "pt" ? "Autonomia Estimada: ~∞ (Dreno Inativo)" : "Estimated Autonomy: ~∞ (Drain Inactive)";
       }
-
-      if (q) {
-        const saga = (f.requisitos && f.requisitos.saga) || "";
-        const addon = f.addon_origem || "";
-        const tpLabel = tp < 0 ? "priceless shenron wish desejo" : String(tp);
-        const hay = `${f.nome} ${f.id} ${item.racaNome} ${item.raca} ${item.arvore} ${f.tipo_habilidade} ${saga} ${addon} ${tpLabel}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-
-    if (state.sortBy === "tp_desc") filtered.sort((a, b) => b.form.custo_tp_numerico - a.form.custo_tp_numerico);
-    else if (state.sortBy === "tp_asc") filtered.sort((a, b) => a.form.custo_tp_numerico - b.form.custo_tp_numerico);
-    else if (state.sortBy === "bp_desc") filtered.sort((a, b) => b.form.multiplicador_numerico_base - a.form.multiplicador_numerico_base);
-    else if (state.sortBy === "bp_asc") filtered.sort((a, b) => a.form.multiplicador_numerico_base - b.form.multiplicador_numerico_base);
-    else if (state.sortBy === "name_asc") filtered.sort((a, b) => String(a.form.nome).localeCompare(String(b.form.nome)));
-    return filtered;
-  }
-
-  function renderTpBadgeHtml(tpNum) {
-    const isEn = state.language === "en";
-    if (tpNum < 0) return `<span class="badge badge-priceless">${isEn ? "Priceless / Wish" : "Priceless / Desejo"}</span>`;
-    if (tpNum === 0) return `<span class="badge badge-free">${isEn ? "Free (0 TP)" : "Gratuito (0 TP)"}</span>`;
-    return `<span class="badge badge-tp">${formatNumberPt(tpNum)} TP</span>`;
-  }
-
-  function rebuildAndRenderTable() {
-    state.flatRows = collectFilteredRows();
-    const count = state.flatRows.length;
-    el("resultsLabel").textContent = state.language === "en"
-      ? `Displaying ${count} transformations`
-      : `Exibindo ${count} transformações`;
-
-    const tbody = el("formsTableBody");
-    const htmlParts = state.flatRows.map((row) => {
-      const f = row.form;
-      const aura = resolveAuraDotColor(f);
-      const hair = resolveHairColor(f);
-      const isSel = row.key === state.selectedKey ? " selected" : "";
-      const drains = f.drenos || {};
-      const drainParts = [];
-      if (drains.energia_ki) drainParts.push(`Ki ${drains.energia_ki}`);
-      if (drains.estamina) drainParts.push(`Stm ${drains.estamina}`);
-      if (drains.vida) drainParts.push(`HP ${drains.vida}`);
-      const drainTxt = drainParts.length ? drainParts.join(" · ") : "0";
-
-      const mults = f.multiplicadores_detalhados || {};
-      const strM = mults.forca_str ?? f.multiplicador_numerico_base ?? 1.0;
-      const pwrM = mults.poder_ki_pwr ?? strM;
-      const defM = mults.defesa_def ?? strM;
-      const spdM = mults.velocidade_spd ?? 1.0;
-
-      const flags = [];
-      if (f.comprar_no_mestre) {
-        const mName = f.mestre_nome || f.mestre || (state.language === "en" ? "Master" : "Mestre");
-        flags.push(`<span class="badge badge-master" title="Mestre: ${escapeHtml(mName)}">🥋 ${escapeHtml(mName)}</span>`);
-      }
-      if (f.requisitos && f.requisitos.saga) flags.push(`<span class="badge badge-saga">${escapeHtml(f.requisitos.saga)}</span>`);
-      if (f.requisitos && f.requisitos.forma_previa) flags.push(`<span class="badge badge-req">Req: ${escapeHtml(f.requisitos.forma_previa)}</span>`);
-      if (drains.acumulavel) flags.push(`<span class="badge badge-stack">Stack</span>`);
-
-      const addonHtml = f.addon_origem
-        ? `<span class="badge badge-addon" style="margin-left:6px;">${escapeHtml(f.addon_origem)}</span>`
-        : "";
-
-      const hairDotHtml = hair ? `<span class="hair-dot" style="background:${hair}; box-shadow:0 0 4px ${hair};" title="Cabelo: ${hair}"></span>` : "";
-      const auraBadgeHtml = (f.visual && f.visual.cor_aura)
-        ? `<span class="aura-hex-badge" style="background:${aura}18; color:${aura}; border:1px solid ${aura}55;">${aura}</span>`
-        : "";
-      const tNum = f.categoria_poder || 1;
-      const tierBadgeHtml = `<span class="tier-badge tier-${tNum}" title="${escapeHtml(f.tier_label || 'Tier ' + tNum)} (Poder Base: ${f.poder_base_original || (strM * 4).toFixed(1)}x)">T${tNum}</span>`;
-
-      return `
-        <tr class="form-row${isSel}" data-key="${escapeHtml(row.key)}">
-          <td>
-            <div class="form-title-cell">
-              <div class="aura-orb-wrapper" title="Aura: ${aura}${hair ? ` | Cabelo: ${hair}` : ''}">
-                <div class="aura-orb" style="background: radial-gradient(circle at 35% 30%, #ffffff 0%, ${aura} 60%, rgba(0,0,0,0.7) 100%); box-shadow: 0 0 10px ${aura}, inset 0 0 3px rgba(255,255,255,0.75);"></div>
-                ${hairDotHtml}
-              </div>
-              <div>
-                <div class="form-name-text">
-                  <span>${escapeHtml(f.nome)}</span>
-                  ${tierBadgeHtml}
-                  ${auraBadgeHtml}
-                  ${addonHtml}
-                </div>
-                <div class="form-id-text">${escapeHtml(f.id)} · Slot ${f.nivel_habilidade}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div style="font-weight:600;">${escapeHtml(row.racaNome)}</div>
-            <div class="preset-id-hint">${escapeHtml(row.arvore)}</div>
-          </td>
-          <td>${renderTpBadgeHtml(f.custo_tp_numerico)}</td>
-          <td>
-            <div style="font-family:var(--font-mono); font-weight:700; color:#38BDF8;">${escapeHtml(f.multiplicador_bp || `${strM}x`)}</div>
-            <div style="font-size:10px; color:var(--text-muted);">STR ${strM}x · PWR ${pwrM}x · DEF ${defM}x · SPD ${spdM}x</div>
-          </td>
-          <td style="font-family:var(--font-mono); font-size:11px; color:#FCD34D;">${escapeHtml(drainTxt)}</td>
-          <td><div class="flags-cell">${flags.join("") || '<span style="color:var(--text-muted); font-size:11px;">—</span>'}</div></td>
-        </tr>
-      `;
-    });
-
-    tbody.innerHTML = htmlParts.join("");
-
-    tbody.querySelectorAll(".form-row").forEach((tr) => {
-      tr.addEventListener("click", () => {
-        const k = tr.getAttribute("data-key");
-        selectFormRow(k);
-      });
-    });
-  }
-
-  function selectFormRow(key) {
-    state.selectedKey = key;
-    el("formsTableBody").querySelectorAll(".form-row").forEach((tr) => {
-      if (tr.getAttribute("data-key") === key) tr.classList.add("selected");
-      else tr.classList.remove("selected");
-    });
-    refreshInspectorFromSelection();
-    const inspBody = el("inspectorBody");
-    if (inspBody) inspBody.scrollTop = 0;
-  }
-
-  function findSelectedRow() {
-    if (!state.selectedKey) return null;
-    return state.flatRows.find((r) => r.key === state.selectedKey) || null;
-  }
-
-  function refreshInspectorFromSelection() {
-    const sel = findSelectedRow();
-    const emptyBox = el("inspectorEmpty");
-    const contentBox = el("inspectorContent");
-    if (!sel) {
-      emptyBox.style.display = "flex";
-      contentBox.style.display = "none";
       return;
     }
 
-    emptyBox.style.display = "none";
-    contentBox.style.display = "flex";
+    const kiSeconds = sim.kiDrain > 0 ? sim.currentKi / sim.kiDrain : 999999;
+    const stmSeconds = sim.stmDrain > 0 ? sim.currentStm / sim.stmDrain : 999999;
+    const minSec = Math.min(kiSeconds, stmSeconds);
 
-    const f = sel.form;
-    el("inspTitle").textContent = f.nome;
-    el("inspSub").textContent = `${sel.racaNome} · ${sel.arvore} · ${f.id}`;
-    
-    const badgeAddon = el("inspAddonBadge");
-    if (badgeAddon) {
-      badgeAddon.textContent = f.addon_origem || "Core";
-    }
-
-    const tNum = f.categoria_poder || 1;
-    const badgeTier = el("inspTierBadge");
-    if (badgeTier) {
-      badgeTier.className = `tier-badge tier-${tNum}`;
-      badgeTier.textContent = `T${tNum}`;
-      badgeTier.title = f.tier_label || `Tier ${tNum}`;
-    }
-    const tierDetail = el("inspTierDetail");
-    if (tierDetail) {
-      tierDetail.className = `tier-badge tier-${tNum}`;
-      tierDetail.textContent = f.tier_label || `Tier ${tNum}`;
-    }
-
-    // Populate Inspector Fields
-    el("inpTp").value = f.custo_tp_numerico;
-    el("inpSkillLvl").value = f.nivel_habilidade;
-    el("chkBuyMaster").checked = Boolean(f.comprar_no_mestre);
-    populateMastersSelect(f.mestre, f.mestre_nome);
-
-    const mults = f.multiplicadores_detalhados || {};
-    el("mult_str").value = mults.forca_str ?? 1.0;
-    el("mult_pwr").value = mults.poder_ki_pwr ?? 1.0;
-    el("mult_def").value = mults.defesa_def ?? 1.0;
-    el("mult_skp").value = mults.golpe_skp ?? 1.0;
-    el("mult_spd").value = mults.velocidade_spd ?? 1.0;
-    el("mult_atk_spd").value = mults.velocidade_ataque ?? 1.0;
-    el("mult_stm").value = mults.estamina_stm ?? 1.0;
-    el("mult_vit").value = mults.vitalidade_vit ?? 1.0;
-    el("mult_ene").value = mults.energia_ene ?? 1.0;
-
-    const dr = f.drenos || {};
-    el("dr_ki").value = dr.energia_ki ?? 0.0;
-    el("dr_stm").value = dr.estamina ?? 0.0;
-    el("dr_hp").value = dr.vida ?? 0.0;
-    el("dr_stm_hit").value = dr.mult_estamina_golpe ?? 1.0;
-    el("dr_stack_mult").value = dr.mult_dreno_stack ?? 2.0;
-    el("chkStackable").checked = Boolean(dr.acumulavel);
-
-    const mst = f.maestria || {};
-    el("mst_max").value = mst.maestria_maxima ?? 100.0;
-    el("mst_instant").value = mst.maestria_transf_instantanea ?? 40.0;
-    el("mst_hit_dealt").value = mst.ganho_golpe_dado ?? 0.025;
-    el("mst_hit_rcv").value = mst.ganho_dano_recebido ?? 0.025;
-    el("mst_passive").value = mst.ganho_passivo_5s ?? 0.01;
-    el("mst_cost_mult").value = mst.mult_custo_maestria_max ?? 0.75;
-    el("mst_stat_mult").value = mst.mult_status_maestria_max ?? 1.0;
-
-    const rq = f.requisitos || {};
-    el("req_dmz_lvl").value = rq.nivel_dmz_minimo ?? 1;
-    el("req_lvl_req").value = rq.nivel_requisito ?? 0;
-    el("req_saga").value = rq.saga || "";
-    populateSagasSelect(rq.saga || "");
-    el("req_prev_form").value = rq.forma_previa || "";
-    populatePrevFormSelect(rq.forma_previa || "");
-
-    const incompats = rq.incompativel_com || [];
-    el("req_incompatible").value = incompats.join(", ");
-    renderIncompatibleTags(incompats);
-    populateIncompatibleSelect();
-
-    const vis = f.visual || {};
-    el("vis_aura").value = vis.cor_aura || "";
-    el("vis_hair").value = vis.cor_cabelo || "";
-    if (vis.cor_aura && vis.cor_aura.startsWith("#") && vis.cor_aura.length === 7) {
-      el("vis_aura_picker").value = vis.cor_aura;
-    }
-    if (vis.cor_cabelo && vis.cor_cabelo.startsWith("#") && vis.cor_cabelo.length === 7) {
-      el("vis_hair_picker").value = vis.cor_cabelo;
-    }
-
-    updateInspectorPreviews();
-    updateAuraLivePreview();
-  }
-
-  function updateInspectorPreviews() {
-    const tpVal = parseInt(el("inpTp").value, 10);
-    const prevTp = el("inspTpPreview");
-    if (tpVal < 0) {
-      prevTp.textContent = state.language === "en" ? "Priceless / Wish" : "Priceless / Desejo";
-      prevTp.className = "badge badge-priceless";
-    } else if (tpVal === 0) {
-      prevTp.textContent = state.language === "en" ? "Free (0 TP)" : "Gratuito (0 TP)";
-      prevTp.className = "badge badge-free";
-    } else {
-      prevTp.textContent = `${formatNumberPt(tpVal || 0)} TP`;
-      prevTp.className = "badge badge-tp";
-    }
-
-    const strM = parseFloat(el("mult_str").value) || 1.0;
-    const pwrM = parseFloat(el("mult_pwr").value) || 1.0;
-    const prevBp = el("inspBpPreview");
-    prevBp.textContent = strM === pwrM ? `${strM}x` : `${strM}x (STR) / ${pwrM}x (PWR)`;
-  }
-
-  function populateSagasSelect(selectedVal) {
-    const sel = el("req_saga_select");
-    if (!sel) return;
-    const sagas = (state.catalog && state.catalog.opcoes_sagas) || [];
-    sel.innerHTML = `<option value="">${t("opt_no_saga")}</option>`;
-
-    let foundExact = false;
-    const cleanSel = (selectedVal || "").trim();
-
-    sagas.forEach((saga) => {
-      const optgroup = document.createElement("optgroup");
-      optgroup.label = saga.nome;
-      (saga.quests || []).forEach((q) => {
-        const opt = document.createElement("option");
-        opt.value = q.valor;
-        const qNumText = q.numero > 0 ? `[#${q.numero}] ` : "";
-        opt.textContent = `${qNumText}${q.titulo} (${q.valor})`;
-        if (cleanSel && q.valor === cleanSel) {
-          opt.selected = true;
-          foundExact = true;
-        }
-        optgroup.appendChild(opt);
-      });
-      if (optgroup.children.length > 0) {
-        sel.appendChild(optgroup);
-      }
-    });
-
-    if (cleanSel && !foundExact) {
-      const customOpt = document.createElement("option");
-      customOpt.value = cleanSel;
-      customOpt.textContent = `Personalizada: ${cleanSel}`;
-      customOpt.selected = true;
-      sel.appendChild(customOpt);
-    }
-
-    if (!cleanSel) {
-      sel.value = "";
+    if (autonomyElem) {
+      autonomyElem.textContent = currentLang === "pt" 
+        ? `Autonomia Restante: ~${Math.round(minSec)}s (${minSec === kiSeconds ? "Ki" : "Stamina"})`
+        : `Remaining Autonomy: ~${Math.round(minSec)}s (${minSec === kiSeconds ? "Ki" : "Stamina"})`;
     }
   }
 
-  function populateMastersSelect(masterId, masterName) {
-    const sel = el("inpMasterSelect");
-    const badge = el("inpMasterBadge");
-    if (!sel) return;
-    const masters = (state.catalog && state.catalog.opcoes_mestres) || [];
-    sel.innerHTML = `<option value="">${t("opt_no_master")}</option>`;
+  // =========================================================================
+  // CARREGAMENTO DO CATÁLOGO & ÁRVORE DE FORMAS
+  // =========================================================================
+  async function loadStudioState() {
+    try {
+      const data = await fetchJson("/api/state");
+      state.catalog = data.catalog || {};
+      state.staging = data.staging || [];
+      state.isDirty = !!data.dirty;
 
-    const curId = (masterId || "").trim();
-    let found = false;
+      updateStatusPills(data);
+      renderRaceAccordion();
+      renderStagingDrawer();
 
-    masters.forEach((m) => {
-      const opt = document.createElement("option");
-      opt.value = m.id;
-      opt.textContent = `${m.nome} (${m.id})`;
-      if (curId && (m.id === curId || m.nome === masterName)) {
-        opt.selected = true;
-        found = true;
-      }
-      sel.appendChild(opt);
-    });
-
-    if (curId && !found) {
-      const opt = document.createElement("option");
-      opt.value = curId;
-      opt.textContent = `${masterName || curId} (${curId})`;
-      opt.selected = true;
-      sel.appendChild(opt);
-    }
-
-    if (badge) {
-      const activeName = masterName || (sel.selectedOptions[0] && sel.selectedOptions[0].textContent) || "—";
-      badge.textContent = curId ? `🥋 ${activeName.split("(")[0].trim()}` : "—";
-    }
-
-    sel.disabled = !el("chkBuyMaster").checked;
-  }
-
-  function updateAuraLivePreview() {
-    const auraInp = el("vis_aura");
-    const hairInp = el("vis_hair");
-    let auraHex = (auraInp && auraInp.value.trim()) || "";
-    let hairHex = (hairInp && hairInp.value.trim()) || "";
-
-    if (auraHex && !auraHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(auraHex)) auraHex = "#" + auraHex;
-    if (hairHex && !hairHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(hairHex)) hairHex = "#" + hairHex;
-    if (!auraHex) {
-      const sel = findSelectedRow();
-      auraHex = sel ? resolveAuraDotColor(sel.form) : "#FFD700";
-    }
-    if (!hairHex) hairHex = "#000000";
-
-    const glow = el("auraFlameGlow");
-    const orb = el("auraFlameOrb");
-    const hairDot = el("hairFlameDot");
-    const badgeAura = el("auraHexBadge");
-    const badgeHair = el("hairHexBadge");
-
-    if (glow) glow.style.background = auraHex;
-    if (orb) {
-      orb.style.background = `radial-gradient(circle at 35% 30%, #ffffff 0%, ${auraHex} 60%, rgba(0,0,0,0.7) 100%)`;
-      orb.style.boxShadow = `0 0 14px ${auraHex}`;
-    }
-    if (hairDot) hairDot.style.background = hairHex;
-    if (badgeAura) {
-      badgeAura.textContent = `Aura: ${auraHex}`;
-      badgeAura.style.color = auraHex;
-      badgeAura.style.borderColor = auraHex;
-      badgeAura.style.background = `${auraHex}22`;
-    }
-    if (badgeHair) {
-      badgeHair.textContent = `Cabelo: ${hairHex}`;
-      badgeHair.style.borderColor = hairHex;
+      // Seleciona a primeira forma da raça atual caso nada esteja selecionado
+      selectFirstAvailableStage();
+    } catch (err) {
+      console.error("Falha ao carregar estado:", err);
+      showToast("Erro ao conectar com modpack / backend: " + err.message, "error");
     }
   }
 
-  function getAllCatalogForms(excludeId = null) {
-    const list = [];
-    const cat = state.catalog || {};
+  // =========================================================================
+  // ADAPTADOR UNIVERSAL DE ESTRUTURA DO CATÁLOGO (DMZ / PYTHON CORE)
+  // =========================================================================
+  function getRacesMap() {
+    if (!state.catalog) return {};
+    return state.catalog.racas || state.catalog.races || {};
+  }
 
-    // 1. Race forms
-    Object.entries(cat.racas || {}).forEach(([rKey, rObj]) => {
-      const rNome = rObj.nome_exibicao || rKey;
-      Object.entries(rObj.arvores_de_transformacao || {}).forEach(([tKey, tObj]) => {
-        (tObj.formas || []).forEach((form) => {
-          if (excludeId && (form.id === excludeId || `${tKey}.${form.id}` === excludeId)) return;
-          list.push({
-            id: form.id,
-            nome: form.nome || form.id,
-            raca: rKey,
-            racaNome: rNome,
-            arvore: tKey,
-            escopo: "raca",
-            qualifiedId: `${tKey}.${form.id}`,
-            addon: form.addon_origem || "",
+  function getRaceTrees(raceKey) {
+    if (!state.catalog) return {};
+    if (raceKey === "global") {
+      const u = state.catalog.formas_universais_e_stack || {};
+      return u.arvores_de_transformacao || u.forms || {};
+    }
+    const races = getRacesMap();
+    const r = races[raceKey] || {};
+    return r.arvores_de_transformacao || r.forms || {};
+  }
+
+  function getTreeFormsList(treeData) {
+    if (!treeData) return [];
+    if (Array.isArray(treeData.formas)) return treeData.formas;
+    if (Array.isArray(treeData.forms)) return treeData.forms;
+    if (typeof treeData.forms === "object") {
+      return Object.keys(treeData.forms).map((k) => ({ id: k, ...treeData.forms[k] }));
+    }
+    if (typeof treeData.formas === "object") {
+      return Object.keys(treeData.formas).map((k) => ({ id: k, ...treeData.formas[k] }));
+    }
+    return [];
+  }
+
+  function updateStatusPills(data) {
+    const sourcePill = document.getElementById("statusSourcePill");
+    const countsPill = document.getElementById("statusCounts");
+    const dirtyPill = document.getElementById("statusDirtyPill");
+
+    if (sourcePill) {
+      sourcePill.textContent = data.modpack_path ? (currentLang === "pt" ? "Modpack Conectado" : "Modpack Connected") : (currentLang === "pt" ? "Modo Molde JSON" : "Mold JSON Mode");
+    }
+    if (countsPill) {
+      const racesMap = getRacesMap();
+      const numRaces = Object.keys(racesMap).length;
+      let numForms = state.catalog.total_transformacoes || 0;
+      if (!numForms) {
+        Object.keys(racesMap).forEach((rk) => {
+          const trees = getRaceTrees(rk);
+          Object.values(trees).forEach((t) => {
+            numForms += getTreeFormsList(t).length;
           });
         });
-      });
-    });
-
-    // 2. Universal forms
-    Object.entries(cat.formas_universais_e_stack || {}).forEach(([gKey, gObj]) => {
-      (gObj.formas || []).forEach((form) => {
-        if (excludeId && (form.id === excludeId || `${gKey}.${form.id}` === excludeId)) return;
-        list.push({
-          id: form.id,
-          nome: form.nome || form.id,
-          raca: "universal",
-          racaNome: "Universal / Stack",
-          arvore: gKey,
-          escopo: "universal",
-          qualifiedId: `${gKey}.${form.id}`,
-          addon: form.addon_origem || "",
-        });
-      });
-    });
-
-    return list;
-  }
-
-  function populatePrevFormSelect(selectedVal) {
-    const sel = el("req_prev_form_select");
-    if (!sel) return;
-    const curRow = findSelectedRow();
-    const curTree = curRow ? curRow.arvore : "";
-    const curRace = curRow ? curRow.raca : "";
-    const curId = curRow ? curRow.form.id : "";
-
-    sel.innerHTML = `<option value="">${state.language === "en" ? "— No prior form required —" : "— Nenhuma forma prévia exigida —"}</option>`;
-
-    const allForms = getAllCatalogForms(curId);
-    const cleanSel = (selectedVal || "").trim();
-    let foundExact = false;
-
-    const sameTree = [];
-    const sameRaceOtherTrees = [];
-    const universalForms = [];
-    const otherForms = [];
-
-    allForms.forEach((f) => {
-      if (curRow && curRow.escopo === "raca") {
-        if (f.raca === curRace && f.arvore === curTree) sameTree.push(f);
-        else if (f.raca === curRace) sameRaceOtherTrees.push(f);
-        else if (f.escopo === "universal") universalForms.push(f);
-        else otherForms.push(f);
-      } else {
-        if (f.escopo === "universal" && f.arvore === curTree) sameTree.push(f);
-        else if (f.escopo === "universal") universalForms.push(f);
-        else otherForms.push(f);
       }
+      countsPill.textContent = currentLang === "pt" ? `${numRaces} raças · ${numForms} transformações` : `${numRaces} races · ${numForms} transformations`;
+    }
+    if (dirtyPill) {
+      dirtyPill.style.display = state.isDirty ? "inline-block" : "none";
+    }
+  }
+
+  // Renderiza a Árvore de Transformações em Acordeão na Coluna 1
+  function renderRaceAccordion() {
+    const container = document.getElementById("raceAccordion");
+    if (!container) return;
+
+    const raceKey = state.selectedRace;
+    const trees = getRaceTrees(raceKey);
+    const treeKeys = Object.keys(trees);
+
+    const titleElem = document.getElementById("currentRaceTreeTitle");
+    if (titleElem) {
+      const raceName = raceKey.replace(/_/g, " ").toUpperCase();
+      titleElem.textContent = `${currentLang === "pt" ? "ÁRVORE DA RAÇA" : "RACE TREE"} (${raceName})`;
+    }
+
+    const statsElem = document.getElementById("treeStatsInfo");
+    if (statsElem) {
+      statsElem.textContent = `${treeKeys.length} ${currentLang === "pt" ? "grupos" : "groups"}`;
+    }
+
+    let totalForms = 0;
+    treeKeys.forEach((k) => {
+      totalForms += getTreeFormsList(trees[k]).length;
     });
 
-    const addGroup = (label, list) => {
-      if (!list || list.length === 0) return;
-      const grp = document.createElement("optgroup");
-      grp.label = label;
-      list.forEach((f) => {
-        const opt = document.createElement("option");
-        opt.value = f.qualifiedId;
-        opt.textContent = `${f.nome} (${f.qualifiedId})`;
-        if (cleanSel && (f.qualifiedId === cleanSel || f.id === cleanSel)) {
-          opt.selected = true;
-          foundExact = true;
-        }
-        grp.appendChild(opt);
-      });
-      sel.appendChild(grp);
-    };
+    const badgeElem = document.getElementById("raceFormsCountBadge");
+    if (badgeElem) badgeElem.textContent = `${totalForms} ${currentLang === "pt" ? "formas" : "forms"}`;
 
-    const isEn = state.language === "en";
-    addGroup(isEn ? `⚡ Same Tree (${curTree})` : `⚡ Mesma Árvore (${curTree})`, sameTree);
-    addGroup(isEn ? `🧬 Other Trees of Race (${curRow ? curRow.racaNome : ""})` : `🧬 Outras Árvores da Raça (${curRow ? curRow.racaNome : ""})`, sameRaceOtherTrees);
-    addGroup(isEn ? "🌌 Universal & Stack Forms" : "🌌 Formas Universais & Stack", universalForms);
-    addGroup(isEn ? "🌐 Other Races" : "🌐 Outras Raças", otherForms);
-
-    if (cleanSel && !foundExact) {
-      const customOpt = document.createElement("option");
-      customOpt.value = cleanSel;
-      customOpt.textContent = `Personalizada: ${cleanSel}`;
-      customOpt.selected = true;
-      sel.appendChild(customOpt);
+    if (treeKeys.length === 0) {
+      container.innerHTML = `<div class="accordion-loading"><span>${currentLang === "pt" ? "Nenhum grupo de transformação nesta raça." : "No transformation groups in this race."}</span></div>`;
+      return;
     }
 
-    if (!cleanSel) {
-      sel.value = "";
-    }
-  }
-
-  function getIncompatibleList() {
-    const raw = (el("req_incompatible") ? el("req_incompatible").value : "") || "";
-    return raw
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-
-  function setIncompatibleList(list) {
-    const unique = Array.from(new Set(list));
-    if (el("req_incompatible")) {
-      el("req_incompatible").value = unique.join(", ");
-    }
-    renderIncompatibleTags(unique);
-  }
-
-  function renderIncompatibleTags(list) {
-    const container = el("incompatibleTagsContainer");
-    const countBadge = el("incompatibleCountBadge");
-    if (!container) return;
     container.innerHTML = "";
 
-    const items = list || [];
-    if (countBadge) {
-      countBadge.textContent = state.language === "en"
-        ? `${items.length} incompatible`
-        : `${items.length} incompatíveis`;
-    }
+    treeKeys.forEach((groupKey) => {
+      const treeData = trees[groupKey];
+      const formsList = getTreeFormsList(treeData);
+      const isExpanded = state.expandedGroups.has(groupKey);
 
-    if (items.length === 0) {
-      container.innerHTML = `<span style="font-size:11px; color:var(--text-muted); font-style:italic;">${state.language === "en" ? "No mutual block configured (stacks freely)." : "Nenhum bloqueio mútuo configurado (pode acumular livremente)."}</span>`;
-      return;
-    }
-
-    const allForms = getAllCatalogForms();
-    const formMap = new Map();
-    allForms.forEach((f) => {
-      formMap.set(f.qualifiedId, f.nome);
-      formMap.set(f.id, f.nome);
-    });
-
-    items.forEach((id) => {
-      const friendlyName = formMap.get(id) || id;
-      const tag = document.createElement("span");
-      tag.className = "incompat-tag";
-      tag.innerHTML = `
-        <span class="incompat-tag-text">🚫 <strong>${escapeHtml(friendlyName)}</strong> <span style="font-family:var(--font-mono); font-size:9.5px; opacity:0.8;">(${escapeHtml(id)})</span></span>
-        <button type="button" class="incompat-tag-remove" data-id="${escapeHtml(id)}" title="Remover incompatibilidade">✕</button>
-      `;
-      container.appendChild(tag);
-    });
-
-    container.querySelectorAll(".incompat-tag-remove").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const idToRemove = btn.getAttribute("data-id");
-        removeIncompatibleForm(idToRemove);
-      });
-    });
-  }
-
-  function populateIncompatibleSelect() {
-    const sel = el("req_incompatible_select");
-    if (!sel) return;
-    const curRow = findSelectedRow();
-    const curTree = curRow ? curRow.arvore : "";
-    const curRace = curRow ? curRow.raca : "";
-    const curId = curRow ? curRow.form.id : "";
-
-    sel.innerHTML = `<option value="">${state.language === "en" ? "➕ Select a form to add to mutual block..." : "➕ Selecione uma forma para adicionar ao bloqueio mútuo..."}</option>`;
-
-    const allForms = getAllCatalogForms(curId);
-    const sameTree = [];
-    const sameRaceOtherTrees = [];
-    const universalForms = [];
-    const otherForms = [];
-
-    allForms.forEach((f) => {
-      if (curRow && curRow.escopo === "raca") {
-        if (f.raca === curRace && f.arvore === curTree) sameTree.push(f);
-        else if (f.raca === curRace) sameRaceOtherTrees.push(f);
-        else if (f.escopo === "universal") universalForms.push(f);
-        else otherForms.push(f);
-      } else {
-        if (f.escopo === "universal" && f.arvore === curTree) sameTree.push(f);
-        else if (f.escopo === "universal") universalForms.push(f);
-        else otherForms.push(f);
-      }
-    });
-
-    const isEn = state.language === "en";
-    const addGroup = (label, list) => {
-      if (!list || list.length === 0) return;
-      const grp = document.createElement("optgroup");
-      grp.label = label;
-      list.forEach((f) => {
-        const opt = document.createElement("option");
-        opt.value = f.qualifiedId;
-        opt.textContent = `${f.nome} (${f.qualifiedId})`;
-        grp.appendChild(opt);
-      });
-      sel.appendChild(grp);
-    };
-
-    addGroup(isEn ? "🌌 Universal & Stack Forms (Most Common)" : "🌌 Formas Universais & Stack (Mais Comuns)", universalForms);
-    addGroup(isEn ? `⚡ Same Tree (${curTree})` : `⚡ Mesma Árvore (${curTree})`, sameTree);
-    addGroup(isEn ? `🧬 Other Trees of Race (${curRow ? curRow.racaNome : ""})` : `🧬 Outras Árvores da Raça (${curRow ? curRow.racaNome : ""})`, sameRaceOtherTrees);
-    addGroup(isEn ? "🌐 Other Races" : "🌐 Outras Raças", otherForms);
-  }
-
-  function addIncompatibleForm(formId) {
-    if (!formId) return;
-    const cur = getIncompatibleList();
-    if (!cur.includes(formId)) {
-      cur.push(formId);
-      setIncompatibleList(cur);
-      showToast(state.language === "en" ? `Added ${formId} to incompatible forms!` : `Adicionada incompatibilidade com ${formId}!`);
-    } else {
-      showToast(state.language === "en" ? "Form is already in incompatible list." : "Essa forma já está na lista de incompatíveis.", true);
-    }
-    if (el("req_incompatible_select")) el("req_incompatible_select").value = "";
-  }
-
-  function removeIncompatibleForm(formId) {
-    if (!formId) return;
-    const cur = getIncompatibleList().filter((x) => x !== formId);
-    setIncompatibleList(cur);
-  }
-
-  function updateAddFormAuraPreview() {
-    const auraInp = el("add_cor_aura");
-    const hairInp = el("add_cor_cabelo");
-    let auraHex = (auraInp && auraInp.value.trim()) || "#FFD700";
-    let hairHex = (hairInp && hairInp.value.trim()) || "#FFE89E";
-
-    if (auraHex && !auraHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(auraHex)) auraHex = "#" + auraHex;
-    if (hairHex && !hairHex.startsWith("#") && /^[0-9a-fA-F]{3,8}$/.test(hairHex)) hairHex = "#" + hairHex;
-
-    const glow = el("addAuraFlameGlow");
-    const orb = el("addAuraFlameOrb");
-    const hairDot = el("addHairFlameDot");
-    const badgeAura = el("addAuraHexBadge");
-    const badgeHair = el("addHairHexBadge");
-
-    if (glow) glow.style.background = auraHex;
-    if (orb) {
-      orb.style.background = `radial-gradient(circle at 35% 30%, #ffffff 0%, ${auraHex} 60%, rgba(0,0,0,0.7) 100%)`;
-      orb.style.boxShadow = `0 0 12px ${auraHex}`;
-    }
-    if (hairDot) hairDot.style.background = hairHex;
-    if (badgeAura) {
-      badgeAura.textContent = `Aura: ${auraHex}`;
-      badgeAura.style.color = auraHex;
-      badgeAura.style.borderColor = auraHex;
-      badgeAura.style.background = `${auraHex}22`;
-    }
-    if (badgeHair) {
-      badgeHair.textContent = `Cabelo: ${hairHex}`;
-      badgeHair.style.borderColor = hairHex;
-    }
-    if (el("add_cor_aura_picker") && auraHex.length === 7) el("add_cor_aura_picker").value = auraHex;
-    if (el("add_cor_cabelo_picker") && hairHex.length === 7) el("add_cor_cabelo_picker").value = hairHex;
-  }
-
-  function updateAddFormBpPreview() {
-    const str = parseFloat(el("add_mult_str").value) || 1.0;
-    const pwr = parseFloat(el("add_mult_pwr").value) || 1.0;
-    const prev = el("addBpPreview");
-    if (prev) {
-      prev.textContent = str === pwr ? `${str.toFixed(2)}x` : `${str.toFixed(2)}x (STR) / ${pwr.toFixed(2)}x (PWR)`;
-    }
-  }
-
-  function updateAddFormTpPreview() {
-    const tpVal = parseInt(el("add_tp").value, 10);
-    const badge = el("addTpBadgePreview");
-    if (!badge) return;
-    if (tpVal < 0) {
-      badge.textContent = state.language === "en" ? "Priceless / Wish" : "Priceless / Desejo";
-      badge.className = "badge badge-priceless";
-    } else if (tpVal === 0) {
-      badge.textContent = state.language === "en" ? "Free (0 TP)" : "Gratuito (0 TP)";
-      badge.className = "badge badge-free";
-    } else {
-      badge.textContent = `${formatNumberPt(tpVal || 0)} TP`;
-      badge.className = "badge badge-tp";
-    }
-  }
-
-  function buildFormUpdatePayload() {
-    const sel = findSelectedRow();
-    if (!sel) return null;
-
-    const mSel = el("inpMasterSelect");
-    const chosenMasterId = (mSel && el("chkBuyMaster").checked) ? mSel.value.trim() : "";
-    const chosenMasterName = (mSel && chosenMasterId && mSel.selectedOptions[0])
-      ? mSel.selectedOptions[0].textContent.split("(")[0].trim()
-      : "";
-
-    const payload = {
-      escopo: sel.escopo,
-      id: sel.form.id,
-      raca: sel.raca,
-      arvore: sel.arvore,
-      grupo: sel.arvore,
-      custo_tp_numerico: parseInt(el("inpTp").value, 10),
-      nivel_habilidade: parseInt(el("inpSkillLvl").value, 10),
-      comprar_no_mestre: el("chkBuyMaster").checked,
-      mestre: chosenMasterId,
-      mestre_nome: chosenMasterName,
-      multiplicadores_detalhados: {
-        forca_str: parseFloat(el("mult_str").value) || 1.0,
-        poder_ki_pwr: parseFloat(el("mult_pwr").value) || 1.0,
-        defesa_def: parseFloat(el("mult_def").value) || 1.0,
-        golpe_skp: parseFloat(el("mult_skp").value) || 1.0,
-        velocidade_spd: parseFloat(el("mult_spd").value) || 1.0,
-        velocidade_ataque: parseFloat(el("mult_atk_spd").value) || 1.0,
-        estamina_stm: parseFloat(el("mult_stm").value) || 1.0,
-        vitalidade_vit: parseFloat(el("mult_vit").value) || 1.0,
-        energia_ene: parseFloat(el("mult_ene").value) || 1.0,
-      },
-      drenos: {
-        energia_ki: parseFloat(el("dr_ki").value) || 0.0,
-        estamina: parseFloat(el("dr_stm").value) || 0.0,
-        vida: parseFloat(el("dr_hp").value) || 0.0,
-        mult_estamina_golpe: parseFloat(el("dr_stm_hit").value) || 1.0,
-        mult_dreno_stack: parseFloat(el("dr_stack_mult").value) || 2.0,
-        acumulavel: el("chkStackable").checked,
-      },
-      maestria: {
-        maestria_maxima: parseFloat(el("mst_max").value) || 100.0,
-        maestria_transf_instantanea: parseFloat(el("mst_instant").value) || 40.0,
-        ganho_golpe_dado: parseFloat(el("mst_hit_dealt").value) || 0.025,
-        ganho_dano_recebido: parseFloat(el("mst_hit_rcv").value) || 0.025,
-        ganho_passivo_5s: parseFloat(el("mst_passive").value) || 0.01,
-        mult_custo_maestria_max: parseFloat(el("mst_cost_mult").value) || 0.75,
-        mult_status_maestria_max: parseFloat(el("mst_stat_mult").value) || 1.0,
-      },
-      requisitos: {
-        nivel_dmz_minimo: parseInt(el("req_dmz_lvl").value, 10) || 1,
-        nivel_requisito: parseInt(el("req_lvl_req").value, 10) || 0,
-        saga: el("req_saga").value.trim() || null,
-        forma_previa: el("req_prev_form").value.trim() || null,
-        incompativel_com: el("req_incompatible").value
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      },
-      visual: {
-        cor_aura: el("vis_aura").value.trim(),
-        cor_cabelo: el("vis_hair").value.trim(),
-      },
-    };
-    return payload;
-  }
-
-  async function handleApplyForm() {
-    const payload = buildFormUpdatePayload();
-    if (!payload) return;
-    try {
-      const data = await apiPost("/api/update-form", payload);
-      applyServerState(data);
-      showToast(state.language === "en" ? "Transformation updated!" : "Transformação atualizada com sucesso!");
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  }
-
-  // Modal Helpers
-  function openModal(id) {
-    const modal = el(id);
-    if (!modal) return;
-    modal.classList.add("active");
-    modal.classList.add("open");
-  }
-
-  function closeModal(id) {
-    const modal = el(id);
-    if (!modal) return;
-    modal.classList.remove("active");
-    modal.classList.remove("open");
-  }
-
-  function closeAllModals() {
-    document.querySelectorAll(".modal-backdrop").forEach((m) => {
-      m.classList.remove("active");
-      m.classList.remove("open");
-    });
-  }
-
-  // Add Form Modal logic
-  function openAddFormModal() {
-    const cat = state.catalog;
-    if (!cat) return;
-
-    const rSelect = el("add_raca");
-    const tSelect = el("add_arvore");
-    rSelect.innerHTML = "";
-    tSelect.innerHTML = "";
-
-    const races = Object.values(cat.racas || {}).sort((a, b) =>
-      String(a.nome_exibicao).localeCompare(String(b.nome_exibicao))
-    );
-    races.forEach((r) => {
-      const opt = document.createElement("option");
-      opt.value = r.id_raca;
-      opt.textContent = r.nome_exibicao;
-      rSelect.appendChild(opt);
-    });
-
-    const updateTreeSelect = () => {
-      tSelect.innerHTML = "";
-      const chosenRace = rSelect.value;
-      const rObj = (cat.racas || {})[chosenRace];
-      if (rObj) {
-        Object.keys(rObj.arvores_de_transformacao || {}).forEach((tName) => {
-          const opt = document.createElement("option");
-          opt.value = tName;
-          opt.textContent = tName;
-          tSelect.appendChild(opt);
-        });
-      }
-      const optCustom = document.createElement("option");
-      optCustom.value = "customforms";
-      optCustom.textContent = "+ customforms";
-      tSelect.appendChild(optCustom);
-    };
-
-    const escopoSelect = el("add_escopo");
-    const raceGroup = el("add_race_group");
-    const scopeGrid = el("add_scope_grid");
-    const lblTree = el("lbl_add_arvore");
-
-    const updateScopeAndTrees = () => {
-      const isUniversal = escopoSelect && escopoSelect.value === "universal";
-      if (isUniversal) {
-        if (raceGroup) raceGroup.style.display = "none";
-        if (rSelect) rSelect.disabled = true;
-        if (scopeGrid) scopeGrid.style.gridTemplateColumns = "1fr 1fr";
-        if (lblTree) {
-          lblTree.textContent = state.language === "en" ? "Universal Group" : "Grupo Universal";
-        }
-        tSelect.innerHTML = "";
-        const uGroups = Object.keys(cat.formas_universais_e_stack || {});
-        if (uGroups.length === 0) uGroups.push("stack", "forms");
-        uGroups.forEach((g) => {
-          const opt = document.createElement("option");
-          opt.value = g;
-          opt.textContent = g;
-          tSelect.appendChild(opt);
-        });
-        const optCustom = document.createElement("option");
-        optCustom.value = "customgroup";
-        optCustom.textContent = "+ customgroup";
-        tSelect.appendChild(optCustom);
-      } else {
-        if (raceGroup) raceGroup.style.display = "";
-        if (rSelect) rSelect.disabled = false;
-        if (scopeGrid) scopeGrid.style.gridTemplateColumns = "1fr 1fr 1fr";
-        if (lblTree) {
-          lblTree.textContent = state.language === "en" ? "Transformation Tree" : "Árvore de Transformação";
-        }
-        updateTreeSelect();
-      }
-    };
-
-    if (escopoSelect) {
-      escopoSelect.value = "raca";
-      escopoSelect.onchange = updateScopeAndTrees;
-    }
-    rSelect.onchange = updateTreeSelect;
-    updateScopeAndTrees();
-
-    // Populate Sagas Select
-    const sagaSel = el("add_saga_select");
-    if (sagaSel) {
-      sagaSel.innerHTML = `<option value="">${state.language === "en" ? "— No saga required —" : "— Nenhuma saga exigida —"}</option>`;
-      const sagas = (cat && cat.opcoes_sagas) || [];
-      sagas.forEach((saga) => {
-        const optgroup = document.createElement("optgroup");
-        optgroup.label = saga.nome;
-        (saga.quests || []).forEach((q) => {
-          const opt = document.createElement("option");
-          opt.value = q.valor;
-          const qNum = q.numero > 0 ? `[#${q.numero}] ` : "";
-          opt.textContent = `${qNum}${q.titulo} (${q.valor})`;
-          optgroup.appendChild(opt);
-        });
-        if (optgroup.children.length > 0) sagaSel.appendChild(optgroup);
-      });
-    }
-
-    // Populate Master Select
-    const mSel = el("add_mestre_select");
-    if (mSel) {
-      mSel.innerHTML = `<option value="">${state.language === "en" ? "— No master required —" : "— Nenhum mestre exigido —"}</option>`;
-      const masters = (cat && cat.opcoes_mestres) || [];
-      masters.forEach((m) => {
-        const opt = document.createElement("option");
-        opt.value = m.id;
-        opt.textContent = `${m.nome} (${m.id})`;
-        mSel.appendChild(opt);
-      });
-    }
-
-    // Populate Prior Form Select
-    const prevSel = el("add_prev_form_select");
-    if (prevSel) {
-      prevSel.innerHTML = `<option value="">${state.language === "en" ? "— No prior form required —" : "— Nenhuma forma prévia exigida —"}</option>`;
-      const allForms = getAllCatalogForms();
-      allForms.forEach((f) => {
-        const opt = document.createElement("option");
-        opt.value = f.qualifiedId;
-        opt.textContent = `${f.nome} (${f.qualifiedId})`;
-        prevSel.appendChild(opt);
-      });
-    }
-
-    // Auto-slug sync and defaults
-    const idInp = el("add_id");
-    const nomeInp = el("add_nome");
-    if (idInp) {
-      idInp.value = "";
-      idInp.dataset.userEdited = "";
-      idInp.oninput = () => {
-        idInp.dataset.userEdited = "true";
-      };
-    }
-    if (nomeInp) {
-      nomeInp.value = "";
-      nomeInp.oninput = (e) => {
-        if (idInp && !idInp.dataset.userEdited) {
-          idInp.value = e.target.value
-            .toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "_")
-            .replace(/^_+|_+$/g, "");
-        }
-      };
-    }
-
-    el("add_tp").value = "500000";
-    el("add_lvl").value = "1";
-    el("add_addon").value = "Dragon Mine Z (Core)";
-    el("add_mult_str").value = "2.5";
-    el("add_mult_pwr").value = "2.5";
-    el("add_mult_def").value = "2.5";
-    el("add_mult_skp").value = "2.5";
-    el("add_cor_aura").value = "#FFD700";
-    el("add_cor_cabelo").value = "#FFE89E";
-
-    // Translate modal elements dynamically
-    document.querySelectorAll("#addFormModal [data-i18n]").forEach((elem) => {
-      const k = elem.getAttribute("data-i18n");
-      if (k) elem.textContent = t(k);
-    });
-
-    document.querySelectorAll("#addFormModal [data-i18n-placeholder]").forEach((elem) => {
-      const k = elem.getAttribute("data-i18n-placeholder");
-      if (k) elem.placeholder = t(k);
-    });
-
-    updateAddFormAuraPreview();
-    updateAddFormBpPreview();
-    updateAddFormTpPreview();
-
-    openModal("addFormModal");
-  }
-
-  async function handleConfirmAddForm() {
-    const escopo = el("add_escopo") ? el("add_escopo").value : "raca";
-    const raca = escopo === "universal" ? "" : (el("add_raca") ? el("add_raca").value : "");
-    const arvore = el("add_arvore") ? el("add_arvore").value : "forms";
-    const formId = el("add_id") ? el("add_id").value.trim().toLowerCase() : "";
-    const nome = el("add_nome") ? el("add_nome").value.trim() : "";
-
-    if (!formId) {
-      showToast(state.language === "en" ? "Form ID is required!" : "ID da forma é obrigatório!", true);
-      return;
-    }
-
-    const chosenMasterId = el("add_mestre_select") ? el("add_mestre_select").value.trim() : "";
-    const mOpt = el("add_mestre_select") && el("add_mestre_select").selectedOptions[0];
-    const chosenMasterName = (mOpt && chosenMasterId) ? mOpt.textContent.split("(")[0].trim() : "";
-    const chosenSaga = el("add_saga_select") ? el("add_saga_select").value.trim() : "";
-    const chosenPrevForm = el("add_prev_form_select") ? el("add_prev_form_select").value.trim() : "";
-
-    const payload = {
-      escopo,
-      raca,
-      arvore,
-      grupo: arvore,
-      id: formId,
-      nome: nome || formId,
-      custo_tp_numerico: parseInt(el("add_tp").value, 10) || 0,
-      nivel_habilidade: parseInt(el("add_lvl").value, 10) || 1,
-      addon_origem: el("add_addon").value.trim() || "Dragon Mine Z (Core)",
-      comprar_no_mestre: Boolean(chosenMasterId),
-      mestre: chosenMasterId,
-      mestre_nome: chosenMasterName,
-      multiplicadores_detalhados: {
-        forca_str: parseFloat(el("add_mult_str").value) || 2.5,
-        poder_ki_pwr: parseFloat(el("add_mult_pwr").value) || 2.5,
-        defesa_def: parseFloat(el("add_mult_def").value) || 2.5,
-        golpe_skp: parseFloat(el("add_mult_skp").value) || 2.5,
-      },
-      requisitos: {
-        nivel_dmz_minimo: 1,
-        nivel_requisito: 0,
-        saga: chosenSaga || null,
-        forma_previa: chosenPrevForm || null,
-        incompativel_com: [],
-      },
-      visual: {
-        cor_aura: el("add_cor_aura").value.trim(),
-        cor_cabelo: el("add_cor_cabelo").value.trim(),
-      },
-    };
-
-    try {
-      const data = await apiPost("/api/form/add", payload);
-      closeModal("addFormModal");
-      applyServerState(data);
-      const targetKey = escopo === "universal" ? `universal:${arvore}:${formId}` : `raca:${raca}:${arvore}:${formId}`;
-      selectFormRow(targetKey);
-      showToast(state.language === "en" ? "Transformation created! Press Ctrl+Z to undo." : "Transformação criada! Pressione Ctrl+Z para desfazer.");
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  }
-
-  // Delete Form Modal logic
-  function openDeleteFormModal() {
-    const sel = findSelectedRow();
-    if (!sel) return;
-    const f = sel.form;
-    const isEn = state.language === "en";
-    el("deleteModalDesc").textContent = isEn
-      ? `Are you sure you want to permanently delete '${f.nome}' (${f.id}) from ${sel.racaNome}?`
-      : `Tem certeza de que deseja remover permanentemente '${f.nome}' (${f.id}) de ${sel.racaNome}?`;
-    openModal("deleteFormModal");
-  }
-
-  async function handleConfirmDeleteForm() {
-    const sel = findSelectedRow();
-    if (!sel) return;
-    const payload = {
-      escopo: sel.escopo,
-      raca: sel.raca,
-      arvore: sel.arvore,
-      grupo: sel.arvore,
-      id: sel.form.id,
-    };
-    try {
-      const data = await apiPost("/api/form/delete", payload);
-      closeModal("deleteFormModal");
-      applyServerState(data);
-      showToast(state.language === "en" ? "Transformation deleted! Press Ctrl+Z to undo." : "Transformação removida! Pressione Ctrl+Z para desfazer.");
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  }
-
-  // Addons Manager Modal logic
-  async function openAddonsModal(force = false) {
-    openModal("addonsModal");
-    const loadState = el("addonsLoadingState");
-    const contentState = el("addonsContentState");
-    if (loadState) loadState.style.display = "flex";
-    if (contentState) contentState.style.display = "none";
-
-    try {
-      const data = await apiGet(force ? "/api/addons?force=1" : "/api/addons");
-      state.addonsList = data.addons || [];
-      renderAddonsCards();
-      if (loadState) loadState.style.display = "none";
-      if (contentState) contentState.style.display = "flex";
-    } catch (err) {
-      if (loadState) loadState.style.display = "none";
-      showToast(err.message, true);
-    }
-  }
-
-  function renderAddonsCards() {
-    const container = el("addonsCardList");
-    if (!container) return;
-    container.innerHTML = "";
-
-    const allAddons = state.addonsList || [];
-    const activeCount = allAddons.filter((a) => a.enabled).length;
-    const disabledCount = allAddons.filter((a) => !a.enabled).length;
-
-    if (el("addonsCountBadge")) el("addonsCountBadge").textContent = `${allAddons.length} Addons`;
-    if (el("addonCountAll")) el("addonCountAll").textContent = String(allAddons.length);
-    if (el("addonCountActive")) el("addonCountActive").textContent = String(activeCount);
-    if (el("addonCountDisabled")) el("addonCountDisabled").textContent = String(disabledCount);
-
-    const q = (state.addonFilterText || "").toLowerCase();
-    const tab = state.addonActiveTab || "all";
-
-    const filtered = allAddons.filter((add) => {
-      if (tab === "active" && !add.enabled) return false;
-      if (tab === "disabled" && add.enabled) return false;
-      if (q) {
-        const hay = `${add.display_name} ${add.mod_id} ${add.authors} ${add.filename} ${add.description}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-
-    if (filtered.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center; padding:32px 16px; color:var(--text-muted); background:rgba(15,23,42,0.4); border-radius:var(--radius-md); border:1px dashed var(--border-default);">
-          <div style="font-size:28px; margin-bottom:8px;">🧩</div>
-          <div style="font-size:13px; font-weight:600; color:#CBD5E1;">${state.language === "en" ? "No addons found matching filters." : "Nenhum addon encontrado para os filtros selecionados."}</div>
-        </div>
-      `;
-      return;
-    }
-
-    filtered.forEach((add) => {
       const card = document.createElement("div");
-      card.className = add.enabled ? "addon-card" : "addon-card disabled";
-      const isChecked = add.enabled ? " checked" : "";
-      const formsCount = (add.contributed_forms || []).length;
-      const formsBadge = formsCount > 0
-        ? `<span class="badge badge-addon" style="font-size:10px;">⚡ ${formsCount} ${state.language === "en" ? "Forms" : "Formas"}</span>`
-        : "";
+      card.className = `acc-group-card ${isExpanded ? "expanded" : ""}`;
 
-      card.innerHTML = `
-        <div class="addon-card-left">
-          <label class="switch-toggle" style="margin-right:4px;">
-            <input type="checkbox" class="addon-toggle-chk" data-file="${escapeHtml(add.filename)}"${isChecked}>
-            <span class="switch-slider"></span>
-          </label>
-          <div class="addon-card-info">
-            <div class="addon-card-title">
-              <span>${escapeHtml(add.display_name)}</span>
-              <span class="badge" style="background:rgba(255,255,255,0.08); color:#CBD5E1; font-size:10.5px;">v${escapeHtml(add.version)}</span>
-              <span class="badge" style="background:rgba(56,189,248,0.12); color:#38BDF8; font-size:10.5px;">${add.size_mb} MB</span>
-              ${formsBadge}
-            </div>
-            ${add.description ? `<div class="addon-card-desc">${escapeHtml(add.description)}</div>` : ''}
-            <div class="addon-card-meta">
-              <span>👤 ${escapeHtml(add.authors || "Community")}</span>
-              <span style="font-family:var(--font-mono); color:#67E8F9;">📄 ${escapeHtml(add.filename)}</span>
-            </div>
-          </div>
+      // Header do Grupo
+      const header = document.createElement("div");
+      header.className = "acc-group-header";
+      header.innerHTML = `
+        <div class="acc-group-title">
+          <span class="acc-group-chevron">▶</span>
+          <span>📁 ${treeData.arquivo || groupKey}</span>
         </div>
-        <div>
-          <span class="addon-status-pill ${add.enabled ? 'active' : 'disabled'}">
-            ${add.enabled ? '● ' + t('addon_enabled') : '○ ' + t('addon_disabled')}
-          </span>
-        </div>
+        <span class="badge badge-bp">(${formsList.length})</span>
       `;
+      header.addEventListener("click", () => {
+        if (state.expandedGroups.has(groupKey)) {
+          state.expandedGroups.delete(groupKey);
+        } else {
+          state.expandedGroups.add(groupKey);
+        }
+        renderRaceAccordion();
+      });
+
+      card.appendChild(header);
+
+      // Lista de Estágios (Sub-Formas)
+      if (isExpanded) {
+        const stagesList = document.createElement("div");
+        stagesList.className = "acc-stages-list";
+
+        formsList.forEach((stage) => {
+          const stageId = stage.id;
+          const isSelected = (state.selectedGroupKey === groupKey && state.selectedStageId === stageId);
+
+          const item = document.createElement("div");
+          item.className = `acc-stage-item ${isSelected ? "selected" : ""}`;
+          item.innerHTML = `
+            <div class="acc-stage-left">
+              <span class="acc-stage-icon">⚡</span>
+              <span>${stage.nome || stage.name || stageId}</span>
+              ${isSelected ? '<span class="acc-stage-selected-dot"></span>' : ""}
+            </div>
+            <span class="badge badge-tp">Lv. ${stage.nivel_habilidade ?? stage.unlockOnSkillLevel ?? 1}</span>
+          `;
+
+          item.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectStage(groupKey, stageId);
+          });
+
+          stagesList.appendChild(item);
+        });
+
+        card.appendChild(stagesList);
+      }
+
       container.appendChild(card);
     });
+  }
 
-    container.querySelectorAll(".addon-toggle-chk").forEach((chk) => {
-      chk.addEventListener("change", async () => {
-        const fname = chk.getAttribute("data-file");
-        const enVal = chk.checked;
-        try {
-          const res = await apiPost("/api/addons/toggle", { filename: fname, enabled: enVal });
-          showToast(enVal ? `Addon ${fname} ativado!` : `Addon ${fname} desativado!`);
-          state.addonsList = res.addons || [];
-          renderAddonsCards();
-        } catch (err) {
-          chk.checked = !enVal;
-          showToast(err.message, true);
-        }
-      });
+  // Seleciona uma sub-forma e carrega seus dados no editor e no 3D
+  function selectStage(groupKey, stageId) {
+    state.selectedGroupKey = groupKey;
+    state.selectedStageId = stageId;
+
+    renderRaceAccordion();
+    loadStageIntoEditor(groupKey, stageId);
+  }
+
+  function selectFirstAvailableStage() {
+    const trees = getRaceTrees(state.selectedRace);
+    const firstGroupKey = Object.keys(trees)[0];
+    if (firstGroupKey) {
+      state.expandedGroups.add(firstGroupKey);
+      const forms = getTreeFormsList(trees[firstGroupKey]);
+      if (forms.length > 0) {
+        selectStage(firstGroupKey, forms[0].id);
+        return;
+      }
+    }
+  }
+
+  // Preenche os campos do formulário na Coluna 3
+  function loadStageIntoEditor(groupKey, stageId) {
+    const trees = getRaceTrees(state.selectedRace);
+    const treeData = trees[groupKey] || {};
+    const forms = getTreeFormsList(treeData);
+    const stage = forms.find((f) => f.id === stageId) || {};
+
+    const mults = stage.multiplicadores_detalhados || {};
+    const drains = stage.drenos || {};
+    const visual = stage.visual || {};
+    const reqs = stage.requisitos || {};
+
+    // Banner da Forma
+    const bannerTitle = document.getElementById("editorActiveFormTitle");
+    const bannerMeta = document.getElementById("editorActiveFormMeta");
+    if (bannerTitle) bannerTitle.textContent = `${treeData.arquivo || groupKey} -> [${stage.nome || stage.name || stageId}]`;
+    if (bannerMeta) bannerMeta.textContent = `${state.selectedRace} · ${treeData.arquivo || groupKey} · ${stageId}`;
+
+    const viewportBadge = document.getElementById("viewportFormBadge");
+    if (viewportBadge) viewportBadge.textContent = stage.nome || stage.name || stageId;
+
+    // Aba 1: Multiplicadores & Dreno
+    setVal("inpTp", stage.custo_tp_numerico ?? stage.tpCost ?? 0);
+    setVal("inpSkillLvl", stage.nivel_habilidade ?? stage.unlockOnSkillLevel ?? 1);
+    setVal("inpMultStr", mults.forca_str ?? stage.strength ?? 1.0);
+    setVal("inpMultDef", mults.defesa_def ?? stage.defense ?? 1.0);
+    setVal("inpMultSpd", mults.velocidade_spd ?? stage.speed ?? 1.0);
+    setVal("inpMultPwr", mults.poder_ki_pwr ?? stage.power ?? 1.0);
+    setVal("inpMultSkp", mults.golpe_skp ?? stage.skillPower ?? 1.0);
+    setVal("inpMultEne", mults.energia_ene ?? stage.energy ?? 1.0);
+
+    setVal("inpDrainKi", drains.energia_ki ?? stage.kiDrain ?? 0);
+    setVal("inpDrainStm", drains.estamina ?? stage.staminaDrain ?? 0);
+    setVal("inpDrainHp", drains.vida ?? stage.healthDrain ?? 0);
+    setVal("inpMasteryGain", stage.maestria?.taxa_ganho ?? stage.masteryRate ?? 1.0);
+    setVal("inpMasteryReduction", stage.maestria?.reducao_dreno ?? stage.masteryDrainReduction ?? 50);
+
+    // Atualiza os Cards de Status na Coluna 2
+    updateStatusCards(stage, mults, drains);
+
+    // Aba 2: Visual & FX Studio
+    const hairStyle = visual.modelo_cabelo || stage.hairStyle || "ssj2";
+    const hairColor = visual.cor_cabelo || stage.hairColor || "#FFE690";
+    const auraColor = visual.cor_aura || stage.auraColor || "#FFD700";
+    const eyeColor = visual.cor_olhos || stage.eyeColor || "#00EEFF";
+    const hairScale = visual.escala_cabelo || stage.hairScale || 1.05;
+
+    setVal("selHairModel", hairStyle);
+    setVal("inpHairScale", hairScale);
+    setVal("inpHairColor", hairColor);
+    setVal("inpHairColorPicker", hairColor);
+    setVal("inpEyeColor", eyeColor);
+    setVal("inpEyeColorPicker", eyeColor);
+    setVal("inpAuraColor", auraColor);
+    setVal("inpAuraColorPicker", auraColor);
+
+    // Manto de Ki
+    const cloakChk = document.getElementById("chkEnableCloak");
+    if (cloakChk) cloakChk.checked = !!(visual.manto_ki || stage.enableCloak);
+    if (cloakMeshGroup) cloakMeshGroup.visible = !!(visual.manto_ki || stage.enableCloak);
+
+    // Atualiza o Rig 3D
+    updateHairModel(hairStyle, hairColor, hairScale);
+
+    // Aba 3: Sagas
+    setVal("selSagaReq", reqs.saga || stage.requiredSaga || "none");
+    setVal("inpPreviousForm", reqs.forma_previa || stage.previousForm || "");
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+
+  // Atualiza os 6 Cards de Status na Coluna 2
+  function updateStatusCards(stage, mults = {}, drains = {}) {
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${parseFloat(val || 1.0).toFixed(1)}x`;
+    };
+
+    const str = mults.forca_str ?? stage.strength ?? 1.0;
+    const def = mults.defesa_def ?? stage.defense ?? 1.0;
+    const spd = mults.velocidade_spd ?? stage.speed ?? 1.0;
+    const pwr = mults.poder_ki_pwr ?? stage.power ?? 1.0;
+    const skp = mults.golpe_skp ?? stage.skillPower ?? 1.0;
+    const ene = mults.energia_ene ?? stage.energy ?? 1.0;
+
+    setText("statValStr", str);
+    setText("statValDef", def);
+    setText("statValSpd", spd);
+    setText("statValPwr", pwr);
+    setText("statValSkp", skp);
+    setText("statValEne", ene);
+
+    const bpSum = str + def + spd + pwr + skp + ene;
+    const sumBadge = document.getElementById("previewBpSum");
+    if (sumBadge) sumBadge.textContent = `Soma: ${bpSum.toFixed(1)}x`;
+
+    const tp = stage.custo_tp_numerico ?? stage.tpCost ?? 0;
+    const tpBadge = document.getElementById("previewTpBadge");
+    if (tpBadge) tpBadge.textContent = `${tp} TP`;
+
+    const kiDr = drains.energia_ki ?? stage.kiDrain ?? 0;
+    const stmDr = drains.estamina ?? stage.staminaDrain ?? 0;
+    const drainBadge = document.getElementById("previewDrainSum");
+    if (drainBadge) drainBadge.textContent = `Dreno: ${(kiDr + stmDr).toFixed(2)}/s`;
+  }
+
+  // Renderiza a Gaveta de Importados (Staging Dock)
+  function renderStagingDrawer() {
+    const list = document.getElementById("stagingItemsList");
+    const badge = document.getElementById("stagingBadge");
+    if (!list) return;
+
+    if (badge) badge.textContent = `${currentLang === "pt" ? "Fora da Árvore" : "Unallocated"}: ${state.staging.length} ${currentLang === "pt" ? "itens" : "items"}`;
+
+    if (state.staging.length === 0) {
+      list.innerHTML = `<div class="staging-empty-note">${currentLang === "pt" ? "Nenhum item na gaveta. Importe moldes JSON externos para armazená-los aqui antes de alocar." : "No items in staging dock. Import JSON molds to store them here before allocating."}</div>`;
+      return;
+    }
+
+    list.innerHTML = "";
+    state.staging.forEach((item, idx) => {
+      const card = document.createElement("div");
+      card.className = "staging-item-card";
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge ${item.kind === 'group' ? 'badge-bp' : 'badge-tp'}">[${item.kind === 'group' ? 'Grupo' : 'Sub'}]</span>
+          <span style="font-weight:600; color:var(--text-primary);">${item.name || item.id}</span>
+        </div>
+        <div style="display:flex; gap:4px;">
+          <button type="button" class="btn btn-sm btn-cyan" onclick="window.kiforgeOpenAllocate(${idx})">${currentLang === "pt" ? "Alocar →" : "Allocate →"}</button>
+          <button type="button" class="btn btn-sm btn-danger" onclick="window.kiforgeDeleteStaging(${idx})">🗑️</button>
+        </div>
+      `;
+      list.appendChild(card);
     });
   }
 
-  // Keyboard Shortcuts
-  window.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
-      e.preventDefault();
-      if (state.canUndo) apiPost("/api/undo").then(applyServerState).catch((err) => showToast(err.message, true));
-    } else if (
-      ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
-      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")
-    ) {
-      e.preventDefault();
-      if (state.canRedo) apiPost("/api/redo").then(applyServerState).catch((err) => showToast(err.message, true));
-    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-      e.preventDefault();
-      apiPost("/api/save-json").then((data) => {
-        applyServerState(data);
-        showToast(state.language === "en" ? "Saved to JSON!" : "Salvo no JSON!");
-      }).catch((err) => showToast(err.message, true));
-    } else if (e.key === "Escape") {
-      closeAllModals();
+  // =========================================================================
+  // MODAIS E AÇÕES
+  // =========================================================================
+  function initModals() {
+    // Alternar Gaveta de Importados
+    const stagingHeader = document.getElementById("stagingDrawerHeader");
+    const stagingBody = document.getElementById("stagingDrawerBody");
+    const stagingDrawer = document.getElementById("stagingDrawer");
+    if (stagingHeader && stagingBody && stagingDrawer) {
+      stagingHeader.addEventListener("click", () => {
+        const isOpen = stagingDrawer.classList.toggle("open");
+        stagingBody.style.display = isOpen ? "block" : "none";
+      });
     }
-  });
 
-  async function loadDetectedLocations() {
-    const container = el("detectedChipsContainer");
-    const countBadge = el("detectedCountLabel");
+    // Abas do Editor
+    const tabBtns = document.querySelectorAll(".editor-tabs-nav .tab-btn");
+    tabBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        const targetPanel = document.getElementById(`panel${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+        if (targetPanel) targetPanel.classList.add("active");
+      });
+    });
+
+    // Idioma
+    const langBtn = document.getElementById("btnLangToggle");
+    if (langBtn) {
+      langBtn.addEventListener("click", () => {
+        setLanguage(currentLang === "pt" ? "en" : "pt");
+      });
+    }
+
+    // Seletor de Raça
+    const raceSel = document.getElementById("raceSelect");
+    if (raceSel) {
+      raceSel.addEventListener("change", () => {
+        state.selectedRace = raceSel.value;
+        renderRaceAccordion();
+        selectFirstAvailableStage();
+      });
+    }
+
+    // Modal Wizard (+ Nova Forma)
+    bindModal("btnOpenWizard", "modalWizard", "btnCloseWizard", "btnCancelWizard");
+    const confirmWiz = document.getElementById("btnConfirmWizard");
+    if (confirmWiz) {
+      confirmWiz.addEventListener("click", async () => {
+        const payload = {
+          race: document.getElementById("wizRace")?.value || "saiyan",
+          group_name: document.getElementById("wizGroupName")?.value || "nova_forma.json",
+          stage_name: document.getElementById("wizStageName")?.value || "Nova Transformação",
+          stage_id: document.getElementById("wizStageId")?.value || "nova_forma_1",
+          power_preset: document.getElementById("wizPresetPower")?.value || "mid",
+          hair_color: document.getElementById("wizHairColor")?.value || "#FFE690",
+          aura_color: document.getElementById("wizAuraColor")?.value || "#FFD700"
+        };
+        try {
+          const res = await fetchJson("/api/wizard/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          document.getElementById("modalWizard").classList.remove("active");
+          showToast(res.message || "Forma criada com sucesso!", "success");
+          await loadStudioState();
+          state.selectedRace = payload.race;
+          if (raceSel) raceSel.value = payload.race;
+          selectStage(payload.group_name, payload.stage_id);
+        } catch (err) {
+          showToast("Erro ao criar forma: " + err.message, "error");
+        }
+      });
+    }
+
+    // Modal Diff
+    bindModal("btnOpenDiff", "modalDiff", "btnCloseDiff", "btnDismissDiff");
+    const btnDiff = document.getElementById("btnOpenDiff");
+    if (btnDiff) {
+      btnDiff.addEventListener("click", async () => {
+        try {
+          const diffData = await fetchJson("/api/diff");
+          renderDiffModal(diffData);
+        } catch (err) {
+          showToast("Erro ao calcular diff: " + err.message, "error");
+        }
+      });
+    }
+
+    // Modal Exportar
+    bindModal("btnOpenExport", "modalExport", "btnCloseExport", "btnCancelExport");
+    const confirmExport = document.getElementById("btnConfirmExport");
+    if (confirmExport) {
+      confirmExport.addEventListener("click", async () => {
+        const scope = document.getElementById("exportScopeSelect")?.value || "full";
+        try {
+          const res = await fetchJson("/api/export/selective", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              scope: scope,
+              race: state.selectedRace,
+              group: state.selectedGroupKey,
+              stage: state.selectedStageId
+            })
+          });
+          document.getElementById("modalExport").classList.remove("active");
+          showToast(res.message || "Molde exportado com sucesso!", "success");
+        } catch (err) {
+          showToast("Erro ao exportar molde: " + err.message, "error");
+        }
+      });
+    }
+
+    // Abrir Backups
+    const btnBackups = document.getElementById("btnOpenBackups");
+    if (btnBackups) {
+      btnBackups.addEventListener("click", async () => {
+        try {
+          const res = await fetchJson("/api/backups/open", { method: "POST" });
+          showToast(res.message || "Pasta de backups aberta no Windows Explorer", "info");
+        } catch (err) {
+          showToast("Erro ao abrir pasta de backups: " + err.message, "error");
+        }
+      });
+    }
+
+    // Salvar e Aplicar no Modpack
+    const btnApply = document.getElementById("btnApplyModpack");
+    if (btnApply) {
+      btnApply.addEventListener("click", async () => {
+        try {
+          const res = await fetchJson("/api/apply", { method: "POST" });
+          showToast(res.message || "Salvo e aplicado no modpack com backup zip!", "success");
+          await loadStudioState();
+        } catch (err) {
+          showToast("Erro ao salvar no modpack: " + err.message, "error");
+        }
+      });
+    }
+
+    // Recarregar Modpack
+    const btnReload = document.getElementById("btnReloadModpack");
+    if (btnReload) {
+      btnReload.addEventListener("click", async () => {
+        try {
+          await fetchJson("/api/reload", { method: "POST" });
+          showToast("Modpack recarregado do disco!", "info");
+          await loadStudioState();
+        } catch (err) {
+          showToast("Erro ao recarregar: " + err.message, "error");
+        }
+      });
+    }
+
+    // Live Color Pickers Binding
+    bindColorPicker("inpHairColor", "inpHairColorPicker", (hex) => {
+      updateHairModel(document.getElementById("selHairModel")?.value, hex);
+    });
+    bindColorPicker("inpSparksColor", "inpSparksColorPicker", () => {
+      updateSparksGeometry();
+    });
+  }
+
+  function bindModal(openBtnId, modalId, closeBtnId, cancelBtnId) {
+    const openBtn = document.getElementById(openBtnId);
+    const modal = document.getElementById(modalId);
+    const closeBtn = document.getElementById(closeBtnId);
+    const cancelBtn = document.getElementById(cancelBtnId);
+
+    if (openBtn && modal) {
+      openBtn.addEventListener("click", () => modal.classList.add("active"));
+    }
+    if (closeBtn && modal) {
+      closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+    }
+    if (cancelBtn && modal) {
+      cancelBtn.addEventListener("click", () => modal.classList.remove("active"));
+    }
+  }
+
+  function bindColorPicker(textId, pickerId, onChange) {
+    const text = document.getElementById(textId);
+    const picker = document.getElementById(pickerId);
+    if (!text || !picker) return;
+
+    picker.addEventListener("input", () => {
+      text.value = picker.value.toUpperCase();
+      if (onChange) onChange(picker.value);
+    });
+    text.addEventListener("input", () => {
+      if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) {
+        picker.value = text.value;
+        if (onChange) onChange(text.value);
+      }
+    });
+  }
+
+  function renderDiffModal(diffData) {
+    const container = document.getElementById("diffDetailsContainer");
     if (!container) return;
-    try {
-      const data = await apiPost("/api/detect-locations");
-      const modpacks = data.detected_modpacks || [];
-      const jsons = data.detected_jsons || [];
-      const total = modpacks.length + jsons.length;
-      if (countBadge) countBadge.textContent = `${total} encontrados`;
+    const added = diffData.added || [];
+    const modified = diffData.modified || [];
+    const deleted = diffData.deleted || [];
 
-      container.innerHTML = "";
-      if (total === 0) {
-        container.innerHTML = `<div style="font-size:11.5px; color:var(--text-muted);">${state.language === "en" ? "No standard locations detected automatically. Use Browse buttons or paste the path." : "Nenhum local padrão detectado automaticamente. Use os botões Procurar ou cole o caminho."}</div>`;
-        return;
-      }
+    document.getElementById("diffAddedBadge").textContent = `+${added.length} Adicionadas`;
+    document.getElementById("diffModifiedBadge").textContent = `~${modified.length} Modificadas`;
+    document.getElementById("diffDeletedBadge").textContent = `-${deleted.length} Removidas`;
 
-      modpacks.forEach((p) => {
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "btn btn-emerald";
-        item.style.cssText = "justify-content:flex-start; text-align:left; height:auto; padding:6px 10px; font-size:11.5px; border-radius:6px; width:100%; word-break:break-all;";
-        const label = p.replace(/\\/g, "/").split("/").slice(-3).join("/");
-        item.innerHTML = `📁 <strong>Usar Modpack:</strong> ${escapeHtml(label)} <span style="font-size:10px; opacity:0.8; margin-left:auto;">(Clique para selecionar)</span>`;
-        item.addEventListener("click", () => {
-          el("inpModpackPath").value = p;
-          showToast(state.language === "en" ? `Selected: ${label}` : `Selecionado: ${label}`);
-        });
-        container.appendChild(item);
-      });
-
-      jsons.forEach((j) => {
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "btn btn-cyan";
-        item.style.cssText = "justify-content:flex-start; text-align:left; height:auto; padding:6px 10px; font-size:11.5px; border-radius:6px; width:100%; word-break:break-all;";
-        const fileName = j.replace(/\\/g, "/").split("/").pop();
-        item.innerHTML = `📄 <strong>Usar JSON:</strong> ${escapeHtml(fileName)} <span style="font-size:10px; opacity:0.8; margin-left:auto;">(Clique para selecionar)</span>`;
-        item.addEventListener("click", () => {
-          el("inpJsonPath").value = j;
-          showToast(state.language === "en" ? `Selected: ${fileName}` : `Selecionado: ${fileName}`);
-        });
-        container.appendChild(item);
-      });
-
-      // Auto pre-fill if both fields are currently empty
-      if (!el("inpModpackPath").value.trim() && modpacks.length > 0) {
-        el("inpModpackPath").value = modpacks[0];
-      }
-      if (!el("inpJsonPath").value.trim() && jsons.length > 0) {
-        el("inpJsonPath").value = jsons[0];
-      }
-    } catch (err) {
-      container.innerHTML = `<div style="font-size:11.5px; color:var(--accent-rose);">${escapeHtml(err.message)}</div>`;
-    }
-  }
-
-  // Setup Event Listeners
-  function setupEvents() {
-    // Collapsible accordion cards in Inspector
-    document.querySelectorAll(".inspector-body .card-title").forEach((title) => {
-      title.addEventListener("click", () => {
-        const card = title.closest(".card");
-        if (card) card.classList.toggle("collapsed");
-      });
-    });
-
-    // Backdrop click-to-close for all modals
-    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
-      backdrop.addEventListener("click", (e) => {
-        if (e.target === backdrop) {
-          closeModal(backdrop.id);
-        }
-      });
-    });
-
-    el("btnLangToggle").addEventListener("click", () => {
-      setLanguage(state.language === "pt" ? "en" : "pt");
-    });
-
-    el("btnOpenAddForm").addEventListener("click", openAddFormModal);
-    el("btnCancelAddForm").addEventListener("click", () => closeModal("addFormModal"));
-    el("btnConfirmAddForm").addEventListener("click", handleConfirmAddForm);
-
-    el("btnDeleteForm").addEventListener("click", openDeleteFormModal);
-    el("btnCancelDelete").addEventListener("click", () => closeModal("deleteFormModal"));
-    el("btnConfirmDelete").addEventListener("click", handleConfirmDeleteForm);
-
-    el("btnOpenAddons").addEventListener("click", openAddonsModal);
-    el("btnCloseAddons").addEventListener("click", () => closeModal("addonsModal"));
-
-    el("btnApplyForm").addEventListener("click", handleApplyForm);
-
-    el("btnUndo").addEventListener("click", () => {
-      apiPost("/api/undo").then((data) => {
-        applyServerState(data);
-        showToast(state.language === "en" ? "Action undone (Ctrl+Z)" : "Ação desfeita (Ctrl+Z)");
-      }).catch((err) => showToast(err.message, true));
-    });
-    el("btnRedo").addEventListener("click", () => {
-      apiPost("/api/redo").then((data) => {
-        applyServerState(data);
-        showToast(state.language === "en" ? "Action redone (Ctrl+Y)" : "Ação refeita (Ctrl+Y)");
-      }).catch((err) => showToast(err.message, true));
-    });
-
-    el("btnSaveJson").addEventListener("click", () => {
-      apiPost("/api/save-json").then((data) => {
-        applyServerState(data);
-        const savedList = (data.json_salvos || []).map((p) => p.replace(/\\/g, "/").split("/").pop());
-        const info = savedList.length > 0 ? ` (${savedList.join(", ")})` : "";
-        showToast(
-          state.language === "en"
-            ? `Saved to JSON!${info}`
-            : `JSON salvo com sucesso!${info}`
-        );
-      }).catch((err) => showToast(err.message, true));
-    });
-
-    el("btnApplyModpack").addEventListener("click", () => {
-      apiPost("/api/apply-modpack").then((data) => {
-        applyServerState(data);
-        showToast(state.language === "en" ? "Saved and applied to Modpack configs with backup!" : "Salvo e aplicado direto nas configs do Modpack com backup!");
-      }).catch((err) => showToast(err.message, true));
-    });
-
-    el("btnReloadModpack").addEventListener("click", () => {
-      apiPost("/api/reload", { source: state.source }).then((data) => {
-        applyServerState(data);
-        showToast(
-          state.language === "en"
-            ? "Modpack reloaded successfully!"
-            : "Modpack recarregado com sucesso!"
-        );
-      }).catch((err) => showToast(err.message, true));
-    });
-
-    // Settings Modal
-    el("btnOpenSettings").addEventListener("click", async () => {
-      el("inpModpackPath").value = state.dmzConfigDir || "";
-      el("inpJsonPath").value = state.desktopJson || "";
-      openModal("settingsModal");
-      await loadDetectedLocations();
-    });
-    el("btnCloseSettings").addEventListener("click", () => closeModal("settingsModal"));
-
-    el("inpModpackPath").addEventListener("input", (e) => {
-      e.target.value = e.target.value.replace(/^["']+|["']+$/g, "").trim();
-    });
-    el("inpJsonPath").addEventListener("input", (e) => {
-      e.target.value = e.target.value.replace(/^["']+|["']+$/g, "").trim();
-    });
-
-    el("btnBrowseFolder").addEventListener("click", async () => {
-      try {
-        const res = await apiPost("/api/browse-folder");
-        const chosen = res.path || res.selected_path || "";
-        if (chosen) {
-          el("inpModpackPath").value = chosen;
-          showToast(state.language === "en" ? `Folder selected: ${chosen}` : `Pasta selecionada: ${chosen}`);
-        }
-      } catch (err) { showToast(err.message, true); }
-    });
-    el("btnBrowseJson").addEventListener("click", async () => {
-      try {
-        const res = await apiPost("/api/browse-json");
-        const chosen = res.path || res.selected_path || "";
-        if (chosen) {
-          el("inpJsonPath").value = chosen;
-          showToast(state.language === "en" ? `JSON selected: ${chosen}` : `JSON selecionado: ${chosen}`);
-        }
-      } catch (err) { showToast(err.message, true); }
-    });
-    el("btnResetDefaultPath").addEventListener("click", () => {
-      el("inpModpackPath").value = "";
-      el("inpJsonPath").value = "";
-    });
-    el("btnSaveSettings").addEventListener("click", async () => {
-      const dmzVal = el("inpModpackPath").value.replace(/^["']+|["']+$/g, "").trim();
-      const jsonVal = el("inpJsonPath").value.replace(/^["']+|["']+$/g, "").trim();
-      try {
-        const data = await apiPost("/api/settings", {
-          dmz_config_dir: dmzVal,
-          desktop_json_path: jsonVal,
-          clear_paths: !dmzVal && !jsonVal,
-        });
-        closeModal("settingsModal");
-        applyServerState(data);
-        showToast(state.language === "en" ? "Settings saved and modpack loaded!" : "Configurações salvas e Modpack carregado com sucesso!");
-      } catch (err) {
-        showToast(err.message, true);
-      }
-    });
-
-    // Batch Balancing Studio Modal
-    function openBatchModal() {
-      const cat = state.catalog;
-      if (!cat) return;
-      openModal("batchModal");
-
-      const rSelect = el("batchRaceSelect");
-      const fList = el("batchFormsList");
-      const countBadge = el("batchSelectedFormsCount");
-      const searchInp = el("batchFormSearch");
-      const ruleSelect = el("batchRuleSelect");
-
-      // Populate Races
-      rSelect.innerHTML = "";
-
-      const optCurrent = document.createElement("option");
-      optCurrent.value = "current";
-      optCurrent.textContent = t("opt_batch_scope_current");
-      rSelect.appendChild(optCurrent);
-
-      const optAll = document.createElement("option");
-      optAll.value = "all";
-      optAll.textContent = t("opt_batch_scope_all");
-      rSelect.appendChild(optAll);
-
-      const optUniv = document.createElement("option");
-      optUniv.value = "universal";
-      optUniv.textContent = t("opt_batch_scope_universal");
-      rSelect.appendChild(optUniv);
-
-      const races = Object.values(cat.racas || {}).sort((a, b) =>
-        String(a.nome_exibicao).localeCompare(String(b.nome_exibicao))
-      );
-      races.forEach((r) => {
-        const opt = document.createElement("option");
-        opt.value = `race:${r.id_raca}`;
-        opt.textContent = `${r.nome_exibicao} (${r.total_formas || 0})`;
-        rSelect.appendChild(opt);
-      });
-
-      if (state.navScope && state.navScope.startsWith("race:")) {
-        rSelect.value = state.navScope;
-      } else if (state.navScope === "universal") {
-        rSelect.value = "universal";
-      } else {
-        rSelect.value = "all";
-      }
-
-      function getFormsForScope(scopeVal) {
-        const result = [];
-        if (scopeVal === "current") {
-          if (state.navScope.startsWith("race:")) {
-            const rKey = state.navScope.slice(5);
-            const rObj = (cat.racas || {})[rKey];
-            if (rObj) {
-              Object.values(rObj.arvores_de_transformacao || {}).forEach((t) => {
-                if (state.selectedTree === "all" || state.selectedTree === t.id_arvore) {
-                  (t.formas || []).forEach((f) => result.push({ ...f, racaNome: rObj.nome_exibicao }));
-                }
-              });
-            }
-          } else if (state.navScope === "universal") {
-            Object.entries(cat.formas_universais_e_stack || {}).forEach(([gKey, gObj]) => {
-              if (state.selectedTree === "all" || state.selectedTree === gKey) {
-                (gObj.formas || []).forEach((f) => result.push({ ...f, racaNome: "Universal / Stack" }));
-              }
-            });
-          } else {
-            return getFormsForScope("all");
-          }
-        } else if (scopeVal === "all") {
-          Object.values(cat.racas || {}).forEach((r) => {
-            Object.values(r.arvores_de_transformacao || {}).forEach((t) => {
-              (t.formas || []).forEach((f) => result.push({ ...f, racaNome: r.nome_exibicao }));
-            });
-          });
-          Object.values(cat.formas_universais_e_stack || {}).forEach((g) => {
-            (g.formas || []).forEach((f) => result.push({ ...f, racaNome: "Universal / Stack" }));
-          });
-        } else if (scopeVal === "universal") {
-          Object.values(cat.formas_universais_e_stack || {}).forEach((g) => {
-            (g.formas || []).forEach((f) => result.push({ ...f, racaNome: "Universal / Stack" }));
-          });
-        } else if (scopeVal.startsWith("race:")) {
-          const rKey = scopeVal.slice(5);
-          const rObj = (cat.racas || {})[rKey];
-          if (rObj) {
-            Object.values(rObj.arvores_de_transformacao || {}).forEach((t) => {
-              (t.formas || []).forEach((f) => result.push({ ...f, racaNome: rObj.nome_exibicao }));
-            });
-          }
-        }
-        return result;
-      }
-
-      let activeForms = getFormsForScope(rSelect.value);
-
-      function updateCount() {
-        const allChk = fList.querySelectorAll(".batch-form-chk");
-        const checked = fList.querySelectorAll(".batch-form-chk:checked");
-        const c = checked.length;
-        const total = allChk.length;
-        if (countBadge) {
-          countBadge.textContent = state.language === "en" ? `${c} of ${total} selected` : `${c} de ${total} marcadas`;
-        }
-        const sumEl = el("batchListSummary");
-        if (sumEl) {
-          sumEl.textContent = state.language === "en" ? `${c} selected to balance` : `${c} selecionadas para balancear`;
-        }
-      }
-
-      const tierFilterSelect = el("batchTierFilter");
-
-      function renderChecklist() {
-        fList.innerHTML = "";
-        const q = (searchInp ? searchInp.value : "").trim().toLowerCase();
-        const tf = tierFilterSelect ? tierFilterSelect.value : "all";
-
-        activeForms.forEach((f) => {
-          const tNum = f.categoria_poder || 1;
-          if (tf === "early" && tNum > 3) return;
-          if (tf === "mid" && (tNum < 4 || tNum > 6)) return;
-          if (tf === "high" && (tNum < 7 || tNum > 8)) return;
-          if (tf === "endgame" && tNum < 9) return;
-
-          const hay = `${f.id} ${f.nome} ${f.racaNome}`.toLowerCase();
-          if (q && !hay.includes(q)) return;
-
-          const row = document.createElement("label");
-          row.className = "batch-form-item";
-
-          const left = document.createElement("div");
-          left.style.display = "flex";
-          left.style.alignItems = "center";
-          left.style.gap = "8px";
-
-          const chk = document.createElement("input");
-          chk.type = "checkbox";
-          chk.className = "batch-form-chk";
-          chk.value = f.id;
-          chk.checked = true; // Por padrão todas marcadas!
-          chk.addEventListener("change", () => {
-            if (chk.checked) row.classList.remove("unchecked");
-            else row.classList.add("unchecked");
-            updateCount();
-          });
-
-          const auraDot = document.createElement("div");
-          auraDot.className = "aura-dot";
-          auraDot.style.background = resolveAuraDotColor(f);
-          auraDot.style.width = "10px";
-          auraDot.style.height = "10px";
-
-          const info = document.createElement("div");
-          info.innerHTML = `<span style="font-weight:700; color:#FFF; font-size:12px;">${escapeHtml(f.nome)}</span> <span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); margin-left:4px;">${escapeHtml(f.id)}</span>`;
-
-          left.appendChild(chk);
-          left.appendChild(auraDot);
-          left.appendChild(info);
-
-          const right = document.createElement("div");
-          right.style.display = "flex";
-          right.style.gap = "6px";
-          right.style.alignItems = "center";
-
-          const tierPill = document.createElement("span");
-          tierPill.className = `tier-badge tier-${tNum}`;
-          tierPill.style.fontSize = "9.5px";
-          tierPill.textContent = `T${tNum}`;
-          tierPill.title = f.tier_label || `Tier ${tNum}`;
-
-          const tpPill = document.createElement("span");
-          tpPill.className = "badge badge-tp";
-          tpPill.style.fontSize = "10px";
-          tpPill.textContent = f.custo_tp;
-
-          const bpPill = document.createElement("span");
-          bpPill.className = "badge badge-bp";
-          bpPill.style.fontSize = "10px";
-          bpPill.textContent = f.multiplicador_bp;
-
-          right.appendChild(tierPill);
-          right.appendChild(tpPill);
-          right.appendChild(bpPill);
-
-          row.appendChild(left);
-          row.appendChild(right);
-          fList.appendChild(row);
-        });
-        updateCount();
-      }
-
-      if (tierFilterSelect) {
-        tierFilterSelect.onchange = renderChecklist;
-      }
-
-      rSelect.onchange = () => {
-        activeForms = getFormsForScope(rSelect.value);
-        renderChecklist();
-      };
-
-      if (searchInp) {
-        searchInp.value = "";
-        searchInp.oninput = renderChecklist;
-      }
-
-      const btnAll = el("btnBatchSelectAll");
-      if (btnAll) {
-        btnAll.onclick = () => {
-          fList.querySelectorAll(".batch-form-chk").forEach((c) => {
-            c.checked = true;
-            c.closest(".batch-form-item")?.classList.remove("unchecked");
-          });
-          updateCount();
-        };
-      }
-
-      const btnNone = el("btnBatchDeselectAll");
-      if (btnNone) {
-        btnNone.onclick = () => {
-          fList.querySelectorAll(".batch-form-chk").forEach((c) => {
-            c.checked = false;
-            c.closest(".batch-form-item")?.classList.add("unchecked");
-          });
-          updateCount();
-        };
-      }
-
-      const btnInvert = el("btnBatchInvertSel");
-      if (btnInvert) {
-        btnInvert.onclick = () => {
-          fList.querySelectorAll(".batch-form-chk").forEach((c) => {
-            c.checked = !c.checked;
-            if (c.checked) c.closest(".batch-form-item")?.classList.remove("unchecked");
-            else c.closest(".batch-form-item")?.classList.add("unchecked");
-          });
-          updateCount();
-        };
-      }
-
-      renderChecklist();
-      renderBatchRuleParams();
-      ruleSelect.onchange = renderBatchRuleParams;
-
-      // Translate modal elements dynamically
-      document.querySelectorAll("#batchModal [data-i18n]").forEach((elem) => {
-        const k = elem.getAttribute("data-i18n");
-        if (k) elem.textContent = t(k);
-      });
+    if (added.length === 0 && modified.length === 0 && deleted.length === 0) {
+      container.innerHTML = `<div class="diff-empty-note">${currentLang === "pt" ? "Nenhuma alteração detectada." : "No changes detected."}</div>`;
+      return;
     }
 
-    function renderBatchRuleParams() {
-      const container = el("batchDynamicParams");
-      const ruleSelect = el("batchRuleSelect");
-      const badge = el("batchRuleBadge");
-      if (!container || !ruleSelect) return;
-      const rule = ruleSelect.value;
-      const isEn = state.language === "en";
-
-      if (badge) {
-        const opt = ruleSelect.selectedOptions[0];
-        badge.textContent = opt ? opt.textContent.split(".")[1]?.trim() || opt.textContent : rule;
-      }
-
-      if (rule === "teto_hierarquico") {
-        container.innerHTML = `
-          <div style="font-size:12px; color:#67E8F9; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); padding:8px 10px; border-radius:var(--radius-sm); margin-bottom:8px; line-height:1.4;">
-            <strong>${isEn ? "⭐ Intelligent Power Tier Scaling:" : "⭐ Escala Hierárquica por Tiers:"}</strong>
-            ${isEn
-              ? "Categorizes all transformations into Tiers 1-10 based on original modpack power. Tier 10 scales up to the Max Cap (e.g. 50x), while Tiers 1-9 scale strictly proportionally. Precursors (like False SSJ) will NEVER surpass evolutions (SSJ1)."
-              : "Categoriza todas as transformações em Tiers de 1 a 10 pelo poder original do modpack. O Tier 10 atinge o Teto Máximo (ex: 50x) e os Tiers 1 a 9 escalam estritamente proporcional. Pré-requisitos (como False SSJ) NUNCA superam evoluções (SSJ1)."}
-          </div>
-          <div class="grid-3">
-            <div class="field-group">
-              <label for="batchParamTierCap">${t("batch_lbl_tier_cap")}</label>
-              <input id="batchParamTierCap" type="number" step="1" min="10" value="50.0" class="input-field" />
-            </div>
-            <div class="field-group">
-              <label for="batchParamTierFloor">${t("batch_lbl_tier_floor")}</label>
-              <input id="batchParamTierFloor" type="number" step="0.5" min="1" value="5.0" class="input-field" />
-            </div>
-            <div class="field-group">
-              <label for="batchParamTierCurve">${t("batch_lbl_tier_curve")}</label>
-              <select id="batchParamTierCurve" class="select-field">
-                <option value="suave">${isEn ? "Smooth RPG Curve (Recommended)" : "Curva Suave RPG (Recomendado)"}</option>
-                <option value="linear">${isEn ? "Linear (Uniform Scale)" : "Linear (Escala Uniforme)"}</option>
-                <option value="agressiva">${isEn ? "Aggressive (High Endgame)" : "Agressiva (Destaque Endgame)"}</option>
-              </select>
-            </div>
-          </div>
-          <div class="quick-btns" style="margin-top:6px;">
-            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="40.0" data-floor="4.0">40x Cap (Hardcore)</button>
-            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="50.0" data-floor="5.0">50x Cap (Standard DMZ)</button>
-            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="80.0" data-floor="6.0">80x Cap (High Power)</button>
-            <button type="button" class="btn btn-sm btn-batch-tier-preset" data-cap="100.0" data-floor="8.0">100x Cap (Anime Epic)</button>
-          </div>
-        `;
-        container.querySelectorAll(".btn-batch-tier-preset").forEach((btn) => {
-          btn.onclick = () => {
-            el("batchParamTierCap").value = btn.dataset.cap;
-            el("batchParamTierFloor").value = btn.dataset.floor;
-          };
-        });
-
-      } else if (rule === "escala_simples") {
-        container.innerHTML = `
-          <div class="grid-2">
-            <div class="field-group">
-              <label for="batchParamField">${t("batch_lbl_target_field")}</label>
-              <select id="batchParamField" class="select-field">
-                <option value="tp">${isEn ? "TP Cost" : "Custo de TP"}</option>
-                <option value="bp">${isEn ? "All Combat Multipliers (BP)" : "Todos Multiplicadores de BP"}</option>
-                <option value="ofensivo">${isEn ? "Offensive Only (STR + PWR + SKP)" : "Apenas Ofensivos (STR + PWR + SKP)"}</option>
-                <option value="defensivo">${isEn ? "Defensive Only (DEF + VIT)" : "Apenas Defensivos (DEF + VIT)"}</option>
-                <option value="dreno_ki">${isEn ? "Ki Drain (/s)" : "Dreno de Ki (/s)"}</option>
-                <option value="dreno_estamina">${isEn ? "Stamina Drain (/s)" : "Dreno de Estamina (/s)"}</option>
-                <option value="velocidade">${isEn ? "Speed Multipliers (SPD + Atk Spd)" : "Velocidades (SPD + Atk Speed)"}</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="batchParamFactor">${t("batch_lbl_factor")}</label>
-              <input id="batchParamFactor" type="number" step="0.05" min="0.01" value="1.5" class="input-field" />
-            </div>
-          </div>
-          <div class="quick-btns" style="margin-top:4px;">
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="0.5">0.5x (-50%)</button>
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="0.8">0.8x (-20%)</button>
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="1.2">1.2x (+20%)</button>
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="1.5">1.5x (+50%)</button>
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="2.0">2.0x</button>
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="3.0">3.0x</button>
-            <button type="button" class="btn btn-sm btn-batch-preset" data-val="5.0">5.0x</button>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-            ℹ️ ${isEn ? "Multiplies chosen attribute by factor. Free (0) and Priceless/Wish (-1) TP forms are preserved intact." : "Multiplica o atributo escolhido pelo fator. Formas gratuitas (0) e Priceless (-1) têm o TP preservado."}
-          </div>
-        `;
-        container.querySelectorAll(".btn-batch-preset").forEach((btn) => {
-          btn.onclick = () => { el("batchParamFactor").value = btn.dataset.val; };
-        });
-
-      } else if (rule === "risco_recompensa") {
-        container.innerHTML = `
-          <div class="grid-3">
-            <div class="field-group">
-              <label for="batchParamBonus">${t("batch_lbl_status_bonus")}</label>
-              <input id="batchParamBonus" type="number" step="0.05" min="1.0" value="1.30" class="input-field" />
-            </div>
-            <div class="field-group">
-              <label for="batchParamKiDrain">${t("batch_lbl_ki_drain_mult")}</label>
-              <input id="batchParamKiDrain" type="number" step="0.05" min="1.0" value="1.50" class="input-field" />
-            </div>
-            <div class="field-group">
-              <label for="batchParamStmDrain">${t("batch_lbl_stm_drain_mult")}</label>
-              <input id="batchParamStmDrain" type="number" step="0.05" min="1.0" value="1.50" class="input-field" />
-            </div>
-          </div>
-          <div class="quick-btns" style="margin-top:4px;">
-            <button type="button" class="btn btn-sm btn-risk-preset" data-bp="1.15" data-drain="1.20">${isEn ? "Light (+15% BP, +20% Drain)" : "Leve (+15% BP, +20% Dreno)"}</button>
-            <button type="button" class="btn btn-sm btn-risk-preset" data-bp="1.30" data-drain="1.50">${isEn ? "Moderate (+30% BP, +50% Drain)" : "Moderado (+30% BP, +50% Dreno)"}</button>
-            <button type="button" class="btn btn-sm btn-risk-preset" data-bp="1.60" data-drain="2.00">${isEn ? "Overdrive (+60% BP, +100% Drain)" : "Overdrive (+60% BP, +100% Dreno)"}</button>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-            ⚔️ ${isEn ? "Increases combat multipliers in exchange for higher Ki and Stamina drain per second in battle." : "Aumenta os multiplicadores de combate em troca de maior dreno de Ki e Estamina por segundo em batalha."}
-          </div>
-        `;
-        container.querySelectorAll(".btn-risk-preset").forEach((btn) => {
-          btn.onclick = () => {
-            el("batchParamBonus").value = btn.dataset.bp;
-            el("batchParamKiDrain").value = btn.dataset.drain;
-            el("batchParamStmDrain").value = btn.dataset.drain;
-          };
-        });
-
-      } else if (rule === "teto_maximo") {
-        container.innerHTML = `
-          <div class="grid-2">
-            <div class="field-group">
-              <label for="batchParamCapType">${t("batch_lbl_cap_type")}</label>
-              <select id="batchParamCapType" class="select-field">
-                <option value="soma">${isEn ? "Total Sum of 4 Stats (STR + PWR + DEF + SKP)" : "Soma dos 4 Status Principais (STR + PWR + DEF + SKP)"}</option>
-                <option value="individual">${isEn ? "Individual Maximum Multiplier (Per-Stat Limit)" : "Multiplicador Máximo Individual (Teto por Status)"}</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="batchParamCapVal">${t("batch_lbl_cap_val")}</label>
-              <input id="batchParamCapVal" type="number" step="1.0" min="1.0" value="50.0" class="input-field" />
-            </div>
-          </div>
-          <div class="quick-btns" style="margin-top:4px;">
-            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="30.0">${isEn ? "Competitive (30x Cap)" : "Competitivo (Teto 30x)"}</button>
-            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="50.0">${isEn ? "DMZ Standard (50x Cap)" : "Padrão DMZ (Teto 50x)"}</button>
-            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="80.0">${isEn ? "God Tier (80x Cap)" : "God Tier (Teto 80x)"}</button>
-            <button type="button" class="btn btn-sm btn-cap-preset" data-cap="120.0">${isEn ? "High Fantasy (120x Cap)" : "Alta Fantasia (Teto 120x)"}</button>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-            🛡️ ${isEn ? "Forms exceeding the cap are scaled down proportionally, preserving their unique offensive/defensive identity." : "Formas que ultrapassarem o teto são reduzidas proporcionalmente, preservando o estilo de distribuição de status."}
-          </div>
-        `;
-        container.querySelectorAll(".btn-cap-preset").forEach((btn) => {
-          btn.onclick = () => { el("batchParamCapVal").value = btn.dataset.cap; };
-        });
-
-      } else if (rule === "recalcular_tp") {
-        container.innerHTML = `
-          <div class="grid-2">
-            <div class="field-group">
-              <label for="batchParamTpRatio">${t("batch_lbl_tp_ratio")}</label>
-              <input id="batchParamTpRatio" type="number" step="2500" min="1000" value="25000" class="input-field" />
-            </div>
-            <div class="field-group" style="display:flex; align-items:center; margin-top:18px;">
-              <label class="toggle-row" style="margin:0;">
-                <input id="batchParamKeepSpecialTp" type="checkbox" checked />
-                <span style="font-size:11.5px;">${t("batch_chk_keep_special_tp")}</span>
-              </label>
-            </div>
-          </div>
-          <div class="quick-btns" style="margin-top:4px;">
-            <button type="button" class="btn btn-sm btn-tp-preset" data-ratio="10000">${isEn ? "Casual (10k TP / BP)" : "Casual (10k TP / BP)"}</button>
-            <button type="button" class="btn btn-sm btn-tp-preset" data-ratio="25000">${isEn ? "DMZ Standard (25k TP / BP)" : "Padrão DMZ (25k TP / BP)"}</button>
-            <button type="button" class="btn btn-sm btn-tp-preset" data-ratio="50000">${isEn ? "Hardcore Grinding (50k TP / BP)" : "Hardcore (50k TP / BP)"}</button>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-            💰 ${isEn ? "Automatically computes fair TP costs proportional to the transformation's total combat battle power." : "Calcula automaticamente custos de TP justos e proporcionais ao poder total de combate da transformação."}
-          </div>
-        `;
-        container.querySelectorAll(".btn-tp-preset").forEach((btn) => {
-          btn.onclick = () => { el("batchParamTpRatio").value = btn.dataset.ratio; };
-        });
-
-      } else if (rule === "normalizar_drenos") {
-        container.innerHTML = `
-          <div class="grid-2">
-            <div class="field-group">
-              <label for="batchParamDrainCap">${t("batch_lbl_max_ki_drain")}</label>
-              <input id="batchParamDrainCap" type="number" step="0.05" min="0.05" value="0.60" class="input-field" />
-            </div>
-            <div class="field-group">
-              <label for="batchParamDrainFloor">${t("batch_lbl_min_ki_drain")}</label>
-              <input id="batchParamDrainFloor" type="number" step="0.01" min="0.0" value="0.05" class="input-field" />
-            </div>
-          </div>
-          <div class="quick-btns" style="margin-top:4px;">
-            <button type="button" class="btn btn-sm btn-drain-preset" data-cap="0.35">${isEn ? "Fluid Combat (Max 0.35/s)" : "Combate Fluido (Máx 0.35/s)"}</button>
-            <button type="button" class="btn btn-sm btn-drain-preset" data-cap="0.60">${isEn ? "DMZ Balanced (Max 0.60/s)" : "Padrão DMZ (Máx 0.60/s)"}</button>
-            <button type="button" class="btn btn-sm btn-drain-preset" data-cap="1.20">${isEn ? "High Drain Challenge (Max 1.20/s)" : "Desafio Severo (Máx 1.20/s)"}</button>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-            ⚡ ${isEn ? "Tames absurd addon energy drains while ensuring god-tier forms have a sustainable upkeep cost." : "Apara drenos absurdos de addons e garante que formas divinas tenham um custo de energia sustentável."}
-          </div>
-        `;
-        container.querySelectorAll(".btn-drain-preset").forEach((btn) => {
-          btn.onclick = () => { el("batchParamDrainCap").value = btn.dataset.cap; };
-        });
-
-      } else if (rule === "especializacao") {
-        container.innerHTML = `
-          <div class="field-group">
-            <label for="batchParamArchetype">${t("batch_lbl_archetype")}</label>
-            <select id="batchParamArchetype" class="select-field">
-              <option value="berserker">${isEn ? "Berserker (+40% STR, +20% PWR, -20% DEF, -10% SPD)" : "Berserker (+40% Força, +20% Ki, -20% Defesa, -10% SPD)"}</option>
-              <option value="ki_blaster">${isEn ? "Ki Blaster / Mage (+50% PWR, +25% SKP, -20% STR, +20% Ki Drain)" : "Ki Blaster / Mago (+50% Poder Ki, +25% SKP, -20% Força, +20% Dreno Ki)"}</option>
-              <option value="tanque">${isEn ? "Immortal Tank (+60% DEF, +40% VIT, -25% SPD, -15% STR)" : "Tanque Imortal (+60% Defesa, +40% Vitalidade, -25% SPD, -15% Força)"}</option>
-              <option value="speedster">${isEn ? "Speedster / Evasion (+50% SPD, +40% Attack Speed, -20% DEF)" : "Velocista / Esquiva (+50% Velocidade, +40% Velocidade de Ataque, -20% DEF)"}</option>
-            </select>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-            🎯 ${isEn ? "Shifts battle stats to fulfill specific combat roles (Heavy Melee, Ranged Blaster, Tank or Fast Evasion)." : "Redireciona os atributos para cumprir funções específicas de combate (Corpo a Corpo, Mago de Ki, Tanque ou Velocista)."}
-          </div>
-        `;
-      }
-    }
-
-    el("btnOpenBatch").addEventListener("click", openBatchModal);
-    el("btnCloseBatch").addEventListener("click", () => closeModal("batchModal"));
-    const hClose = el("btnHeaderCloseBatch");
-    if (hClose) hClose.addEventListener("click", () => closeModal("batchModal"));
-
-    el("btnConfirmBatch").addEventListener("click", async () => {
-      const chks = document.querySelectorAll(".batch-form-chk:checked");
-      if (chks.length === 0) {
-        showToast(state.language === "en" ? "Select at least 1 transformation to balance!" : "Selecione ao menos 1 transformação para balancear!", true);
-        return;
-      }
-      const selectedIds = Array.from(chks).map((c) => c.value);
-      const scopeVal = el("batchRaceSelect").value;
-      const target_scope = { tipo: scopeVal };
-      if (scopeVal.startsWith("race:")) {
-        target_scope.tipo = "raca";
-        target_scope.raca = scopeVal.slice(5);
-      } else if (scopeVal === "universal") {
-        target_scope.tipo = "universal";
-      } else {
-        target_scope.tipo = "tudo";
-      }
-
-      const rule = el("batchRuleSelect").value;
-      const payload = {
-        regra: rule,
-        escopo_alvo: target_scope,
-        formas_selecionadas: selectedIds,
-      };
-
-      if (rule === "teto_hierarquico") {
-        payload.teto_maximo = parseFloat(el("batchParamTierCap") ? el("batchParamTierCap").value : "50.0") || 50.0;
-        payload.piso_minimo = parseFloat(el("batchParamTierFloor") ? el("batchParamTierFloor").value : "5.0") || 5.0;
-        payload.curva = el("batchParamTierCurve") ? el("batchParamTierCurve").value : "suave";
-      } else if (rule === "escala_simples") {
-        payload.campo = el("batchParamField") ? el("batchParamField").value : "tp";
-        payload.fator = parseFloat(el("batchParamFactor") ? el("batchParamFactor").value : "1.5") || 1.0;
-      } else if (rule === "risco_recompensa") {
-        payload.fator_bp = parseFloat(el("batchParamBonus") ? el("batchParamBonus").value : "1.30") || 1.30;
-        payload.fator_dreno_ki = parseFloat(el("batchParamKiDrain") ? el("batchParamKiDrain").value : "1.50") || 1.50;
-        payload.fator_dreno_estamina = parseFloat(el("batchParamStmDrain") ? el("batchParamStmDrain").value : "1.50") || 1.50;
-      } else if (rule === "teto_maximo") {
-        payload.tipo_teto = el("batchParamCapType") ? el("batchParamCapType").value : "soma";
-        payload.limite_maximo = parseFloat(el("batchParamCapVal") ? el("batchParamCapVal").value : "50.0") || 50.0;
-      } else if (rule === "recalcular_tp") {
-        payload.ratio_tp_por_bp = parseFloat(el("batchParamTpRatio") ? el("batchParamTpRatio").value : "25000") || 25000;
-        payload.preservar_especiais = el("batchParamKeepSpecialTp") ? el("batchParamKeepSpecialTp").checked : true;
-      } else if (rule === "normalizar_drenos") {
-        payload.teto_dreno_ki = parseFloat(el("batchParamDrainCap") ? el("batchParamDrainCap").value : "0.60") || 0.60;
-        payload.piso_dreno_ki = parseFloat(el("batchParamDrainFloor") ? el("batchParamDrainFloor").value : "0.05") || 0.05;
-      } else if (rule === "especializacao") {
-        payload.papel = el("batchParamArchetype") ? el("batchParamArchetype").value : "berserker";
-      }
-
-      try {
-        const data = await apiPost("/api/batch-balance", payload);
-        closeModal("batchModal");
-        applyServerState(data);
-        const count = selectedIds.length;
-        showToast(
-          state.language === "en"
-            ? `${count} transformations balanced successfully!`
-            : `${count} transformações balanceadas com sucesso!`
-        );
-      } catch (err) {
-        showToast(err.message, true);
-      }
-    });
-
-    // Color pickers & Live Aura Visualizer
-    el("vis_aura").addEventListener("input", updateAuraLivePreview);
-    el("vis_hair").addEventListener("input", updateAuraLivePreview);
-    el("vis_aura_picker").addEventListener("input", (e) => {
-      el("vis_aura").value = e.target.value.toUpperCase();
-      updateAuraLivePreview();
-    });
-    el("vis_hair_picker").addEventListener("input", (e) => {
-      el("vis_hair").value = e.target.value.toUpperCase();
-      updateAuraLivePreview();
-    });
-
-    // Preset color chips
-    document.querySelectorAll(".btn-preset-color").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const aura = btn.getAttribute("data-aura");
-        const hair = btn.getAttribute("data-hair");
-        if (aura) {
-          el("vis_aura").value = aura;
-          el("vis_aura_picker").value = aura;
-        }
-        if (hair) {
-          el("vis_hair").value = hair;
-          el("vis_hair_picker").value = hair;
-        }
-        updateAuraLivePreview();
-      });
-    });
-
-    // Sagas selection sync
-    const reqSagaSelect = el("req_saga_select");
-    const reqSagaInp = el("req_saga");
-    if (reqSagaSelect && reqSagaInp) {
-      reqSagaSelect.addEventListener("change", (e) => {
-        reqSagaInp.value = e.target.value;
-      });
-      reqSagaInp.addEventListener("input", (e) => {
-        populateSagasSelect(e.target.value);
-      });
-    }
-
-    // Prior form selection sync
-    const reqPrevSelect = el("req_prev_form_select");
-    const reqPrevInp = el("req_prev_form");
-    if (reqPrevSelect && reqPrevInp) {
-      reqPrevSelect.addEventListener("change", (e) => {
-        reqPrevInp.value = e.target.value;
-      });
-      reqPrevInp.addEventListener("input", (e) => {
-        populatePrevFormSelect(e.target.value);
-      });
-    }
-
-    // Incompatible forms selector, tags & shortcuts
-    const reqIncompatSelect = el("req_incompatible_select");
-    if (reqIncompatSelect) {
-      reqIncompatSelect.addEventListener("change", (e) => {
-        if (e.target.value) {
-          addIncompatibleForm(e.target.value);
-        }
-      });
-    }
-
-    const reqIncompatInp = el("req_incompatible");
-    if (reqIncompatInp) {
-      reqIncompatInp.addEventListener("input", (e) => {
-        const list = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-        renderIncompatibleTags(list);
-      });
-    }
-
-    document.querySelectorAll(".btn-incompat-quick").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const formId = btn.getAttribute("data-form");
-        if (formId) addIncompatibleForm(formId);
-      });
-    });
-
-    // Close button for Add Form Modal
-    const btnCloseAddFormX = el("btnCloseAddFormX");
-    if (btnCloseAddFormX) {
-      btnCloseAddFormX.addEventListener("click", () => closeModal("addFormModal"));
-    }
-
-    // Live Visualizer inside Add Form Modal
-    const addAuraInp = el("add_cor_aura");
-    const addHairInp = el("add_cor_cabelo");
-    const addAuraPicker = el("add_cor_aura_picker");
-    const addHairPicker = el("add_cor_cabelo_picker");
-
-    if (addAuraInp) addAuraInp.addEventListener("input", updateAddFormAuraPreview);
-    if (addHairInp) addHairInp.addEventListener("input", updateAddFormAuraPreview);
-
-    if (addAuraPicker && addAuraInp) {
-      addAuraPicker.addEventListener("input", (e) => {
-        addAuraInp.value = e.target.value.toUpperCase();
-        updateAddFormAuraPreview();
-      });
-    }
-    if (addHairPicker && addHairInp) {
-      addHairPicker.addEventListener("input", (e) => {
-        addHairInp.value = e.target.value.toUpperCase();
-        updateAddFormAuraPreview();
-      });
-    }
-
-    document.querySelectorAll(".btn-add-preset-color").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const aura = btn.getAttribute("data-aura");
-        const hair = btn.getAttribute("data-hair");
-        if (aura && addAuraInp) addAuraInp.value = aura;
-        if (hair && addHairInp) addHairInp.value = hair;
-        updateAddFormAuraPreview();
-      });
-    });
-
-    // Add Form TP presets and live preview
-    const addTpInp = el("add_tp");
-    if (addTpInp) {
-      addTpInp.addEventListener("input", updateAddFormTpPreview);
-    }
-    document.querySelectorAll(".btn-preset-add-tp").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const val = btn.getAttribute("data-tp");
-        if (addTpInp && val !== null) {
-          addTpInp.value = val;
-          updateAddFormTpPreview();
-        }
-      });
-    });
-
-    // Add Form BP multipliers & preview
-    ["add_mult_str", "add_mult_pwr", "add_mult_def", "add_mult_skp"].forEach((id) => {
-      const input = el(id);
-      if (input) input.addEventListener("input", updateAddFormBpPreview);
-    });
-
-    document.querySelectorAll(".btn-preset-add-bp").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const factor = parseFloat(btn.getAttribute("data-bpmult"));
-        if (!factor) return;
-        ["add_mult_str", "add_mult_pwr", "add_mult_def", "add_mult_skp"].forEach((id) => {
-          const inp = el(id);
-          if (inp) {
-            const v = parseFloat(inp.value) || 1.0;
-            inp.value = (Math.round(v * factor * 100) / 100).toFixed(2);
-          }
-        });
-        updateAddFormBpPreview();
-      });
-    });
-
-    // Master purchase & selection sync
-    const chkBuyMaster = el("chkBuyMaster");
-    const inpMasterSelect = el("inpMasterSelect");
-    const inpMasterBadge = el("inpMasterBadge");
-    if (chkBuyMaster && inpMasterSelect) {
-      chkBuyMaster.addEventListener("change", (e) => {
-        inpMasterSelect.disabled = !e.target.checked;
-        if (inpMasterBadge) {
-          if (!e.target.checked) {
-            inpMasterBadge.textContent = "—";
-          } else if (inpMasterSelect.selectedOptions[0]) {
-            inpMasterBadge.textContent = inpMasterSelect.value
-              ? `🥋 ${inpMasterSelect.selectedOptions[0].textContent.split("(")[0].trim()}`
-              : "—";
-          }
-        }
-      });
-      inpMasterSelect.addEventListener("change", (e) => {
-        if (inpMasterBadge) {
-          inpMasterBadge.textContent = e.target.value && e.target.selectedOptions[0]
-            ? `🥋 ${e.target.selectedOptions[0].textContent.split("(")[0].trim()}`
-            : "—";
-        }
-      });
-    }
-
-    // Addons Modal toolbar controls & filter tabs
-    const btnOpenModsFolder = el("btnOpenModsFolder");
-    if (btnOpenModsFolder) {
-      btnOpenModsFolder.addEventListener("click", async () => {
-        try {
-          const res = await apiPost("/api/addons/open-folder");
-          showToast(res.message || (state.language === "en" ? "Mods folder opened!" : "Pasta de mods aberta!"));
-        } catch (err) {
-          showToast(err.message, true);
-        }
-      });
-    }
-
-    const btnReloadAddons = el("btnReloadAddons");
-    if (btnReloadAddons) {
-      btnReloadAddons.addEventListener("click", () => openAddonsModal(true));
-    }
-
-    const addonSearchInput = el("addonSearchInput");
-    if (addonSearchInput) {
-      addonSearchInput.addEventListener("input", (e) => {
-        state.addonFilterText = e.target.value;
-        renderAddonsCards();
-      });
-    }
-
-    document.querySelectorAll(".filter-tab-btn").forEach((tabBtn) => {
-      tabBtn.addEventListener("click", () => {
-        document.querySelectorAll(".filter-tab-btn").forEach((b) => b.classList.remove("active"));
-        tabBtn.classList.add("active");
-        state.addonActiveTab = tabBtn.getAttribute("data-tab") || "all";
-        renderAddonsCards();
-      });
-    });
-
-    // Search and filter inputs
-    el("raceSearchInput").addEventListener("input", (e) => {
-      state.raceFilterText = e.target.value;
-      renderSidebar();
-    });
-    el("mainSearchInput").addEventListener("input", (e) => {
-      state.searchText = e.target.value;
-      rebuildAndRenderTable();
-    });
-    el("addonFilterSelect").addEventListener("change", (e) => {
-      state.addonFilter = e.target.value;
-      rebuildAndRenderTable();
-    });
-    el("quickFilterSelect").addEventListener("change", (e) => {
-      state.quickFilter = e.target.value;
-      rebuildAndRenderTable();
-    });
-    el("sortSelect").addEventListener("change", (e) => {
-      state.sortBy = e.target.value;
-      rebuildAndRenderTable();
-    });
-
-    // TP and BP live input listeners
-    el("inpTp").addEventListener("input", updateInspectorPreviews);
-    el("mult_str").addEventListener("input", updateInspectorPreviews);
-    el("mult_pwr").addEventListener("input", updateInspectorPreviews);
-
-    document.querySelectorAll("[data-tp-preset]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        el("inpTp").value = btn.getAttribute("data-tp-preset");
-        updateInspectorPreviews();
-      });
-    });
-
-    document.querySelectorAll("[data-tp-mult]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const mult = parseFloat(btn.getAttribute("data-tp-mult"));
-        const cur = parseInt(el("inpTp").value, 10);
-        if (cur > 0) {
-          el("inpTp").value = Math.max(1, Math.round(cur * mult));
-          updateInspectorPreviews();
-        }
-      });
-    });
-
-    document.querySelectorAll("[data-bp-mult]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const factor = parseFloat(btn.getAttribute("data-bp-mult"));
-        ["mult_str", "mult_pwr", "mult_def", "mult_skp"].forEach((id) => {
-          const inp = el(id);
-          const v = parseFloat(inp.value) || 1.0;
-          inp.value = (Math.round(v * factor * 1000) / 1000).toFixed(2);
-        });
-        updateInspectorPreviews();
-      });
+    container.innerHTML = "";
+    modified.forEach((m) => {
+      const card = document.createElement("div");
+      card.className = "diff-card modified";
+      card.innerHTML = `<strong>~ ${m.form_id || m.name}</strong> (${m.race || 'Global'})<br/><span style="font-size:11px; color:var(--text-muted);">${m.details || 'Atributos alterados'}</span>`;
+      container.appendChild(card);
     });
   }
 
-  // Initialization
-  async function init() {
-    setupEvents();
-    setLanguage(state.language);
-    try {
-      const data = await apiGet("/api/state");
-      applyServerState(data);
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  // =========================================================================
+  // INICIALIZAÇÃO GERAL AO CARREGAR O DOM
+  // =========================================================================
+  window.addEventListener("DOMContentLoaded", () => {
+    initThreeViewport();
+    initSimulationController();
+    initModals();
+    loadStudioState();
+    setLanguage("pt");
+  });
 })();

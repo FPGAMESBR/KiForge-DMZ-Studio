@@ -304,3 +304,83 @@ def save_editor_settings(settings_path: str, settings: dict[str, str]) -> None:
     os.makedirs(os.path.dirname(os.path.abspath(settings_path)), exist_ok=True)
     with open(settings_path, "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=2, ensure_ascii=False)
+
+
+def run_health_check(catalog: dict[str, Any]) -> dict[str, Any]:
+    """Perform integrity verification on transformation trees, prerequisites, and sagas."""
+    issues: list[dict[str, Any]] = []
+    known_form_ids: set[str] = set()
+    id_locations: dict[str, list[str]] = {}
+
+    # Index all known form IDs and check for duplicates
+    for r_key, r_obj in catalog.get("racas", {}).items():
+        for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+            for f in t_obj.get("formas", []):
+                fid = str(f.get("id", "")).strip()
+                if fid:
+                    known_form_ids.add(fid)
+                    id_locations.setdefault(fid, []).append(f"{r_key}/{t_key}")
+
+    for g_key, g_obj in catalog.get("formas_universais_e_stack", {}).items():
+        for f in g_obj.get("formas", []):
+            fid = str(f.get("id", "")).strip()
+            if fid:
+                known_form_ids.add(fid)
+                id_locations.setdefault(fid, []).append(f"global/{g_key}")
+
+    # 1. Duplicate ID Check
+    for fid, locs in id_locations.items():
+        if len(locs) > 1:
+            issues.append({
+                "severity": "warning",
+                "form_id": fid,
+                "message": f"ID duplicado detectado em múltiplos locais: {', '.join(locs)}",
+            })
+
+    # 2. Check each form's prerequisites and levels
+    for r_key, r_obj in catalog.get("racas", {}).items():
+        for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+            seen_levels: dict[int, str] = {}
+            for f in t_obj.get("formas", []):
+                fid = f.get("id", "")
+                lvl = int(f.get("nivel_habilidade", 1) or 1)
+                prev = str(f.get("forma_previa", "")).strip()
+
+                # Level collision inside same group
+                if lvl in seen_levels:
+                    issues.append({
+                        "severity": "warning",
+                        "form_id": fid,
+                        "location": f"{r_key}/{t_key}",
+                        "message": f"Nível de desbloqueio {lvl} compartilhado entre '{fid}' e '{seen_levels[lvl]}'",
+                    })
+                else:
+                    seen_levels[lvl] = fid
+
+                # Orphaned prerequisite check
+                if prev and prev not in known_form_ids:
+                    issues.append({
+                        "severity": "error",
+                        "form_id": fid,
+                        "location": f"{r_key}/{t_key}",
+                        "message": f"Forma prévia '{prev}' não existe no catálogo atual.",
+                    })
+
+    status = "ok"
+    if any(i["severity"] == "error" for i in issues):
+        status = "error"
+    elif any(i["severity"] == "warning" for i in issues):
+        status = "warning"
+
+    summary = (
+        "Health Check: 100% íntegro (Zero problemas)"
+        if status == "ok"
+        else f"Health Check: {len(issues)} aviso(s) detectado(s)"
+    )
+
+    return {
+        "status": status,
+        "total_issues": len(issues),
+        "issues": issues,
+        "summary": summary,
+    }

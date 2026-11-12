@@ -8,6 +8,7 @@ and native pywebview window.
 from __future__ import annotations
 
 import argparse
+import copy
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -42,6 +43,17 @@ from dmz_form_editor_core import (  # noqa: E402
     default_allowed_roots,
     delete_form,
     validate_allowed_path,
+    init_studio_state,
+    compute_catalog_diff,
+    clone_stage,
+    auto_scale_group,
+    reorder_group_stages,
+    reorder_race_groups,
+    add_to_staging_dock,
+    remove_from_staging_dock,
+    allocate_staging_to_tree,
+    create_wizard_form,
+    simulate_drain,
 )
 from dmz_form_editor_io import (  # noqa: E402
     apply_catalog_to_modpack,
@@ -50,7 +62,16 @@ from dmz_form_editor_io import (  # noqa: E402
     save_catalog_to_json,
     scan_dmz_addons,
     toggle_addon_mod,
+    get_backup_dir,
+    create_zip_backup,
+    open_backup_folder,
+    resolve_dmz_config_dir,
+    export_selective_mold,
+    parse_import_payload,
+    inspect_mod_jars,
 )
+from dmz_form_editor_sagas import run_health_check  # noqa: E402
+from balance_all_races import balance_catalog  # noqa: E402
 from dmz_form_editor_sagas import (  # noqa: E402
     extract_modpack_sagas,
     load_editor_settings,
@@ -213,7 +234,9 @@ class EditorController:
                     self._language = saved_lang
             except Exception:
                 pass
+        self._staging_dock: list[dict[str, Any]] = []
         self._catalog = self._initial_load()
+        self._baseline_state: dict[str, Any] = copy.deepcopy(self._catalog)
 
     def attach_window(self, window: Any) -> None:
         self._window_ref = window
@@ -265,6 +288,10 @@ class EditorController:
             "dmz_config_dir": self._dmz_config_dir,
             "default_dmz_config_dir": DEFAULT_DMZ_CONFIG_DIR,
             "language": self._language,
+            "staging_dock": self._staging_dock,
+            "diff_count": len(compute_catalog_diff(self._baseline_state, self._catalog)),
+            "health": run_health_check(self._catalog),
+            "backup_dir": get_backup_dir(),
         }
         if extra:
             return {**base, **extra}
@@ -753,6 +780,137 @@ class EditorController:
             )
 
 
+
+    def get_diff(self) -> dict[str, Any]:
+        with self._lock:
+            diffs = compute_catalog_diff(self._baseline_state, self._catalog)
+            return {"ok": True, "diffs": diffs, "total_diffs": len(diffs)}
+
+    def open_backups_folder(self) -> dict[str, Any]:
+        opened = open_backup_folder()
+        return {"ok": opened, "backup_dir": get_backup_dir()}
+
+    def clone_stage_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = str(payload.get("raca", "saiyan"))
+            group = str(payload.get("arvore", "supersaiyan"))
+            source_id = str(payload.get("source_id", ""))
+            new_id = str(payload.get("new_id", f"{source_id}_clone"))
+            new_name = str(payload.get("new_name", ""))
+            self._catalog = clone_stage(self._catalog, race, group, source_id, new_id, new_name)
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked({"selected_id": new_id})
+
+    def auto_scale_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = str(payload.get("raca", "saiyan"))
+            group = str(payload.get("arvore", "supersaiyan"))
+            m_step = float(payload.get("multiplier_step_pct", 15.0))
+            d_step = float(payload.get("drain_step_pct", 10.0))
+            self._catalog = auto_scale_group(self._catalog, race, group, m_step, d_step)
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def reorder_stages_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = str(payload.get("raca", "saiyan"))
+            group = str(payload.get("arvore", "supersaiyan"))
+            ordered = list(payload.get("ordered_ids", []))
+            auto_lvl = bool(payload.get("auto_update_levels", True))
+            start_lvl = int(payload.get("start_level", 1))
+            self._catalog = reorder_group_stages(self._catalog, race, group, ordered, auto_lvl, start_lvl)
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def reorder_groups_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = str(payload.get("raca", "saiyan"))
+            ordered = list(payload.get("ordered_groups", []))
+            self._catalog = reorder_race_groups(self._catalog, race, ordered)
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def staging_import_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            raw = payload.get("payload")
+            items = parse_import_payload(raw)
+            for it in items:
+                self._staging_dock = add_to_staging_dock(
+                    self._staging_dock,
+                    it.get("payload", {}),
+                    item_type=it.get("type", "sub_form"),
+                    source="import",
+                    origin_hint=it.get("origin_hint", ""),
+                )
+            return self._build_state_unlocked({"imported_count": len(items)})
+
+    def staging_delete_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            stg_id = str(payload.get("staging_id", ""))
+            self._staging_dock = remove_from_staging_dock(self._staging_dock, stg_id)
+            return self._build_state_unlocked()
+
+    def staging_allocate_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            stg_id = str(payload.get("staging_id", ""))
+            target_race = str(payload.get("target_race", "saiyan"))
+            target_group = str(payload.get("target_group", "custom_group"))
+            conflict = str(payload.get("conflict_mode", "rename"))
+            new_id = payload.get("custom_id")
+            self._catalog, self._staging_dock, fid = allocate_staging_to_tree(
+                self._catalog, self._staging_dock, stg_id, target_race, target_group, conflict, new_id
+            )
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked({"allocated_id": fid})
+
+    def wizard_create_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            self._catalog = create_wizard_form(
+                self._catalog,
+                group_id=str(payload.get("group_id", "")),
+                group_name=str(payload.get("group_name", "")),
+                target_race=str(payload.get("target_race", "saiyan")),
+                is_universal=bool(payload.get("is_universal", False)),
+                num_stages=int(payload.get("num_stages", 1)),
+                base_name=str(payload.get("base_name", "")),
+                base_hair=str(payload.get("base_hair", "base")),
+                base_aura=str(payload.get("base_aura", "kakarot")),
+                base_color_hair=str(payload.get("base_color_hair", "#FFE89E")),
+                base_color_aura=str(payload.get("base_color_aura", "#FFD700")),
+            )
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked({"new_group": payload.get("group_id")})
+
+    def selective_export_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            selection = payload.get("selection", {})
+            author = str(payload.get("author", "KiForge User"))
+            notes = str(payload.get("notes", ""))
+            mold = export_selective_mold(self._catalog, selection, author, notes)
+            return {"ok": True, "mold": mold}
+
+    def simulate_drain_action(self, payload: dict[str, Any]) -> dict[str, Any]:
+        form_data = payload.get("form", {})
+        base_ki = float(payload.get("base_ki", 1000.0))
+        base_stm = float(payload.get("base_stm", 1000.0))
+        base_hp = float(payload.get("base_hp", 1000.0))
+        sim = simulate_drain(form_data, base_ki, base_stm, base_hp)
+        return {"ok": True, "simulation": sim}
+
+    def auto_balance_all_action(self) -> dict[str, Any]:
+        with self._lock:
+            self._catalog = balance_catalog(self._catalog)
+            self._push_undo_unlocked()
+            self._dirty = True
+            return self._build_state_unlocked()
+
+
 STATIC_ASSETS: dict[str, tuple[str, str]] = {
     "/assets/dmz_form_editor.css": (
         "dmz_form_editor.css",
@@ -773,6 +931,14 @@ STATIC_ASSETS: dict[str, tuple[str, str]] = {
     "/assets/favicon.ico": (
         "favicon.ico",
         "image/x-icon",
+    ),
+    "/assets/three.min.js": (
+        "three.min.js",
+        "application/javascript; charset=utf-8",
+    ),
+    "/assets/OrbitControls.js": (
+        "OrbitControls.js",
+        "application/javascript; charset=utf-8",
     ),
 }
 
@@ -894,6 +1060,33 @@ def create_http_server(
                     self._send_json(200, controller.save_json_only())
                 elif path == "/api/apply-modpack":
                     self._send_json(200, controller.apply_to_modpack_and_json())
+                elif path == "/api/diff":
+                    self._send_json(200, controller.get_diff())
+                elif path == "/api/backups/open":
+                    self._send_json(200, controller.open_backups_folder())
+                elif path == "/api/stage/clone":
+                    self._send_json(200, controller.clone_stage_action(body))
+                elif path == "/api/stage/auto-scale":
+                    self._send_json(200, controller.auto_scale_action(body))
+                elif path == "/api/stage/reorder":
+                    self._send_json(200, controller.reorder_stages_action(body))
+                elif path == "/api/group/reorder":
+                    self._send_json(200, controller.reorder_groups_action(body))
+                elif path == "/api/staging/import":
+                    self._send_json(200, controller.staging_import_action(body))
+                elif path == "/api/staging/delete":
+                    self._send_json(200, controller.staging_delete_action(body))
+                elif path == "/api/staging/allocate":
+                    self._send_json(200, controller.staging_allocate_action(body))
+                elif path == "/api/wizard/create":
+                    self._send_json(200, controller.wizard_create_action(body))
+                elif path == "/api/export/selective":
+                    self._send_json(200, controller.selective_export_action(body))
+                elif path == "/api/drain/simulate":
+                    self._send_json(200, controller.simulate_drain_action(body))
+                elif path == "/api/balance-all":
+                    self._send_json(200, controller.auto_balance_all_action())
+
                 else:
                     self._send_json(404, {"ok": False, "error": "Endpoint inexistente."})
             except (ValueError, KeyError, SecurityPathError, json.JSONDecodeError) as exc:
