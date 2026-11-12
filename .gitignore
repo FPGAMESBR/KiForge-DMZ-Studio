@@ -21,6 +21,7 @@ htmlcov/
 
 # Local settings / Vault
 dmz_editor_settings.json
+backups/
 *.bak
 *.bak_*
 *.log

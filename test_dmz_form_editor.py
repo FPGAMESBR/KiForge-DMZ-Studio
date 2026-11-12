@@ -12,18 +12,38 @@ if _EDITOR_DIR not in sys.path:
 from dmz_form_editor_core import (
     SecurityPathError,
     add_form,
+    allocate_from_staging,
     apply_batch_balance,
     apply_batch_scale,
     apply_form_update,
+    auto_scale_tree,
+    compute_drain_rates_and_autonomy,
+    compute_power_tier,
+    compute_state_diff,
+    compute_stats_and_bars,
     delete_form,
     detect_addon_origin,
+    duplicate_form,
+    export_selective_package,
+    import_to_staging,
+    remove_from_staging,
+    reorder_forms,
     resolve_race_friendly_name,
     validate_allowed_path,
+    validate_integrity,
 )
 from dmz_form_editor_io import (
+    IGNORED_EXTENSIONS,
+    IGNORED_SUBDIRS,
     apply_catalog_to_modpack,
+    atomic_save_json,
+    create_modpack_backup_zip,
+    get_backups_dir,
+    is_valid_form_json_file,
+    list_backups,
     load_catalog_from_json,
     load_catalog_from_modpack,
+    prune_old_backups,
     save_catalog_to_json,
     scan_dmz_addons,
     toggle_addon_mod,
@@ -1595,6 +1615,391 @@ def test_inspector_scroll_and_accordion_structure() -> None:
     # Scope universal disables race selection in modal
     assert "rSelect.disabled = true" in js_content
     assert 'data-i18n="add_sec1_title"' in html_content
+
+
+def test_strict_file_filtering_and_ignored_extensions(tmp_path: Path) -> None:
+    """Verify that dmz_form_editor_io strictly filters out backup files, hashes, and auxiliary metadata."""
+    # 1. Direct function check on filenames and extensions
+    assert is_valid_form_json_file("ssj.json") is True
+    assert is_valid_form_json_file("ssj_blue.json") is True
+    assert is_valid_form_json_file("stats.json") is False
+    assert is_valid_form_json_file("character.json") is False
+    assert is_valid_form_json_file("settings.json") is False
+    assert is_valid_form_json_file("temp.tmp") is False
+    assert is_valid_form_json_file("backup.bak") is False
+    assert is_valid_form_json_file("supersaiyan.pre-1.2-backup.json") is False
+    assert is_valid_form_json_file("ultra_instinct.json.dmzultra_hash") is False
+    assert is_valid_form_json_file("free_form.json.dmzultra_free") is False
+    assert is_valid_form_json_file("mutant.json.dmzultra_mutant") is False
+
+    for ext in IGNORED_EXTENSIONS:
+        assert is_valid_form_json_file(f"transformation{ext}") is False
+
+    # 2. Filesystem scanning test
+    dmz_root = tmp_path / "config" / "dragonminez"
+    race_forms = dmz_root / "races" / "saiyan" / "forms"
+    race_forms.mkdir(parents=True)
+
+    # Valid form
+    valid_data = {
+        "groupName": "valid_form",
+        "forms": {
+            "valid_stage": {
+                "name": "valid_stage",
+                "unlockOnSkillLevel": 1,
+                "strMultiplier": 2.0,
+                "pwrMultiplier": 2.0,
+            }
+        },
+    }
+    (race_forms / "valid_form.json").write_text(json.dumps(valid_data), encoding="utf-8")
+
+    # Hashes and auxiliary files in forms directory
+    (race_forms / "valid_form.json.dmzultra_hash").write_text("a" * 64, encoding="utf-8")
+    (race_forms / "free.dmzultra_free").write_text("true", encoding="utf-8")
+    (race_forms / "rev.dmzultra_rev").write_text("rev", encoding="utf-8")
+    (race_forms / "backup_old.pre-1.5-backup.json").write_text("{}", encoding="utf-8")
+
+    # Ignored subdirectories
+    for sdir in IGNORED_SUBDIRS:
+        sub_p = race_forms / sdir
+        sub_p.mkdir(parents=True, exist_ok=True)
+        (sub_p / "corrupted_or_old.json").write_text("{}", encoding="utf-8")
+
+    # Load modpack catalog and ensure only valid_form.json was parsed
+    catalog = load_catalog_from_modpack(str(dmz_root))
+    saiyan = catalog["racas"]["saiyan"]
+    assert "valid_form" in saiyan["arvores_de_transformacao"]
+    assert len(saiyan["arvores_de_transformacao"]) == 1
+    forms = saiyan["arvores_de_transformacao"]["valid_form"]["formas"]
+    assert len(forms) == 1
+    assert forms[0]["id"] == "valid_stage"
+
+
+def test_atomic_save_updates_dmzultra_hash(tmp_path: Path) -> None:
+    """Verify atomic_save_json writes atomically (.tmp -> os.replace) and recalculates .dmzultra_hash with SHA-256."""
+    import hashlib
+
+    target_json = tmp_path / "supersaiyan.json"
+    dummy_payload = {
+        "groupName": "supersaiyan",
+        "forms": {
+            "ssj1": {
+                "name": "Super Saiyan 1",
+                "strMultiplier": 2.5,
+                "customAddonKey": "dmzultra_preserved_value",
+            }
+        },
+    }
+
+    # Pre-create old .dmzultra_hash to simulate modpack file that has a corresponding hash
+    hash_file = tmp_path / "supersaiyan.json.dmzultra_hash"
+    hash_file.write_text("old_stale_hash_value_that_needs_update" * 2, encoding="utf-8")
+
+    # Save via atomic_save_json
+    atomic_save_json(str(target_json), dummy_payload)
+    assert target_json.exists()
+
+    # Verify content was written
+    loaded = json.loads(target_json.read_text(encoding="utf-8"))
+    assert loaded["forms"]["ssj1"]["customAddonKey"] == "dmzultra_preserved_value"
+
+    # Verify .dmzultra_hash file was updated
+    assert hash_file.exists()
+
+    # Compute expected SHA-256 hex digest
+    raw_bytes = target_json.read_bytes()
+    expected_hash = hashlib.sha256(raw_bytes).hexdigest().lower()
+    written_hash = hash_file.read_text(encoding="utf-8").strip()
+
+    assert written_hash == expected_hash
+    assert len(written_hash) == 64
+
+
+def test_zip_backup_and_backups_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify create_modpack_backup_zip creates compressed .zip in backups/ and prunes to max 30."""
+    import zipfile
+
+    b_dir = tmp_path / "test_backups"
+    b_dir.mkdir(parents=True)
+    monkeypatch.setattr("dmz_form_editor_io.get_backups_dir", lambda: str(b_dir))
+
+    # Create dummy modpack files to backup
+    dmz_dir = tmp_path / "dmz_config"
+    forms_dir = dmz_dir / "races" / "saiyan" / "forms"
+    forms_dir.mkdir(parents=True)
+    f1 = forms_dir / "form1.json"
+    f1.write_text('{"form": 1}', encoding="utf-8")
+    f2 = forms_dir / "form2.json"
+    f2.write_text('{"form": 2}', encoding="utf-8")
+
+    zip_path = create_modpack_backup_zip([str(f1), str(f2)], str(dmz_dir), backups_dir=str(b_dir))
+    assert zip_path is not None
+    assert os.path.isfile(zip_path)
+    assert zip_path.endswith(".zip")
+    assert str(b_dir) in zip_path
+
+    # Check zip contents
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        namelist = zf.namelist()
+        assert any("form1.json" in name for name in namelist)
+        assert any("form2.json" in name for name in namelist)
+
+    # ZERO backup files inside dmz_dir
+    assert not any(p.suffix == ".zip" or ".bak" in p.name for p in dmz_dir.rglob("*"))
+
+    # Test prune_old_backups with 35 dummy zip files
+    for i in range(35):
+        dummy_zip = b_dir / f"backup_20261111_{i:04d}.zip"
+        dummy_zip.write_text(f"dummy zip {i}", encoding="utf-8")
+
+    prune_old_backups(str(b_dir), max_keep=30)
+    remaining_zips = list(b_dir.glob("backup_*.zip"))
+    assert len(remaining_zips) == 30
+
+    # list_backups returns sorted list with metadata
+    all_b = list_backups()
+    assert len(all_b) >= 30
+    assert "filename" in all_b[0]
+    assert "size_bytes" in all_b[0]
+    assert "created_iso" in all_b[0]
+
+
+def test_staging_dock_import_allocate_and_remove(mock_modpack: Path) -> None:
+    """Verify 3-tier memory staging dock: importing, conflict strategies, and allocating into working catalog."""
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+
+    staged_payload = {
+        "tipo": "pacote_transformacoes_dmz",
+        "formas": [
+            {
+                "id": "stage_imported_1",
+                "nome": "Imported Super Form",
+                "multiplicadores_detalhados": {
+                    "forca_str": 4.0,
+                    "poder_ki_pwr": 4.0,
+                    "defesa_def": 4.0,
+                    "golpe_skp": 4.0,
+                    "vitalidade_vit": 1.0,
+                    "energia_ene": 1.0,
+                    "velocidade": 1.5,
+                },
+                "drenos": {"energia_ki": 0.2, "estamina": 0.05, "vida": 0.0},
+                "visual": {"cor_aura": "#00FF00", "cor_cabelo": "#00FF00", "tipo_cabelo": "ssj2"},
+                "origin_hint": {"race_id": "saiyan", "tree_id": "supersaiyanx"},
+            }
+        ]
+    }
+
+    # 1. Import to staging dock
+    dock: list[dict[str, Any]] = []
+    dock, count = import_to_staging(dock, staged_payload)
+    assert count == 1
+    assert len(dock) == 1
+    staged_item = dock[0]
+    assert staged_item["id"] == "stage_imported_1"
+    staged_uuid = staged_item["staging_id"]
+
+    # 2. Allocate into saiyan supersaiyanx tree
+    new_catalog, new_dock, allocated = allocate_from_staging(
+        catalog,
+        dock,
+        staging_id=staged_uuid,
+        target_race="saiyan",
+        target_tree="supersaiyanx",
+        conflict_strategy="replace",
+    )
+    assert len(new_dock) == 0
+    forms = new_catalog["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    assert any(f["id"] == "stage_imported_1" for f in forms)
+
+    # 3. Test conflict strategies when allocating an already existing ID (supersaiyan1)
+    colliding_item = {
+        "id": "supersaiyan1",
+        "nome": "Colliding SSJ1",
+        "multiplicadores_detalhados": {"forca_str": 9.9},
+    }
+    dock2, _ = import_to_staging([], [colliding_item])
+    c_uuid = dock2[0]["staging_id"]
+
+    # Strategy 'rename'
+    renamed_catalog, dock_after_rename, _ = allocate_from_staging(
+        new_catalog,
+        dock2,
+        staging_id=c_uuid,
+        target_race="saiyan",
+        target_tree="supersaiyanx",
+        conflict_strategy="rename",
+    )
+    forms_after_rename = renamed_catalog["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    assert any("supersaiyan1_custom" in f["id"] for f in forms_after_rename)
+
+    # Strategy 'remove_from_staging' directly
+    dock3, _ = import_to_staging([], [{"id": "to_discard", "nome": "Discard Me"}])
+    assert len(dock3) == 1
+    discard_uuid = dock3[0]["staging_id"]
+    dock3_empty = remove_from_staging(dock3, discard_uuid)
+    assert len(dock3_empty) == 0
+
+
+def test_selective_package_export(mock_modpack: Path) -> None:
+    """Verify export_selective_package exports clean self-contained packages with origin_hint."""
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+
+    # Select single form
+    selection = [
+        {
+            "race_id": "saiyan",
+            "tree_id": "supersaiyanx",
+            "form_id": "supersaiyan1",
+        }
+    ]
+    pkg = export_selective_package(catalog, selection)
+    assert pkg["total_transformacoes"] == 1
+    exported_forms = pkg["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    assert len(exported_forms) == 1
+    exported_f = exported_forms[0]
+    assert exported_f["id"] == "supersaiyan1"
+    assert exported_f["origin_hint"]["race"] == "saiyan"
+    assert exported_f["origin_hint"]["tree"] == "supersaiyanx"
+
+    # Select entire tree
+    selection_tree = [
+        {"race_id": "saiyan", "tree_id": "supersaiyanx", "form_id": "supersaiyan1"},
+        {"race_id": "saiyan", "tree_id": "supersaiyanx", "form_id": "supersaiyan2"},
+    ]
+    pkg_tree = export_selective_package(catalog, selection_tree)
+    assert pkg_tree["total_transformacoes"] == 2
+
+
+def test_real_stats_and_bars_calculation() -> None:
+    """Verify compute_stats_and_bars and compute_drain_rates_and_autonomy calculate real numerical values (not fake 10,000)."""
+    race_stats = {
+        "classes": {
+            "race": {
+                "baseStats": {"STR": 10, "SKP": 10, "RES": 10, "VIT": 10, "PWR": 10, "ENE": 10},
+                "statScaling": {
+                    "STR_scaling": 1.0,
+                    "SKP_scaling": 1.0,
+                    "STM_scaling": 1.0,
+                    "DEF_scaling": 1.0,
+                    "VIT_scaling": 1.0,
+                    "PWR_scaling": 1.0,
+                    "ENE_scaling": 1.0,
+                },
+            }
+        }
+    }
+    user_attrs = {"STR": 100, "DEF": 80, "VIT": 90, "PWR": 110, "SKP": 70, "ENE": 120}
+    form_mults = {
+        "forca_str": 2.5,
+        "defesa_def": 2.0,
+        "vitalidade_vit": 1.5,
+        "poder_ki_pwr": 3.0,
+        "golpe_skp": 1.8,
+        "energia_ene": 2.2,
+        "velocidade_spd": 1.5,
+    }
+
+    # 1. Real Stats and Bars computation
+    stats_out = compute_stats_and_bars(race_stats, user_attrs, form_mults)
+    assert "max_hp" in stats_out
+    assert "max_ki" in stats_out
+    assert "max_stm" in stats_out
+
+    hp_max = stats_out["max_hp"]
+    ki_max = stats_out["max_ki"]
+    stm_max = stats_out["max_stm"]
+
+    # Verify numbers are calculated dynamically from VIT, ENE, and DEF
+    assert isinstance(hp_max, int) and hp_max > 1000
+    assert isinstance(ki_max, int) and ki_max > 2000
+    assert isinstance(stm_max, int) and stm_max > 500
+
+    # 2. Drain and autonomy calculation
+    drains = {"energia_ki": 0.05, "estamina": 0.02, "vida": 0.0}
+    drain_out = compute_drain_rates_and_autonomy(hp_max, ki_max, stm_max, drains)
+    assert "autonomia_geral_segundos" in drain_out
+    assert "ki_dreno_segundo" in drain_out
+    assert drain_out["ki_dreno_segundo"] > 0
+    assert drain_out["autonomia_geral_segundos"] > 0
+    assert drain_out["autonomia_geral_segundos"] < 100000
+
+
+def test_duplicate_form_and_auto_scale(mock_modpack: Path) -> None:
+    """Verify duplicate_form creates clean clones and auto_scale_tree generates progressive multipliers and drains."""
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+
+    # 1. Duplicate stage
+    dup_cat = duplicate_form(catalog, race_id="saiyan", tree_id="supersaiyanx", form_id="supersaiyan1")
+    forms = dup_cat["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    assert len(forms) == 4  # original had 3 (supersaiyan1, supersaiyan2, oozaru_base)
+    cloned = forms[1]  # inserted immediately after supersaiyan1
+    assert "copia" in cloned["id"].lower() or "copy" in cloned["id"].lower() or cloned["id"] != "supersaiyan1"
+    assert "Cópia" in cloned["nome"] or "Copy" in cloned["nome"]
+
+    # 2. Auto-scale tree
+    scaled_cat = auto_scale_tree(dup_cat, race_id="saiyan", tree_id="supersaiyanx", mult_step_pct=20.0, drain_step_pct=15.0)
+    s_forms = scaled_cat["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    f1, f2 = s_forms[0], s_forms[1]
+
+    # Verify progressive progression between stage 1 and stage 2
+    m1 = f1["multiplicadores_detalhados"]["forca_str"]
+    m2 = f2["multiplicadores_detalhados"]["forca_str"]
+    assert m1 < m2
+
+
+def test_reorder_forms_with_sequential_skill_level(mock_modpack: Path) -> None:
+    """Verify reorder_forms updates form sequence and optionally recalculates unlockOnSkillLevel."""
+    catalog = load_catalog_from_modpack(str(mock_modpack))
+    # supersaiyan1 is index 0, supersaiyan2 is index 1
+    # Reverse order: supersaiyan2, supersaiyan1, oozaru_base
+    reordered = reorder_forms(
+        catalog,
+        race_id="saiyan",
+        tree_id="supersaiyanx",
+        new_order=["supersaiyan2", "supersaiyan1", "oozaru_base"],
+        auto_update_skill_level=True,
+    )
+    forms = reordered["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"]
+    assert forms[0]["id"] == "supersaiyan2"
+    assert forms[1]["id"] == "supersaiyan1"
+    assert forms[0]["nivel_habilidade"] == 1
+    assert forms[1]["nivel_habilidade"] == 2
+    assert forms[0]["_raw_payload"]["unlockOnSkillLevel"] == 1
+    assert forms[1]["_raw_payload"]["unlockOnSkillLevel"] == 2
+
+
+def test_state_diff_and_integrity_health_check(mock_modpack: Path) -> None:
+    """Verify compute_state_diff detects modified/added/deleted forms and validate_integrity reports health status."""
+    baseline = load_catalog_from_modpack(str(mock_modpack))
+    working = copy.deepcopy(baseline)
+
+    # Modify form in working
+    f1 = working["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"][0]
+    f1["multiplicadores_detalhados"]["forca_str"] = 7.7
+    f1["visual"]["cor_cabelo"] = "#00FFFF"
+
+    # Add new form
+    f_new = copy.deepcopy(f1)
+    f_new["id"] = "brand_new_form"
+    working["racas"]["saiyan"]["arvores_de_transformacao"]["supersaiyanx"]["formas"].append(f_new)
+
+    # Compute diff
+    diff = compute_state_diff(baseline, working)
+    assert "modificadas" in diff
+    assert "adicionadas" in diff
+    assert "removidas" in diff
+    assert len(diff["modificadas"]) >= 1
+    assert any(m["id"] == "supersaiyan1" for m in diff["modificadas"])
+    assert any(a["id"] == "brand_new_form" for a in diff["adicionadas"])
+
+    # Health check on clean catalog
+    clean_health = validate_integrity(baseline)
+    assert clean_health["ok"] is True
+    assert clean_health["status"] in ("ok", "warning")
+    assert isinstance(clean_health["avisos"], list)
+
 
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import copy
 import os
 import re
+import secrets
 from typing import Any
 
 
@@ -16,11 +17,15 @@ class SecurityPathError(ValueError):
     """Raised when a target path escapes allowed root directories."""
 
 
-DEFAULT_INSTANCE_DIR = ""
-DEFAULT_DMZ_CONFIG_DIR = ""
-DEFAULT_DESKTOP_DIR = ""
-DEFAULT_DESKTOP_JSON = ""
-DEFAULT_INSTANCE_JSON = ""
+_CANDIDATE_INSTANCE = r"C:\Users\Franklin\curseforge\minecraft\Instances\Dragon Mine Z Definitive Edition"
+_CANDIDATE_CONFIG = r"C:\Users\Franklin\curseforge\minecraft\Instances\Dragon Mine Z Definitive Edition\config\dragonminez"
+_CANDIDATE_DESKTOP_JSON = r"C:\Users\Franklin\Desktop\Dragon_Mine_Z_Transformacoes.json"
+
+DEFAULT_INSTANCE_DIR = _CANDIDATE_INSTANCE if os.path.isdir(_CANDIDATE_INSTANCE) else ""
+DEFAULT_DMZ_CONFIG_DIR = _CANDIDATE_CONFIG if os.path.isdir(_CANDIDATE_CONFIG) else ""
+DEFAULT_DESKTOP_DIR = os.path.join(os.path.expanduser("~"), "Desktop")
+DEFAULT_DESKTOP_JSON = _CANDIDATE_DESKTOP_JSON if os.path.isfile(_CANDIDATE_DESKTOP_JSON) else ""
+DEFAULT_INSTANCE_JSON = os.path.join(DEFAULT_DMZ_CONFIG_DIR, "todas_as_transformacoes.json") if DEFAULT_DMZ_CONFIG_DIR else ""
 
 RACE_FRIENDLY_NAMES: dict[str, str] = {
     "saiyan": "Saiyajin (Saiyan)",
@@ -472,7 +477,7 @@ def _build_form_entry(
         "velocidade_spd": round(float(fprops.get("speedMultiplier", 1.0)), 3),
         "velocidade_ataque": round(float(fprops.get("attackSpeed", 1.0)), 3),
     }
-    return {
+    res = {
         "id": form_id,
         "nome": display_name,
         "arvore" if not is_universal else "grupo": group_key,
@@ -528,9 +533,32 @@ def _build_form_entry(
         },
         "visual": {
             "cor_aura": str(fprops.get("auraColor") or ""),
+            "tipo_aura": str(fprops.get("auraType") or "default"),
             "cor_cabelo": str(fprops.get("hairColor") or ""),
+            "cor_cabelo_secundaria": str(fprops.get("hairColor2") or ""),
+            "tipo_cabelo": str(fprops.get("hairType") or "Base"),
+            "tipo_modelo": str(fprops.get("modelType") or "Base"),
+            "brilho_emissivo": bool(fprops.get("emissiveGlow", False)),
+            "cor_olho_1": str(fprops.get("eye1Color") or ""),
+            "cor_olho_2": str(fprops.get("eye2Color") or ""),
+            "cor_pele": str(fprops.get("bodyColor1") or fprops.get("skinColor") or ""),
+            "escala": float(fprops.get("scale") or fprops.get("size") or 1.0),
+            "raios": {
+                "ativo": bool(fprops.get("sparksEnabled", fprops.get("lightning", False))),
+                "cor": str(fprops.get("sparksColor") or "#00FFFF"),
+                "intensidade": float(fprops.get("sparksIntensity", 1.0)),
+            },
+            "manto": {
+                "ativo": bool(fprops.get("cloakEnabled", False)),
+                "estilo": str(fprops.get("cloakStyle") or "fervilhante"),
+                "cor_interna": str(fprops.get("cloakColorInner") or "#FF4500"),
+                "cor_borda": str(fprops.get("cloakColorBorder") or "#FFD700"),
+                "opacidade": float(fprops.get("cloakOpacity", 0.7)),
+                "velocidade_pulsacao": float(fprops.get("cloakPulseSpeed", 1.0)),
+            },
         },
         "addon_origem": detect_addon_origin(group_key, form_id),
+        "_raw_payload": copy.deepcopy(fprops),
     }
     pinfo = compute_power_tier(res)
     res["poder_base_original"] = pinfo["base_sum"]
@@ -633,12 +661,34 @@ def _normalize_loaded_entry(
     cloned["requisitos"] = reqs
 
     vis = dict(cloned.get("visual", {}))
-    for k in ("cor_aura", "cor_cabelo"):
+    for k in ("cor_aura", "cor_cabelo", "cor_cabelo_secundaria", "cor_olho_1", "cor_olho_2", "cor_pele"):
         raw_c = str(vis.get(k) or "").strip()
         if raw_c and not raw_c.startswith("#") and len(raw_c) in (3, 6, 8):
             raw_c = "#" + raw_c
         vis[k] = raw_c
+    vis.setdefault("tipo_aura", "default")
+    vis.setdefault("tipo_cabelo", "Base")
+    vis.setdefault("tipo_modelo", "Base")
+    vis.setdefault("brilho_emissivo", False)
+    vis.setdefault("escala", 1.0)
+
+    raios = dict(vis.get("raios", {})) if isinstance(vis.get("raios"), dict) else {}
+    raios.setdefault("ativo", False)
+    raios.setdefault("cor", "#00FFFF")
+    raios.setdefault("intensidade", 1.0)
+    vis["raios"] = raios
+
+    manto = dict(vis.get("manto", {})) if isinstance(vis.get("manto"), dict) else {}
+    manto.setdefault("ativo", False)
+    manto.setdefault("estilo", "fervilhante")
+    manto.setdefault("cor_interna", "#FF4500")
+    manto.setdefault("cor_borda", "#FFD700")
+    manto.setdefault("opacidade", 0.7)
+    manto.setdefault("velocidade_pulsacao", 1.0)
+    vis["manto"] = manto
+
     cloned["visual"] = vis
+    cloned.setdefault("_raw_payload", {})
     pinfo = compute_power_tier(cloned)
     cloned.setdefault("poder_base_original", pinfo["base_sum"])
     cloned["categoria_poder"] = pinfo["tier"]
@@ -683,10 +733,17 @@ def _merge_single_form_changes(
         vis = dict(updated.get("visual", {}))
         for k, v in payload["visual"].items():
             if v is not None:
-                s_val = str(v).strip()
-                if s_val and not s_val.startswith("#") and len(s_val) in (3, 6, 8):
-                    s_val = "#" + s_val
-                vis[k] = s_val
+                if isinstance(v, dict):
+                    sub = dict(vis.get(k, {})) if isinstance(vis.get(k), dict) else {}
+                    sub.update(v)
+                    vis[k] = sub
+                elif isinstance(v, (int, float, bool)):
+                    vis[k] = v
+                else:
+                    s_val = str(v).strip()
+                    if s_val and not s_val.startswith("#") and len(s_val) in (3, 6, 8) and ("cor" in k or "color" in k.lower()):
+                        s_val = "#" + s_val
+                    vis[k] = s_val
         updated["visual"] = vis
 
     if "multiplicadores_detalhados" in payload:
@@ -1197,7 +1254,27 @@ def _extract_fprops_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     vis = payload.get("visual", {})
     if vis:
         fprops["auraColor"] = vis.get("cor_aura", "")
+        fprops["auraType"] = vis.get("tipo_aura", "default")
         fprops["hairColor"] = vis.get("cor_cabelo", "")
+        fprops["hairColor2"] = vis.get("cor_cabelo_secundaria", "")
+        fprops["hairType"] = vis.get("tipo_cabelo", "Base")
+        fprops["modelType"] = vis.get("tipo_modelo", "Base")
+        fprops["emissiveGlow"] = bool(vis.get("brilho_emissivo", False))
+        fprops["eye1Color"] = vis.get("cor_olho_1", "")
+        fprops["eye2Color"] = vis.get("cor_olho_2", "")
+        fprops["bodyColor1"] = vis.get("cor_pele", "")
+        fprops["scale"] = float(vis.get("escala", 1.0))
+        raios = vis.get("raios", {}) if isinstance(vis.get("raios"), dict) else {}
+        fprops["sparksEnabled"] = bool(raios.get("ativo", False))
+        fprops["sparksColor"] = str(raios.get("cor", "#00FFFF"))
+        fprops["sparksIntensity"] = float(raios.get("intensidade", 1.0))
+        manto = vis.get("manto", {}) if isinstance(vis.get("manto"), dict) else {}
+        fprops["cloakEnabled"] = bool(manto.get("ativo", False))
+        fprops["cloakStyle"] = str(manto.get("estilo", "fervilhante"))
+        fprops["cloakColorInner"] = str(manto.get("cor_interna", "#FF4500"))
+        fprops["cloakColorBorder"] = str(manto.get("cor_borda", "#FFD700"))
+        fprops["cloakOpacity"] = float(manto.get("opacidade", 0.7))
+        fprops["cloakPulseSpeed"] = float(manto.get("velocidade_pulsacao", 1.0))
 
     fprops["unlockOnSkillLevel"] = payload.get("nivel_habilidade", 1)
     return fprops
@@ -1371,6 +1448,640 @@ def delete_form(catalog: dict[str, Any], payload: dict[str, Any]) -> dict[str, A
     return new_cat
 
 
+def compute_stats_and_bars(
+    race_stats: dict[str, Any] | None,
+    attributes: dict[str, Any] | None,
+    multipliers: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Calculate real maximums for HP, KI, and STM as well as scaled combat attributes
+    using the race's stats.json scaling factors and the form's multipliers.
+    """
+    stats_cfg = race_stats or {}
+    race_class = stats_cfg.get("classes", {}).get("race", {})
+    base_stats = race_class.get("baseStats", {})
+    scaling = race_class.get("statScaling", {})
+
+    # Default character attributes if not provided: 50.0 baseline or baseStats * 10
+    attrs = dict(attributes or {})
+    str_val = float(attrs.get("STR", attrs.get("forca", base_stats.get("STR", 5) * 10)))
+    def_val = float(attrs.get("DEF", attrs.get("RES", attrs.get("defesa", base_stats.get("RES", 2) * 10))))
+    spd_val = float(attrs.get("SPD", attrs.get("velocidade", 50.0)))
+    pwr_val = float(attrs.get("PWR", attrs.get("poder", base_stats.get("PWR", 1) * 10)))
+    skp_val = float(attrs.get("SKP", attrs.get("golpe", base_stats.get("SKP", 3) * 10)))
+    ene_val = float(attrs.get("ENE", attrs.get("energia", base_stats.get("ENE", 1) * 10)))
+    vit_val = float(attrs.get("VIT", attrs.get("vitalidade", base_stats.get("VIT", 1) * 10)))
+
+    mults = dict(multipliers or {})
+    m_str = float(mults.get("forca_str", 1.0))
+    m_pwr = float(mults.get("poder_ki_pwr", 1.0))
+    m_def = float(mults.get("defesa_def", 1.0))
+    m_skp = float(mults.get("golpe_skp", 1.0))
+    m_spd = float(mults.get("velocidade_spd", 1.0))
+    m_vit = float(mults.get("vitalidade_vit", 1.0))
+    m_ene = float(mults.get("energia_ene", 1.0))
+    m_stm = float(mults.get("estamina_stm", 1.0))
+
+    vit_scaling = float(scaling.get("VIT_scaling", 0.95))
+    ene_scaling = float(scaling.get("ENE_scaling", 1.0))
+    stm_scaling = float(scaling.get("STM_scaling", 1.1))
+
+    # Real combat attributes multiplied by form
+    final_str = round(str_val * m_str, 1)
+    final_def = round(def_val * m_def, 1)
+    final_spd = round(spd_val * m_spd, 1)
+    final_pwr = round(pwr_val * m_pwr, 1)
+    final_skp = round(skp_val * m_skp, 1)
+    final_ene = round(ene_val * m_ene, 1)
+    final_vit = round(vit_val * m_vit, 1)
+    final_stm = round(def_val * m_stm, 1)
+
+    # Real maximums calibrated to Dragon Mine Z RPG scale
+    max_hp = int(round(100.0 + (vit_val * vit_scaling * m_vit * 30.0)))
+    max_ki = int(round(100.0 + (ene_val * ene_scaling * m_ene * 50.0)))
+    max_stm = int(round(100.0 + (def_val * stm_scaling * m_stm * 20.0)))
+
+    return {
+        "atributos_base": {
+            "STR": str_val,
+            "DEF": def_val,
+            "SPD": spd_val,
+            "PWR": pwr_val,
+            "SKP": skp_val,
+            "ENE": ene_val,
+            "VIT": vit_val,
+        },
+        "atributos_finais": {
+            "STR": final_str,
+            "DEF": final_def,
+            "SPD": final_spd,
+            "PWR": final_pwr,
+            "SKP": final_skp,
+            "ENE": final_ene,
+            "VIT": final_vit,
+            "STM": final_stm,
+        },
+        "max_hp": max_hp,
+        "max_ki": max_ki,
+        "max_stm": max_stm,
+    }
+
+
+def compute_drain_rates_and_autonomy(
+    max_hp: int | float,
+    max_ki: int | float,
+    max_stm: int | float,
+    drains: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Calculate exact per-second drain numbers and autonomy duration in seconds."""
+    dr = drains or {}
+    ki_d = float(dr.get("energia_ki", 0.0))
+    stm_d = float(dr.get("estamina", 0.0))
+    hp_d = float(dr.get("vida", 0.0))
+
+    # In DMZ, drains <= 1.0 are % of max per second, > 1.0 are flat points/sec
+    ki_pts_sec = round((ki_d * max_ki) if ki_d <= 1.0 else ki_d, 2)
+    stm_pts_sec = round((stm_d * max_stm) if stm_d <= 1.0 else stm_d, 2)
+    hp_pts_sec = round((hp_d * max_hp) if hp_d <= 1.0 else hp_d, 2)
+
+    ki_autonomy = round(max_ki / ki_pts_sec, 1) if ki_pts_sec > 0 else None
+    stm_autonomy = round(max_stm / stm_pts_sec, 1) if stm_pts_sec > 0 else None
+    hp_autonomy = round(max_hp / hp_pts_sec, 1) if hp_pts_sec > 0 else None
+
+    valid_autonomies = [a for a in (ki_autonomy, stm_autonomy) if a is not None]
+    overall_autonomy = min(valid_autonomies) if valid_autonomies else None
+
+    return {
+        "ki_dreno_segundo": ki_pts_sec,
+        "estamina_dreno_segundo": stm_pts_sec,
+        "vida_dreno_segundo": hp_pts_sec,
+        "autonomia_ki_segundos": ki_autonomy,
+        "autonomia_estamina_segundos": stm_autonomy,
+        "autonomia_vida_segundos": hp_autonomy,
+        "autonomia_geral_segundos": overall_autonomy,
+    }
+
+
+def reorder_forms(
+    catalog: dict[str, Any],
+    race_id: str,
+    tree_id: str,
+    new_order: list[str],
+    auto_update_skill_level: bool = True,
+) -> dict[str, Any]:
+    """Reorder forms inside a tree, optionally updating unlockOnSkillLevel (1, 2, 3...)."""
+    new_cat = copy.deepcopy(catalog)
+    is_univ = race_id in ("universal", "formas_universais_e_stack")
+    if is_univ:
+        univ_map = new_cat.setdefault("formas_universais_e_stack", {})
+        if tree_id not in univ_map:
+            raise KeyError(f"Grupo universal '{tree_id}' não encontrado.")
+        forms_list = univ_map[tree_id].get("formas", [])
+    else:
+        race_obj = new_cat.setdefault("racas", {}).get(race_id)
+        if not race_obj:
+            raise KeyError(f"Raça '{race_id}' não encontrada.")
+        tree_obj = race_obj.setdefault("arvores_de_transformacao", {}).get(tree_id)
+        if not tree_obj:
+            raise KeyError(f"Árvore '{tree_id}' não encontrada na raça '{race_id}'.")
+        forms_list = tree_obj.get("formas", [])
+
+    forms_by_id = {f["id"]: f for f in forms_list}
+    reordered = []
+    seen = set()
+    for fid in new_order:
+        if fid in forms_by_id and fid not in seen:
+            reordered.append(forms_by_id[fid])
+            seen.add(fid)
+    for f in forms_list:
+        if f["id"] not in seen:
+            reordered.append(f)
+
+    if auto_update_skill_level:
+        for idx, f in enumerate(reordered, start=1):
+            f["nivel_habilidade"] = idx
+            if "_raw_payload" in f and isinstance(f["_raw_payload"], dict):
+                f["_raw_payload"]["unlockOnSkillLevel"] = idx
+
+    if is_univ:
+        univ_map[tree_id]["formas"] = reordered
+    else:
+        tree_obj["formas"] = reordered
+    return new_cat
+
+
+def duplicate_form(
+    catalog: dict[str, Any],
+    race_id: str,
+    tree_id: str,
+    form_id: str,
+    new_id: str = "",
+    new_name: str = "",
+) -> dict[str, Any]:
+    """Duplicate an existing transformation stage directly in its tree."""
+    new_cat = copy.deepcopy(catalog)
+    is_univ = race_id in ("universal", "formas_universais_e_stack")
+    if is_univ:
+        target_container = new_cat.setdefault("formas_universais_e_stack", {}).get(tree_id, {})
+    else:
+        target_container = (
+            new_cat.setdefault("racas", {})
+            .get(race_id, {})
+            .get("arvores_de_transformacao", {})
+            .get(tree_id, {})
+        )
+    forms_list = target_container.get("formas", [])
+    src_idx = next((i for i, f in enumerate(forms_list) if f["id"] == form_id), None)
+    if src_idx is None:
+        raise KeyError(f"Forma original '{form_id}' não encontrada.")
+
+    src = forms_list[src_idx]
+    clean_id = (
+        re.sub(r"[^a-z0-9_]", "_", str(new_id).strip().lower())
+        if new_id
+        else f"{form_id}_clone"
+    )
+    # Ensure uniqueness
+    candidate_id = clean_id
+    counter = 1
+    existing_ids = {f["id"] for f in forms_list}
+    while candidate_id in existing_ids:
+        candidate_id = f"{clean_id}_{counter}"
+        counter += 1
+
+    clone_entry = copy.deepcopy(src)
+    clone_entry["id"] = candidate_id
+    clone_entry["nome"] = new_name.strip() if new_name else f"{src.get('nome', form_id)} (Cópia)"
+    clone_entry["nivel_habilidade"] = int(src.get("nivel_habilidade", 1)) + 1
+    if "_raw_payload" in clone_entry and isinstance(clone_entry["_raw_payload"], dict):
+        clone_entry["_raw_payload"]["unlockOnSkillLevel"] = clone_entry["nivel_habilidade"]
+
+    forms_list.insert(src_idx + 1, clone_entry)
+    target_container["formas"] = forms_list
+    target_container["total_formas"] = len(forms_list)
+    new_cat["total_transformacoes"] = new_cat.get("total_transformacoes", 0) + 1
+    return new_cat
+
+
+def auto_scale_tree(
+    catalog: dict[str, Any],
+    race_id: str,
+    tree_id: str,
+    mult_step_pct: float = 15.0,
+    drain_step_pct: float = 20.0,
+) -> dict[str, Any]:
+    """Automatically scale multipliers (+X%) and drains (+Y%) sequentially across tree stages."""
+    new_cat = copy.deepcopy(catalog)
+    is_univ = race_id in ("universal", "formas_universais_e_stack")
+    if is_univ:
+        container = new_cat.setdefault("formas_universais_e_stack", {}).get(tree_id, {})
+    else:
+        container = (
+            new_cat.setdefault("racas", {})
+            .get(race_id, {})
+            .get("arvores_de_transformacao", {})
+            .get(tree_id, {})
+        )
+    forms = container.get("formas", [])
+    if not forms:
+        return new_cat
+
+    mult_factor = 1.0 + (float(mult_step_pct) / 100.0)
+    drain_factor = 1.0 + (float(drain_step_pct) / 100.0)
+
+    for i in range(1, len(forms)):
+        prev = forms[i - 1]
+        curr = forms[i]
+        p_mults = prev.get("multiplicadores_detalhados", {})
+        c_mults = dict(curr.get("multiplicadores_detalhados", {}))
+        for stat_key in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp", "velocidade_spd"):
+            base_v = float(p_mults.get(stat_key, c_mults.get(stat_key, 1.0)))
+            c_mults[stat_key] = round(base_v * mult_factor, 3)
+        curr["multiplicadores_detalhados"] = c_mults
+        curr["multiplicador_numerico_base"] = c_mults["forca_str"]
+        curr["multiplicador_bp"] = format_bp_string(c_mults)
+
+        p_dr = prev.get("drenos", {})
+        c_dr = dict(curr.get("drenos", {}))
+        for dr_key in ("energia_ki", "estamina", "vida"):
+            base_d = float(p_dr.get(dr_key, c_dr.get(dr_key, 0.0)))
+            if base_d > 0:
+                c_dr[dr_key] = round(base_d * drain_factor, 4)
+        curr["drenos"] = c_dr
+
+        pinfo = compute_power_tier(curr)
+        curr["categoria_poder"] = pinfo["tier"]
+        curr["tier_label"] = pinfo["tier_label"]
+        curr["tier_rank_score"] = pinfo["rank_score"]
+
+    return new_cat
+
+
+def import_to_staging(
+    staging_dock: list[dict[str, Any]], items_or_json: Any
+) -> tuple[list[dict[str, Any]], int]:
+    """Import forms into staging dock without affecting the active modpack tree."""
+    new_dock = list(staging_dock)
+    imported_count = 0
+
+    parsed = items_or_json
+    if isinstance(items_or_json, str):
+        try:
+            parsed = json.loads(items_or_json)
+        except Exception as exc:
+            raise ValueError(f"Formato JSON inválido para importação: {exc}")
+
+    candidates: list[dict[str, Any]] = []
+    if isinstance(parsed, dict):
+        if "formas" in parsed and isinstance(parsed["formas"], list):
+            candidates.extend(parsed["formas"])
+        elif "racas" in parsed:
+            for r_key, r_obj in parsed.get("racas", {}).items():
+                for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+                    for f in t_obj.get("formas", []):
+                        f_copy = copy.deepcopy(f)
+                        f_copy["origin_hint"] = {"race": r_key, "tree": t_key}
+                        candidates.append(f_copy)
+            for g_key, g_obj in parsed.get("formas_universais_e_stack", {}).items():
+                for f in g_obj.get("formas", []):
+                    f_copy = copy.deepcopy(f)
+                    f_copy["origin_hint"] = {"race": "universal", "tree": g_key}
+                    candidates.append(f_copy)
+        elif "id" in parsed:
+            candidates.append(parsed)
+    elif isinstance(parsed, list):
+        candidates.extend(parsed)
+
+    for item in candidates:
+        if isinstance(item, dict) and item.get("id"):
+            normalized = _normalize_loaded_entry(item, is_universal=False)
+            normalized.setdefault("staging_id", f"stg_{secrets.token_hex(4)}")
+            new_dock.append(normalized)
+            imported_count += 1
+
+    return new_dock, imported_count
+
+
+def allocate_from_staging(
+    catalog: dict[str, Any],
+    staging_dock: list[dict[str, Any]],
+    staging_id: str,
+    target_race: str,
+    target_tree: str,
+    target_index: int | None = None,
+    conflict_strategy: str = "replace",  # 'replace', 'merge', 'rename'
+) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
+    """Allocate an item from staging dock into the active working tree."""
+    new_cat = copy.deepcopy(catalog)
+    new_dock = list(staging_dock)
+
+    item_idx = next(
+        (i for i, f in enumerate(new_dock) if f.get("staging_id") == staging_id or f.get("id") == staging_id),
+        None,
+    )
+    if item_idx is None:
+        raise KeyError(f"Item com ID '{staging_id}' não encontrado na gaveta de espera.")
+
+    item = copy.deepcopy(new_dock.pop(item_idx))
+    form_id = item["id"]
+
+    is_univ = target_race in ("universal", "formas_universais_e_stack")
+    if is_univ:
+        univ_map = new_cat.setdefault("formas_universais_e_stack", {})
+        if target_tree not in univ_map:
+            univ_map[target_tree] = {
+                "arquivo": f"{target_tree}.json",
+                "tipo": target_tree,
+                "formas": [],
+            }
+        forms_list = univ_map[target_tree]["formas"]
+    else:
+        racas_map = new_cat.setdefault("racas", {})
+        if target_race not in racas_map:
+            racas_map[target_race] = {
+                "id_raca": target_race,
+                "nome_exibicao": resolve_race_friendly_name(target_race),
+                "total_formas": 0,
+                "total_arvores": 0,
+                "arvores_de_transformacao": {},
+            }
+        race_obj = racas_map[target_race]
+        trees = race_obj.setdefault("arvores_de_transformacao", {})
+        if target_tree not in trees:
+            trees[target_tree] = {
+                "arquivo": f"{target_tree}.json",
+                "tipo_habilidade": target_tree,
+                "total_formas": 0,
+                "formas": [],
+            }
+            race_obj["total_arvores"] = len(trees)
+        forms_list = trees[target_tree]["formas"]
+
+    existing_idx = next((i for i, f in enumerate(forms_list) if f["id"] == form_id), None)
+    if existing_idx is not None:
+        if conflict_strategy == "replace":
+            forms_list[existing_idx] = item
+        elif conflict_strategy == "merge":
+            forms_list[existing_idx] = _merge_single_form_changes(forms_list[existing_idx], item)
+        elif conflict_strategy == "rename":
+            candidate = f"{form_id}_custom"
+            ctr = 1
+            e_ids = {f["id"] for f in forms_list}
+            while candidate in e_ids:
+                candidate = f"{form_id}_custom_{ctr}"
+                ctr += 1
+            item["id"] = candidate
+            item["nome"] = f"{item.get('nome', form_id)} (Custom)"
+            if target_index is not None and 0 <= target_index <= len(forms_list):
+                forms_list.insert(target_index, item)
+            else:
+                forms_list.append(item)
+    else:
+        if target_index is not None and 0 <= target_index <= len(forms_list):
+            forms_list.insert(target_index, item)
+        else:
+            forms_list.append(item)
+
+    if not is_univ:
+        race_obj = new_cat["racas"][target_race]
+        race_obj["arvores_de_transformacao"][target_tree]["total_formas"] = len(forms_list)
+        race_obj["total_formas"] = sum(
+            len(t["formas"]) for t in race_obj["arvores_de_transformacao"].values()
+        )
+    new_cat["total_transformacoes"] = sum(
+        sum(len(t["formas"]) for t in r.get("arvores_de_transformacao", {}).values())
+        for r in new_cat.get("racas", {}).values()
+    ) + sum(len(g.get("formas", [])) for g in new_cat.get("formas_universais_e_stack", {}).values())
+
+    return new_cat, new_dock, item
+
+
+def remove_from_staging(
+    staging_dock: list[dict[str, Any]], staging_id: str
+) -> list[dict[str, Any]]:
+    return [
+        f
+        for f in staging_dock
+        if f.get("staging_id") != staging_id and f.get("id") != staging_id
+    ]
+
+
+def export_selective_package(
+    catalog: dict[str, Any], selected_items: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Generate self-contained JSON package containing only user-selected forms."""
+    pkg: dict[str, Any] = {
+        "titulo": "Dragon Mine Z - Pacote de Transformações Exportado",
+        "versao_modpack": catalog.get("versao_modpack", "Dragon Mine Z RPG 1.20.1"),
+        "racas": {},
+        "formas_universais_e_stack": {},
+        "total_racas": 0,
+        "total_transformacoes": 0,
+    }
+
+    total_count = 0
+    for sel in selected_items:
+        r_id = sel.get("race") or sel.get("race_id", "")
+        t_id = sel.get("tree") or sel.get("tree_id", "")
+        f_id = sel.get("form_id") or sel.get("form", "")
+
+        if r_id in ("universal", "formas_universais_e_stack"):
+            src_grp = catalog.get("formas_universais_e_stack", {}).get(t_id)
+            if src_grp:
+                dst_grp = pkg["formas_universais_e_stack"].setdefault(
+                    t_id,
+                    {
+                        "arquivo": src_grp.get("arquivo", f"{t_id}.json"),
+                        "tipo": src_grp.get("tipo", t_id),
+                        "formas": [],
+                    },
+                )
+                for f in src_grp.get("formas", []):
+                    if not f_id or f["id"] == f_id:
+                        if not any(x["id"] == f["id"] for x in dst_grp["formas"]):
+                            f_cloned = copy.deepcopy(f)
+                            f_cloned["origin_hint"] = {"race": "universal", "tree": t_id}
+                            dst_grp["formas"].append(f_cloned)
+                            total_count += 1
+        else:
+            src_race = catalog.get("racas", {}).get(r_id)
+            if src_race:
+                dst_race = pkg["racas"].setdefault(
+                    r_id,
+                    {
+                        "id_raca": r_id,
+                        "nome_exibicao": src_race.get("nome_exibicao", r_id),
+                        "total_formas": 0,
+                        "total_arvores": 0,
+                        "arvores_de_transformacao": {},
+                    },
+                )
+                src_tree = src_race.get("arvores_de_transformacao", {}).get(t_id)
+                if src_tree:
+                    dst_tree = dst_race["arvores_de_transformacao"].setdefault(
+                        t_id,
+                        {
+                            "arquivo": src_tree.get("arquivo", f"{t_id}.json"),
+                            "tipo_habilidade": src_tree.get("tipo_habilidade", t_id),
+                            "total_formas": 0,
+                            "formas": [],
+                        },
+                    )
+                    for f in src_tree.get("formas", []):
+                        if not f_id or f["id"] == f_id:
+                            if not any(x["id"] == f["id"] for x in dst_tree["formas"]):
+                                f_cloned = copy.deepcopy(f)
+                                f_cloned["origin_hint"] = {"race": r_id, "tree": t_id}
+                                dst_tree["formas"].append(f_cloned)
+                                total_count += 1
+                    dst_tree["total_formas"] = len(dst_tree["formas"])
+                dst_race["total_formas"] = sum(
+                    len(t["formas"]) for t in dst_race["arvores_de_transformacao"].values()
+                )
+                dst_race["total_arvores"] = len(dst_race["arvores_de_transformacao"])
+
+    pkg["total_racas"] = len(pkg["racas"])
+    pkg["total_transformacoes"] = total_count
+    return pkg
+
+
+def compute_state_diff(
+    baseline_catalog: dict[str, Any] | None, current_catalog: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Compute detailed visual diff between baseline disk state and working state in RAM."""
+    def _flatten_catalog(cat: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+        out = {}
+        if not cat:
+            return out
+        for r_id, r_obj in cat.get("racas", {}).items():
+            for t_id, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+                for f in t_obj.get("formas", []):
+                    key = f"{r_id}:{t_id}:{f['id']}"
+                    out[key] = f
+        for g_id, g_obj in cat.get("formas_universais_e_stack", {}).items():
+            for f in g_obj.get("formas", []):
+                key = f"universal:{g_id}:{f['id']}"
+                out[key] = f
+        return out
+
+    base_forms = _flatten_catalog(baseline_catalog)
+    curr_forms = _flatten_catalog(current_catalog)
+
+    added = []
+    deleted = []
+    modified = []
+
+    for k, curr_f in curr_forms.items():
+        if k not in base_forms:
+            added.append({
+                "key": k,
+                "id": curr_f["id"],
+                "nome": curr_f.get("nome", curr_f["id"]),
+                "arvore": curr_f.get("arvore", curr_f.get("grupo", "")),
+                "custo_tp": curr_f.get("custo_tp", 0),
+                "multiplicador_bp": curr_f.get("multiplicador_bp", "1.0x"),
+            })
+        else:
+            base_f = base_forms[k]
+            diffs = []
+            for field in ("nome", "custo_tp_numerico", "nivel_habilidade", "comprar_no_mestre", "mestre"):
+                if base_f.get(field) != curr_f.get(field):
+                    diffs.append({"campo": field, "antes": base_f.get(field), "depois": curr_f.get(field)})
+            b_m = base_f.get("multiplicadores_detalhados", {})
+            c_m = curr_f.get("multiplicadores_detalhados", {})
+            for m_key in ("forca_str", "poder_ki_pwr", "defesa_def", "golpe_skp", "velocidade_spd", "vitalidade_vit", "energia_ene", "estamina_stm"):
+                if b_m.get(m_key) != c_m.get(m_key):
+                    diffs.append({"campo": f"mult_{m_key}", "antes": b_m.get(m_key), "depois": c_m.get(m_key)})
+            b_d = base_f.get("drenos", {})
+            c_d = curr_f.get("drenos", {})
+            for d_key in ("energia_ki", "estamina", "vida"):
+                if b_d.get(d_key) != c_d.get(d_key):
+                    diffs.append({"campo": f"dreno_{d_key}", "antes": b_d.get(d_key), "depois": c_d.get(d_key)})
+            b_v = base_f.get("visual", {})
+            c_v = curr_f.get("visual", {})
+            for v_key in ("cor_aura", "cor_cabelo", "tipo_cabelo", "tipo_modelo", "escala"):
+                if b_v.get(v_key) != c_v.get(v_key):
+                    diffs.append({"campo": f"visual_{v_key}", "antes": b_v.get(v_key), "depois": c_v.get(v_key)})
+
+            if diffs:
+                modified.append({
+                    "key": k,
+                    "id": curr_f["id"],
+                    "nome": curr_f.get("nome", curr_f["id"]),
+                    "arvore": curr_f.get("arvore", curr_f.get("grupo", "")),
+                    "alteracoes": diffs,
+                })
+
+    for k, base_f in base_forms.items():
+        if k not in curr_forms:
+            deleted.append({
+                "key": k,
+                "id": base_f["id"],
+                "nome": base_f.get("nome", base_f["id"]),
+                "arvore": base_f.get("arvore", base_f.get("grupo", "")),
+            })
+
+    return {
+        "total_adicionadas": len(added),
+        "total_removidas": len(deleted),
+        "total_modificadas": len(modified),
+        "total_alteracoes": len(added) + len(deleted) + len(modified),
+        "adicionadas": added,
+        "removidas": deleted,
+        "modificadas": modified,
+    }
+
+
+def validate_integrity(
+    catalog: dict[str, Any], config_dir: str | None = None
+) -> dict[str, Any]:
+    """Perform health-check verifying form references, requirements, and sagas."""
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    all_form_ids: set[str] = set()
+    for r_id, r_obj in catalog.get("racas", {}).items():
+        for t_id, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+            for f in t_obj.get("formas", []):
+                all_form_ids.add(f["id"])
+                all_form_ids.add(f"{t_id}.{f['id']}")
+                all_form_ids.add(f"{r_id}.{t_id}.{f['id']}")
+    for g_id, g_obj in catalog.get("formas_universais_e_stack", {}).items():
+        for f in g_obj.get("formas", []):
+            all_form_ids.add(f["id"])
+            all_form_ids.add(f"{g_id}.{f['id']}")
+
+    saga_options = {s.get("id", "") for s in catalog.get("opcoes_sagas", []) if s.get("id")}
+
+    for r_id, r_obj in catalog.get("racas", {}).items():
+        for t_id, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
+            for f in t_obj.get("formas", []):
+                reqs = f.get("requisitos", {})
+                prev = reqs.get("forma_previa")
+                if prev and prev not in all_form_ids:
+                    warnings.append(
+                        f"[{r_id}/{t_id}/{f['id']}] Forma prévia '{prev}' não foi encontrada no modpack."
+                    )
+                saga = reqs.get("saga")
+                if saga and saga_options and saga not in saga_options:
+                    warnings.append(
+                        f"[{r_id}/{t_id}/{f['id']}] Saga requerida '{saga}' não consta na lista conhecida de sagas."
+                    )
+                for incomp in reqs.get("incompativel_com", []):
+                    if incomp and incomp not in all_form_ids:
+                        warnings.append(
+                            f"[{r_id}/{t_id}/{f['id']}] Forma incompatível '{incomp}' não foi encontrada."
+                        )
+
+    return {
+        "status": "ok" if len(errors) == 0 else "error",
+        "ok": len(errors) == 0,
+        "erros": errors,
+        "avisos": warnings,
+        "total_erros": len(errors),
+        "total_avisos": len(warnings),
+    }
+
+
 __all__ = [
     "CUSTOM_FORM_NAMES",
     "DEFAULT_DESKTOP_DIR",
@@ -1383,15 +2094,26 @@ __all__ = [
     "RACE_FRIENDLY_NAMES_BILINGUAL",
     "SecurityPathError",
     "add_form",
+    "allocate_from_staging",
     "apply_batch_balance",
     "apply_batch_scale",
     "apply_form_update",
+    "auto_scale_tree",
+    "compute_drain_rates_and_autonomy",
+    "compute_state_diff",
+    "compute_stats_and_bars",
     "default_allowed_roots",
     "delete_form",
     "detect_addon_origin",
+    "duplicate_form",
+    "export_selective_package",
     "format_bp_string",
     "format_tp_display",
+    "import_to_staging",
     "parse_tp_numeric",
+    "remove_from_staging",
+    "reorder_forms",
     "resolve_race_friendly_name",
     "validate_allowed_path",
+    "validate_integrity",
 ]

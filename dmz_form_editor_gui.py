@@ -33,24 +33,39 @@ from dmz_form_editor_core import (  # noqa: E402
     DEFAULT_DESKTOP_JSON,
     DEFAULT_DMZ_CONFIG_DIR,
     DEFAULT_INSTANCE_JSON,
+    MASTER_FRIENDLY_NAMES,
     SecurityPathError,
     add_form,
+    allocate_from_staging,
     apply_batch_balance,
     apply_batch_scale,
     apply_form_update,
-    MASTER_FRIENDLY_NAMES,
+    auto_scale_tree,
+    compute_drain_rates_and_autonomy,
+    compute_state_diff,
+    compute_stats_and_bars,
     default_allowed_roots,
     delete_form,
+    duplicate_form,
+    export_selective_package,
+    import_to_staging,
+    remove_from_staging,
+    reorder_forms,
     validate_allowed_path,
+    validate_integrity,
 )
 from dmz_form_editor_io import (  # noqa: E402
     apply_catalog_to_modpack,
+    get_backups_dir,
+    list_backups,
     load_catalog_from_json,
     load_catalog_from_modpack,
     save_catalog_to_json,
     scan_dmz_addons,
     toggle_addon_mod,
 )
+import copy
+from balance_all_races import balance_catalog
 from dmz_form_editor_sagas import (  # noqa: E402
     extract_modpack_sagas,
     load_editor_settings,
@@ -214,6 +229,8 @@ class EditorController:
             except Exception:
                 pass
         self._catalog = self._initial_load()
+        self._baseline_catalog = copy.deepcopy(self._catalog)
+        self._staging_dock: list[dict[str, Any]] = []
 
     def attach_window(self, window: Any) -> None:
         self._window_ref = window
@@ -254,6 +271,7 @@ class EditorController:
         base: dict[str, Any] = {
             "ok": True,
             "catalog": self._catalog,
+            "staging_dock": list(self._staging_dock),
             "source": self._source,
             "needs_setup": not modpack_ok and not json_ok,
             "dirty": self._dirty,
@@ -472,6 +490,7 @@ class EditorController:
                     resolved_dmz, "todas_as_transformacoes.json"
                 )
                 self._catalog = fresh_catalog
+                self._baseline_catalog = copy.deepcopy(fresh_catalog)
                 self._dirty = False
             else:
                 expanded_json = os.path.realpath(
@@ -498,6 +517,7 @@ class EditorController:
                 self._instance_json_path = ""
                 self._desktop_json_path = expanded_json
                 self._catalog = fresh_catalog
+                self._baseline_catalog = copy.deepcopy(fresh_catalog)
                 self._source = "json"
                 self._dirty = False
 
@@ -674,6 +694,7 @@ class EditorController:
                 self._source = "json"
             self._push_undo_unlocked()
             self._catalog = fresh
+            self._baseline_catalog = copy.deepcopy(fresh)
             self._dirty = False
             return self._build_state_unlocked()
 
@@ -748,9 +769,202 @@ class EditorController:
                 {
                     "arquivos_atualizados": mod_res["arquivos_atualizados"],
                     "pasta_backup": mod_res["pasta_backup"],
+                    "arquivo_backup": mod_res.get("arquivo_backup"),
                     "json_salvos": saved,
                 }
             )
+
+    def get_staging_dock(self) -> list[dict[str, Any]]:
+        with self._lock:
+            return list(self._staging_dock)
+
+    def import_to_staging(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            data = payload.get("data")
+            if data is None and "raw_text" in payload:
+                try:
+                    data = json.loads(payload["raw_text"])
+                except Exception as exc:
+                    raise ValueError(f"Formato JSON inválido: {exc}")
+            if data is None:
+                data = payload
+            new_dock, count = import_to_staging(self._staging_dock, data)
+            self._staging_dock = new_dock
+            return {
+                "ok": True,
+                "imported_count": count,
+                "staging_dock": list(self._staging_dock),
+            }
+
+    def allocate_from_staging(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            staged_id = str(payload.get("staging_id") or payload.get("id") or payload.get("item_index", ""))
+            race = str(payload.get("race") or payload.get("target_race", "")).strip()
+            tree = str(payload.get("tree") or payload.get("target_tree", "")).strip()
+            target_index = payload.get("target_index")
+            if target_index is not None:
+                try:
+                    target_index = int(target_index)
+                except (ValueError, TypeError):
+                    target_index = None
+            conflict_strategy = str(payload.get("conflict_strategy") or payload.get("collision_policy", "replace"))
+            new_catalog, new_dock, allocated = allocate_from_staging(
+                self._catalog,
+                self._staging_dock,
+                staging_id=staged_id,
+                target_race=race,
+                target_tree=tree,
+                target_index=target_index,
+                conflict_strategy=conflict_strategy,
+            )
+            self._push_undo_unlocked()
+            self._catalog = new_catalog
+            self._staging_dock = new_dock
+            self._dirty = True
+            return self._build_state_unlocked({"staging_dock": list(self._staging_dock), "allocated_form": allocated})
+
+    def remove_from_staging(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            staged_id = str(payload.get("staging_id") or payload.get("id") or payload.get("item_index", ""))
+            self._staging_dock = remove_from_staging(self._staging_dock, staged_id)
+            return {"ok": True, "staging_dock": list(self._staging_dock)}
+
+    def export_selective(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            raw_sel = payload.get("selections") or payload.get("selected_items") or []
+            if isinstance(raw_sel, dict):
+                normalized: list[dict[str, Any]] = []
+                for r_id, items in raw_sel.items():
+                    if isinstance(items, list) and items:
+                        for it in items:
+                            if isinstance(it, dict):
+                                it_copy = dict(it)
+                                it_copy.setdefault("race", r_id)
+                                normalized.append(it_copy)
+                            else:
+                                normalized.append({"race": r_id, "form_id": str(it)})
+                    else:
+                        normalized.append({"race": r_id})
+                sel_list = normalized
+            elif isinstance(raw_sel, list):
+                sel_list = raw_sel
+            else:
+                sel_list = []
+
+            pkg = export_selective_package(self._catalog, sel_list)
+            save_path = payload.get("save_path")
+            written_file = None
+            if save_path and str(save_path).strip():
+                safe_path = validate_allowed_path(
+                    save_path, allowed_roots=self._allowed_roots
+                )
+                with open(safe_path, "w", encoding="utf-8") as fh:
+                    json.dump(pkg, fh, indent=2, ensure_ascii=False)
+                written_file = safe_path
+            return {
+                "ok": True,
+                "package": pkg,
+                "package_json": json.dumps(pkg, indent=2, ensure_ascii=False),
+                "written_file": written_file,
+            }
+
+    def reorder_form(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = payload.get("race")
+            tree = payload.get("tree")
+            new_order = payload.get("new_order", [])
+            update_skill = bool(payload.get("update_skill_levels", True))
+            new_catalog = reorder_forms(
+                self._catalog,
+                race=race,
+                tree=tree,
+                new_order=new_order,
+                update_skill_levels=update_skill,
+            )
+            self._push_undo_unlocked()
+            self._catalog = new_catalog
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def duplicate_form(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = payload.get("race")
+            tree = payload.get("tree")
+            form_id = payload.get("form_id")
+            new_id = payload.get("new_id")
+            new_name = payload.get("new_name")
+            new_catalog = duplicate_form(
+                self._catalog,
+                race=race,
+                tree=tree,
+                form_id=form_id,
+                new_id=new_id,
+                new_name=new_name,
+            )
+            self._push_undo_unlocked()
+            self._catalog = new_catalog
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def auto_scale_tree(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            race = payload.get("race")
+            tree = payload.get("tree")
+            mult_step = float(payload.get("mult_step_pct", 15.0))
+            drain_step = float(payload.get("drain_step_pct", 10.0))
+            new_catalog = auto_scale_tree(
+                self._catalog,
+                race=race,
+                tree=tree,
+                mult_step_pct=mult_step,
+                drain_step_pct=drain_step,
+            )
+            self._push_undo_unlocked()
+            self._catalog = new_catalog
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def get_diff(self) -> dict[str, Any]:
+        with self._lock:
+            diff = compute_state_diff(self._baseline_catalog, self._catalog)
+            return {"ok": True, "diff": diff}
+
+    def check_integrity(self) -> dict[str, Any]:
+        with self._lock:
+            res = validate_integrity(self._catalog)
+            return {"ok": True, "report": res}
+
+    def canonical_balance(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self._lock:
+            balanced = balance_catalog(self._catalog)
+            self._push_undo_unlocked()
+            self._catalog = balanced
+            self._dirty = True
+            return self._build_state_unlocked()
+
+    def calculate_stats(self, payload: dict[str, Any]) -> dict[str, Any]:
+        race_stats = payload.get("race_stats") or {}
+        attributes = payload.get("attributes") or {}
+        multipliers = payload.get("multipliers") or {}
+        drains = payload.get("drains") or {}
+        stats_res = compute_stats_and_bars(race_stats, attributes, multipliers)
+        drain_res = compute_drain_rates_and_autonomy(
+            stats_res["max_hp"], stats_res["max_ki"], stats_res["max_stm"], drains
+        )
+        return {"ok": True, "stats": stats_res, "autonomy": drain_res}
+
+    def open_backups_folder(self) -> dict[str, Any]:
+        b_dir = get_backups_dir()
+        if sys.platform == "win32":
+            try:
+                os.startfile(b_dir)
+                return {"ok": True, "path": b_dir}
+            except Exception as exc:
+                return {"ok": False, "error": str(exc)}
+        return {"ok": True, "path": b_dir}
+
+    def list_backups(self) -> dict[str, Any]:
+        return {"ok": True, "backups": list_backups(), "backups_dir": get_backups_dir()}
 
 
 STATIC_ASSETS: dict[str, tuple[str, str]] = {
@@ -764,6 +978,14 @@ STATIC_ASSETS: dict[str, tuple[str, str]] = {
     ),
     "/assets/dmz_form_editor_presets.js": (
         "dmz_form_editor_presets.js",
+        "application/javascript; charset=utf-8",
+    ),
+    "/assets/three.min.js": (
+        "three.min.js",
+        "application/javascript; charset=utf-8",
+    ),
+    "/assets/OrbitControls.js": (
+        "OrbitControls.js",
         "application/javascript; charset=utf-8",
     ),
     "/assets/kiforge_logo.png": (
@@ -797,7 +1019,7 @@ def create_http_server(
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header(
                 "Content-Security-Policy",
-                "default-src 'self'; style-src 'self' 'unsafe-inline'",
+                "default-src 'self' data: blob: 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;",
             )
             self.end_headers()
             self.wfile.write(body)
@@ -845,6 +1067,22 @@ def create_http_server(
                 self._send_json(200, {"ok": True, "addons": controller.get_addons(force=force)})
                 return
 
+            if path == "/api/backups/list":
+                self._send_json(200, controller.list_backups())
+                return
+
+            if path == "/api/staging/list":
+                self._send_json(200, {"ok": True, "staging_dock": controller.get_staging_dock()})
+                return
+
+            if path == "/api/diff":
+                self._send_json(200, controller.get_diff())
+                return
+
+            if path == "/api/integrity-check":
+                self._send_json(200, controller.check_integrity())
+                return
+
             self._send_json(404, {"ok": False, "error": "Rota não encontrada."})
 
         def do_POST(self) -> None:  # noqa: N802
@@ -864,6 +1102,26 @@ def create_http_server(
                     self._send_json(200, controller.add_form(body))
                 elif path == "/api/form/delete":
                     self._send_json(200, controller.delete_form(body))
+                elif path == "/api/form/reorder":
+                    self._send_json(200, controller.reorder_form(body))
+                elif path == "/api/form/duplicate":
+                    self._send_json(200, controller.duplicate_form(body))
+                elif path == "/api/form/auto-scale":
+                    self._send_json(200, controller.auto_scale_tree(body))
+                elif path == "/api/staging/import":
+                    self._send_json(200, controller.import_to_staging(body))
+                elif path == "/api/staging/allocate":
+                    self._send_json(200, controller.allocate_from_staging(body))
+                elif path == "/api/staging/remove":
+                    self._send_json(200, controller.remove_from_staging(body))
+                elif path == "/api/export/selective":
+                    self._send_json(200, controller.export_selective(body))
+                elif path == "/api/canonical-balance":
+                    self._send_json(200, controller.canonical_balance(body))
+                elif path == "/api/calculate-stats":
+                    self._send_json(200, controller.calculate_stats(body))
+                elif path == "/api/backups/open-folder":
+                    self._send_json(200, controller.open_backups_folder())
                 elif path == "/api/addons/toggle":
                     fname = str(body.get("filename", "")).strip()
                     en = bool(body.get("enabled", True))
