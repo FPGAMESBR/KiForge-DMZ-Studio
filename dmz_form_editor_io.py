@@ -1,243 +1,3 @@
-from __future__ import annotations
-
-
-import subprocess
-import sys
-import time
-
-
-def get_backup_dir() -> str:
-    """Resolve the dedicated backups directory at project root or executable location."""
-    if getattr(sys, "frozen", False):
-        base_dir = os.path.dirname(sys.executable)
-    else:
-        base_dir = os.path.abspath(os.path.dirname(__file__))
-    bdir = os.path.join(base_dir, "backups")
-    os.makedirs(bdir, exist_ok=True)
-    return bdir
-
-
-def cleanup_old_backups(max_retention: int = 30) -> int:
-    """Keep only the most recent N zip backups, deleting older ones."""
-    bdir = get_backup_dir()
-    if not os.path.isdir(bdir):
-        return 0
-    archives = []
-    for f in os.listdir(bdir):
-        if f.startswith("backup_") and f.endswith(".zip"):
-            fp = os.path.join(bdir, f)
-            archives.append((os.path.getmtime(fp), fp))
-    archives.sort(reverse=True)
-    deleted = 0
-    for _, fp in archives[max_retention:]:
-        try:
-            os.remove(fp)
-            deleted += 1
-        except Exception:
-            pass
-    return deleted
-
-
-def create_zip_backup(source_config_dir: str, tag: str = "auto") -> str | None:
-    """Create a compressed .zip backup of source_config_dir strictly in the studio backups folder."""
-    if not os.path.isdir(source_config_dir):
-        return None
-    bdir = get_backup_dir()
-    stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    zip_name = f"backup_{stamp}_{tag}.zip"
-    zip_path = os.path.join(bdir, zip_name)
-    try:
-        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            for root, _, files in os.walk(source_config_dir):
-                # Never include backups folder or temporary files
-                if "backup" in root.lower() or ".tmp" in root.lower():
-                    continue
-                for f in files:
-                    if f.endswith(".json") or f.endswith(".toml"):
-                        full_path = os.path.join(root, f)
-                        rel_path = os.path.relpath(full_path, source_config_dir)
-                        zf.write(full_path, rel_path)
-        cleanup_old_backups(30)
-        return zip_path
-    except Exception as e:
-        print(f"Warning: Failed to create zip backup: {e}")
-        return None
-
-
-def open_backup_folder() -> bool:
-    """Open the studio backups folder in Windows Explorer."""
-    bdir = get_backup_dir()
-    try:
-        if os.name == "nt":
-            os.startfile(bdir)
-        else:
-            subprocess.Popen(["xdg-open", bdir])
-        return True
-    except Exception:
-        return False
-
-
-def atomic_json_dump(data: Any, target_path: str, indent: int = 2) -> None:
-    """Write JSON data to a temporary file first, then atomically replace target."""
-    os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    tmp_path = f"{target_path}.tmp_{os.getpid()}_{int(time.time() * 1000)}"
-    with open(tmp_path, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=indent, ensure_ascii=False)
-    os.replace(tmp_path, target_path)
-
-
-def resolve_dmz_config_dir(candidate_path: str) -> str:
-    """Intelligently locate dragonminez config directory whether user passes instance, config, or dragonminez directly."""
-    clean = os.path.abspath(candidate_path.strip())
-    if os.path.basename(clean).lower() == "dragonminez" and os.path.isdir(clean):
-        return clean
-    c1 = os.path.join(clean, "config", "dragonminez")
-    if os.path.isdir(c1):
-        return c1
-    c2 = os.path.join(clean, "dragonminez")
-    if os.path.isdir(c2):
-        return c2
-    if os.path.isdir(os.path.join(clean, "races")) or os.path.isdir(os.path.join(clean, "forms")):
-        return clean
-    return clean
-
-
-def export_selective_mold(
-    working_state: dict[str, Any],
-    selection: dict[str, Any],
-    author: str = "KiForge User",
-    notes: str = "",
-) -> dict[str, Any]:
-    """Export whole catalog, specific races, specific groups, or specific sub-forms."""
-    sel_races = set(selection.get("races", []))
-    sel_groups = set(selection.get("groups", []))
-    sel_forms = set(selection.get("forms", []))
-    export_all = not sel_races and not sel_groups and not sel_forms
-
-    exported_races: dict[str, Any] = {}
-    exported_globals: dict[str, Any] = {}
-
-    for r_key, r_obj in working_state.get("racas", {}).items():
-        if export_all or r_key in sel_races:
-            exported_races[r_key] = copy.deepcopy(r_obj)
-        else:
-            matching_arvores = {}
-            for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
-                if t_key in sel_groups:
-                    matching_arvores[t_key] = copy.deepcopy(t_obj)
-                else:
-                    matching_forms = [f for f in t_obj.get("formas", []) if f.get("id") in sel_forms]
-                    if matching_forms:
-                        g_copy = copy.deepcopy(t_obj)
-                        g_copy["formas"] = matching_forms
-                        g_copy["total_formas"] = len(matching_forms)
-                        matching_arvores[t_key] = g_copy
-            if matching_arvores:
-                r_copy = copy.deepcopy(r_obj)
-                r_copy["arvores_de_transformacao"] = matching_arvores
-                r_copy["total_arvores"] = len(matching_arvores)
-                r_copy["total_formas"] = sum(len(a.get("formas", [])) for a in matching_arvores.values())
-                exported_races[r_key] = r_copy
-
-    for g_key, g_obj in working_state.get("formas_universais_e_stack", {}).items():
-        if export_all or g_key in sel_groups or "global" in sel_races:
-            exported_globals[g_key] = copy.deepcopy(g_obj)
-        else:
-            matching_forms = [f for f in g_obj.get("formas", []) if f.get("id") in sel_forms]
-            if matching_forms:
-                g_copy = copy.deepcopy(g_obj)
-                g_copy["formas"] = matching_forms
-                g_copy["total_formas"] = len(matching_forms)
-                exported_globals[g_key] = g_copy
-
-    return {
-        "format": "kiforge_dmz_mold",
-        "version": "2.0",
-        "exported_at": datetime.now().isoformat(),
-        "author": author.strip() or "KiForge User",
-        "notes": notes.strip(),
-        "racas": exported_races,
-        "formas_universais_e_stack": exported_globals,
-    }
-
-
-def parse_import_payload(raw_input: str | dict[str, Any]) -> list[dict[str, Any]]:
-    """Parse imported JSON payload or clipboard string into a list of staging items."""
-    if isinstance(raw_input, str):
-        data = json.loads(raw_input.strip())
-    else:
-        data = raw_input
-
-    items: list[dict[str, Any]] = []
-
-    if isinstance(data, dict):
-        for r_key, r_obj in data.get("racas", {}).items():
-            for t_key, t_obj in r_obj.get("arvores_de_transformacao", {}).items():
-                for f in t_obj.get("formas", []):
-                    items.append({
-                        "type": "sub_form",
-                        "payload": f,
-                        "origin_hint": f"{r_key}/{t_key}",
-                    })
-        for g_key, g_obj in data.get("formas_universais_e_stack", {}).items():
-            for f in g_obj.get("formas", []):
-                items.append({
-                    "type": "sub_form",
-                    "payload": f,
-                    "origin_hint": f"global/{g_key}",
-                })
-        if "forms" in data and isinstance(data["forms"], dict):
-            g_name = data.get("groupName", "imported_group")
-            for fid, fval in data["forms"].items():
-                items.append({
-                    "type": "sub_form",
-                    "payload": {**fval, "id": fid, "nome": fval.get("name", fid)},
-                    "origin_hint": f"custom/{g_name}",
-                })
-        elif "id" in data and ("multiplicador_bp" in data or "strMultiplier" in data or "name" in data):
-            items.append({
-                "type": "sub_form",
-                "payload": data,
-                "origin_hint": "single_import",
-            })
-    elif isinstance(data, list):
-        for entry in data:
-            if isinstance(entry, dict):
-                items.append({
-                    "type": "sub_form",
-                    "payload": entry,
-                    "origin_hint": "list_import",
-                })
-
-    return items
-
-
-def inspect_mod_jars(instance_dir: str | None) -> dict[str, Any]:
-    """Inspect mod jars in-memory via zipfile to index textures, auras, hair, and addon properties."""
-    result: dict[str, Any] = {
-        "hair_types": ["base", "ssj", "ssj2", "ssj3", "ssj4", "beast", "oozaru", "bald"],
-        "aura_types": ["kakarot", "vegeta", "god", "beast", "divine", "ultra", "legendary", "none"],
-        "mod_textures": [],
-        "discovered_addons": [],
-    }
-    if not instance_dir:
-        return result
-    mods_dir = os.path.join(instance_dir, "mods")
-    if not os.path.isdir(mods_dir):
-        return result
-
-    for f in os.listdir(mods_dir):
-        if f.endswith(".jar"):
-            jar_path = os.path.join(mods_dir, f)
-            try:
-                with zipfile.ZipFile(jar_path, "r") as z:
-                    for name in z.namelist():
-                        if "textures/" in name and name.endswith(".png"):
-                            result["mod_textures"].append(os.path.basename(name))
-            except Exception:
-                pass
-    return result
-
 """Persistence and modpack I/O routines for Dragon Mine Z transformations.
 
 Handles reading/writing exported JSON catalogs and applying edits back into
@@ -245,6 +5,7 @@ DragonMineZ config files (`character.json`, `races/<race>/forms/*.json`,
 `forms/*.json`, and `skills.json`) with automatic timestamped backups.
 """
 
+from __future__ import annotations
 
 import copy
 from datetime import datetime
@@ -462,7 +223,6 @@ def _read_race_entry(
 
 def load_catalog_from_modpack(
     dmz_config_dir: str,
-
     instance_dir: str | None = None,
     allowed_roots: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -472,8 +232,7 @@ def load_catalog_from_modpack(
         if allowed_roots is not None
         else [dmz_config_dir, *default_allowed_roots()]
     )
-    resolved_path = resolve_dmz_config_dir(dmz_config_dir)
-    safe_dmz = validate_allowed_path(resolved_path, allowed_roots=[resolved_path, dmz_config_dir, *roots])
+    safe_dmz = validate_allowed_path(dmz_config_dir, allowed_roots=roots)
     inferred_instance = instance_dir or os.path.dirname(os.path.dirname(safe_dmz))
     translations = _load_mod_translations(inferred_instance)
 
@@ -746,9 +505,13 @@ def _create_raw_form_scaffold(entry: dict[str, Any]) -> dict[str, Any]:
 def _backup_file_if_exists(
     src_path: str, dmz_root: str, backup_root: str | None
 ) -> None:
-    # Strict rule: NEVER create loose backup files inside modpack directory.
-    # All backups are handled exclusively via create_zip_backup() in backups/
-    pass
+    if not backup_root or not os.path.isfile(src_path):
+        return
+    rel = os.path.relpath(src_path, dmz_root)
+    dest = os.path.join(backup_root, rel)
+    if not os.path.exists(dest):
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        shutil.copy2(src_path, dest)
 
 
 def _sync_race_files(
@@ -808,7 +571,13 @@ def _sync_race_files(
 
         if tree_changed or not os.path.isfile(fpath):
             _backup_file_if_exists(fpath, safe_dmz, backup_dir)
-            atomic_json_dump({**raw_tree, "forms": raw_forms}, fpath)
+            with open(fpath, "w", encoding="utf-8") as fh:
+                json.dump(
+                    {**raw_tree, "forms": raw_forms},
+                    fh,
+                    indent=2,
+                    ensure_ascii=False,
+                )
             updated += 1
 
         if char_doc is not None:
@@ -853,7 +622,8 @@ def _sync_race_files(
 
     if char_doc is not None and char_modified:
         _backup_file_if_exists(char_path, safe_dmz, backup_dir)
-        atomic_json_dump(char_doc, char_path)
+        with open(char_path, "w", encoding="utf-8") as fh:
+            json.dump(char_doc, fh, indent=2, ensure_ascii=False)
         updated += 1
 
     return updated
@@ -871,13 +641,12 @@ def apply_catalog_to_modpack(
         if allowed_roots is not None
         else [dmz_config_dir, *default_allowed_roots()]
     )
-    resolved_path = resolve_dmz_config_dir(dmz_config_dir)
-    safe_dmz = validate_allowed_path(resolved_path, allowed_roots=[resolved_path, dmz_config_dir, *roots])
+    safe_dmz = validate_allowed_path(dmz_config_dir, allowed_roots=roots)
 
-    backup_zip: str | None = None
+    backup_dir: str | None = None
     if create_backup:
-        backup_zip = create_zip_backup(safe_dmz, tag="pre_save")
-    backup_dir = None  # Never write loose files to modpack directory
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_dir = os.path.join(safe_dmz, "backups_editor", stamp)
 
     updated_files = 0
     for r_key, r_obj in catalog.get("racas", {}).items():
@@ -929,7 +698,13 @@ def apply_catalog_to_modpack(
 
         if grp_changed or not os.path.isfile(fpath):
             _backup_file_if_exists(fpath, safe_dmz, backup_dir)
-            atomic_json_dump({**raw_grp, "forms": raw_forms}, fpath)
+            with open(fpath, "w", encoding="utf-8") as fh:
+                json.dump(
+                    {**raw_grp, "forms": raw_forms},
+                    fh,
+                    indent=2,
+                    ensure_ascii=False,
+                )
             updated_files += 1
 
         if skills_doc is not None:
@@ -1004,13 +779,13 @@ def apply_catalog_to_modpack(
 
     if skills_doc is not None and skills_modified:
         _backup_file_if_exists(skills_path, safe_dmz, backup_dir)
-        atomic_json_dump(skills_doc, skills_path)
+        with open(skills_path, "w", encoding="utf-8") as fh:
+            json.dump(skills_doc, fh, indent=2, ensure_ascii=False)
         updated_files += 1
 
     return {
         "arquivos_atualizados": updated_files,
-        "pasta_backup": get_backup_dir() if updated_files > 0 else None,
-        "arquivo_backup_zip": backup_zip,
+        "pasta_backup": backup_dir if updated_files > 0 else None,
         "caminho_modpack": safe_dmz,
     }
 

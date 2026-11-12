@@ -8,10 +8,6 @@ env/
 venv/
 ENV/
 
-# Studio Backups
-backups/
-*.zip
-
 # PyInstaller build artifacts
 build/
 dist/
